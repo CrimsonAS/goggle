@@ -19,6 +19,7 @@ func (this *OtherButton) Render() TreeNode {
 type Button struct {
 	color       Color
 	secondColor Color
+	scene       *Scene
 }
 
 func (this *Button) Render() TreeNode {
@@ -43,21 +44,19 @@ func (this *Button) Render() TreeNode {
 
 func (this *Button) SetColor(col Color) {
 	this.color = col
-	win.MarkDirty(this)
+	this.scene.MarkDirty(this)
 }
 func (this *Button) SetSecondColor(col Color) {
 	this.secondColor = col
-	win.MarkDirty(this)
+	this.scene.MarkDirty(this)
 }
 
-var win *Window
-
 func main() {
-	thing := &Button{}
-	win = NewWindow(thing)
+	s := &Scene{}
+	thing := &Button{scene: s}
 	thing.SetSecondColor(Color{rand.Float32(), rand.Float32(), rand.Float32(), rand.Float32()})
 	for {
 		thing.SetColor(Color{rand.Float32(), rand.Float32(), rand.Float32(), rand.Float32()})
-		win.Render()
+		s.Sync()
 	}
 }

@@ -4,28 +4,21 @@ import (
 	"fmt"
 )
 
-// A Window is a scene. Maybe we should call it that instead?
-type Window struct {
+// A Scene is a controller containing a tree of Nodeable and Renderable, as well
+// as the logic to tie that and the Renderer together.
+type Scene struct {
 	// A list of Renderables  that need updating on the next sync pass.
 	dirtyList []Renderable
 }
 
-// Create a window with a given root Renderable.
-func NewWindow(rootRenderable) *Window {
-	fmt.Printf("Creating %p\n", root)
-	w := &Window{}
-	w.MarkDirty(root)
-	return w
-}
-
 // Mark this renderable as dirty. It will be cleaned on the next sync pass.
-func (this *Window) MarkDirty(renderable Renderable) {
+func (this *Scene) MarkDirty(renderable Renderable) {
 	fmt.Printf("Marking dirty %p\n", renderable)
 	this.dirtyList = append(this.dirtyList, renderable)
 }
 
 // Renders a single Renderable, and its children (if it is also a Nodeable).
-func (this *Window) renderItem(item Renderable) TreeNode {
+func (this *Scene) renderItem(item Renderable) TreeNode {
 	fmt.Printf("Rendering %p %+v\n", item, item)
 	node := item.Render()
 	fmt.Printf("Got node %p %+v\n", node, node)
@@ -45,10 +38,10 @@ func (this *Window) renderItem(item Renderable) TreeNode {
 	return node
 }
 
-// Render this window.
-func (this *Window) Render() {
+// Prepare the scene for rendering.
+func (this *Scene) Sync() {
 	// For each dirty item, find out what it wants to render
-	for _, item := range this.dirtyItems {
+	for _, item := range this.dirtyList {
 		// ### cache the subtree of this renderItem calls for use by a
 		// renderer..?
 		this.renderItem(item)

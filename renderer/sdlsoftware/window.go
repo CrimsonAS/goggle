@@ -1,7 +1,10 @@
 package sdlsoftware
 
-import "github.com/CrimsonAS/goggle/sg"
-import "github.com/veandco/go-sdl2/sdl"
+import (
+	"fmt"
+	"github.com/CrimsonAS/goggle/sg"
+	"github.com/veandco/go-sdl2/sdl"
+)
 
 // ### consider an interface when/if we want multiple renderers
 type Renderer struct {
@@ -46,7 +49,8 @@ func (this *Window) Destroy() {
 
 // Render a scene onto the window. The scene should have been synced recently;
 // ideally once per render.
-func (this *Window) Render(scene *sg.Scene) {
+func (this *Window) Render(scene sg.TreeNode) {
+	fmt.Printf("Rendering\n")
 	surface, err := this.window.GetSurface()
 	if err != nil {
 		panic(err)
@@ -55,4 +59,49 @@ func (this *Window) Render(scene *sg.Scene) {
 	rect := sdl.Rect{0, 0, 200, 200}
 	surface.FillRect(&rect, 0xffff0000)
 	this.window.UpdateSurface()
+
+	this.renderItem(scene)
+	fmt.Printf("Done rendering\n")
+}
+
+func (this *Window) renderItem(item sg.TreeNode) {
+	rootNode := item
+
+	for {
+		fmt.Printf("Rendering %+v\n", rootNode)
+		if renderableNode, ok := rootNode.(sg.Renderable); ok {
+			// if it's a Renderable, try reduce it to a real node of some kind
+			fmt.Printf("Renderable. Going deeper.\n")
+			rootNode = renderableNode.Render()
+		} else {
+			break
+		}
+	}
+
+	if _, ok := rootNode.(sg.Renderable); ok {
+		panic("WTF is this still renderable?")
+	}
+
+	// At this point, rootNode should be something we can draw.
+	fmt.Printf("Can draw %+v\n", rootNode)
+
+	// ### this is a wee bit ugly, but we need to check if either rootNode (the
+	// non-Renderable, decomposed node) or the original Item are of type
+	// Nodeable.
+	if treeChild, ok := item.(sg.Nodeable); ok {
+		fmt.Printf("%+v: Nodable.\n", rootNode)
+		for _, citem := range treeChild.GetChildren() {
+			fmt.Printf("Examining child %+v\n", citem)
+			this.renderItem(citem)
+		}
+	} else if treeChild, ok := rootNode.(sg.Nodeable); ok {
+		fmt.Printf("%+v: Nodable.\n", rootNode)
+		for _, citem := range treeChild.GetChildren() {
+			fmt.Printf("Examining child %+v\n", citem)
+			this.renderItem(citem)
+		}
+	} else {
+		fmt.Printf("%+v AND %+v: Not nodable.\n", item, rootNode)
+
+	}
 }

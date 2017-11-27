@@ -22,12 +22,13 @@ type Color [4]float32
 
 // A Rectangle is a node that is rendered as a rectangle.
 type Rectangle struct {
-	X        float32
-	Y        float32
-	Width    float32
-	Height   float32
-	Color    Color
-	Children []TreeNode
+	ObjectName string
+	X          float32
+	Y          float32
+	Width      float32
+	Height     float32
+	Color      Color
+	Children   []TreeNode
 }
 
 // See Nodeable.

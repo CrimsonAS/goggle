@@ -6,7 +6,9 @@ import (
 	"math/rand"
 )
 
-type OtherButton struct{}
+type OtherButton struct {
+	ObjectName string
+}
 
 func (this *OtherButton) Render() sg.TreeNode {
 	return sg.Rectangle{
@@ -19,26 +21,26 @@ func (this *OtherButton) Render() sg.TreeNode {
 }
 
 type Button struct {
-	color       sg.Color
-	secondColor sg.Color
-	scene       *sg.Scene
+	ObjectName string
+	color      sg.Color
 }
 
 func (this *Button) Render() sg.TreeNode {
-	return sg.Rectangle{
-		X:      100,
-		Y:      100,
-		Width:  200,
-		Height: 200,
-		Color:  this.color,
+	return &sg.Rectangle{
+		ObjectName: "Rect",
+		X:          100,
+		Y:          100,
+		Width:      200,
+		Height:     200,
+		Color:      this.color,
 		Children: []sg.TreeNode{
-			OtherButton{},
+			OtherButton{
+				ObjectName: "OtherButton",
+			},
 			sg.Rectangle{
-				X:      5,
-				Y:      5,
-				Width:  5,
-				Height: 5,
-				Color:  this.secondColor,
+				ObjectName: "Rect2",
+				X:          100,
+				Y:          200,
 			},
 		},
 	}
@@ -46,11 +48,6 @@ func (this *Button) Render() sg.TreeNode {
 
 func (this *Button) SetColor(col sg.Color) {
 	this.color = col
-	this.scene.MarkDirty(this)
-}
-func (this *Button) SetSecondColor(col sg.Color) {
-	this.secondColor = col
-	this.scene.MarkDirty(this)
 }
 
 func main() {
@@ -66,13 +63,10 @@ func main() {
 		panic(err)
 	}
 
-	s := &sg.Scene{}
-	thing := &Button{scene: s}
-	thing.SetSecondColor(sg.Color{rand.Float32(), rand.Float32(), rand.Float32(), rand.Float32()})
+	thing := &Button{ObjectName: "Button"}
 	for {
 		thing.SetColor(sg.Color{rand.Float32(), rand.Float32(), rand.Float32(), rand.Float32()})
-		s.Sync()
-		w.Render(s)
+		w.Render(thing)
 		r.ProcessEvents()
 	}
 

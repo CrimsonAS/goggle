@@ -78,10 +78,6 @@ func (this *Window) renderItem(item sg.TreeNode) {
 		}
 	}
 
-	if _, ok := rootNode.(sg.Renderable); ok {
-		panic("WTF is this still renderable?")
-	}
-
 	// At this point, rootNode should be something we can draw.
 	fmt.Printf("Can draw %+v\n", rootNode)
 
@@ -101,7 +97,6 @@ func (this *Window) renderItem(item sg.TreeNode) {
 			this.renderItem(citem)
 		}
 	} else {
-		fmt.Printf("%+v AND %+v: Not nodable.\n", item, rootNode)
-
+		panic(fmt.Sprintf("Bad node type (not a pointer?) returned: %+v, %+v", item, rootNode))
 	}
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/CrimsonAS/goggle/renderer/sdlsoftware"
 	"github.com/CrimsonAS/goggle/sg"
 	"math/rand"
 )
@@ -53,11 +54,27 @@ func (this *Button) SetSecondColor(col sg.Color) {
 }
 
 func main() {
+	r, err := sdlsoftware.NewRenderer()
+	if err != nil {
+		panic(err)
+	}
+
+	w, err := r.CreateWindow()
+	defer w.Destroy()
+
+	if err != nil {
+		panic(err)
+	}
+
 	s := &sg.Scene{}
 	thing := &Button{scene: s}
 	thing.SetSecondColor(sg.Color{rand.Float32(), rand.Float32(), rand.Float32(), rand.Float32()})
 	for {
 		thing.SetColor(sg.Color{rand.Float32(), rand.Float32(), rand.Float32(), rand.Float32()})
 		s.Sync()
+		w.Render(s)
+		r.ProcessEvents()
 	}
+
+	r.Quit()
 }

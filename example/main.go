@@ -11,12 +11,13 @@ type OtherButton struct {
 }
 
 func (this *OtherButton) Render() sg.TreeNode {
-	return sg.Rectangle{
-		X:      5,
-		Y:      5,
-		Width:  5,
-		Height: 5,
-		Color:  sg.Color{0.3, 0.4, 0.5, 0.6},
+	return &sg.Rectangle{
+		ObjectName: "OtherButtonRect",
+		X:          5,
+		Y:          5,
+		Width:      5,
+		Height:     5,
+		Color:      sg.Color{0.3, 0.4, 0.5, 0.6},
 	}
 }
 
@@ -34,10 +35,10 @@ func (this *Button) Render() sg.TreeNode {
 		Height:     200,
 		Color:      this.color,
 		Children: []sg.TreeNode{
-			OtherButton{
+			&OtherButton{
 				ObjectName: "OtherButton",
 			},
-			sg.Rectangle{
+			&sg.Rectangle{
 				ObjectName: "Rect2",
 				X:          100,
 				Y:          200,

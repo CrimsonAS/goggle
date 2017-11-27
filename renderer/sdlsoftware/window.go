@@ -22,7 +22,7 @@ func (this *Renderer) Quit() {
 
 // Spin the event loop
 func (this *Renderer) ProcessEvents() {
-	sdl.Delay(2500)
+	sdl.Delay(5)
 }
 
 // Create (and show, for now) a window
@@ -56,15 +56,12 @@ func (this *Window) Render(scene sg.TreeNode) {
 		panic(err)
 	}
 
-	rect := sdl.Rect{0, 0, 200, 200}
-	surface.FillRect(&rect, 0xffff0000)
+	this.renderItem(scene, surface)
 	this.window.UpdateSurface()
-
-	this.renderItem(scene)
 	fmt.Printf("Done rendering\n")
 }
 
-func (this *Window) renderItem(item sg.TreeNode) {
+func (this *Window) renderItem(item sg.TreeNode, surface *sdl.Surface) {
 	rootNode := item
 
 	for {
@@ -78,8 +75,15 @@ func (this *Window) renderItem(item sg.TreeNode) {
 		}
 	}
 
-	// At this point, rootNode should be something we can draw.
-	fmt.Printf("Can draw %+v\n", rootNode)
+	// At this point, rootNode might be something we can draw.
+	if rectangle, ok := rootNode.(*sg.Rectangle); ok {
+		rect := sdl.Rect{int32(rectangle.X), int32(rectangle.Y), int32(rectangle.Width), int32(rectangle.Height)}
+		fmt.Printf("Filling rect xy %fx%f wh %fx%f with color %s\n", rectangle.X, rectangle.Y, rectangle.Width, rectangle.Height, rectangle.Color)
+
+		// argb -> rgba
+		var sdlColor uint32 = sdl.MapRGBA(surface.Format, uint8(255.0*rectangle.Color[1]), uint8(255.0*rectangle.Color[2]), uint8(255.0*rectangle.Color[3]), uint8(255.0*rectangle.Color[0]))
+		surface.FillRect(&rect, sdlColor)
+	}
 
 	// ### this is a wee bit ugly, but we need to check if either rootNode (the
 	// non-Renderable, decomposed node) or the original Item are of type
@@ -88,13 +92,13 @@ func (this *Window) renderItem(item sg.TreeNode) {
 		fmt.Printf("%+v: Nodable.\n", rootNode)
 		for _, citem := range treeChild.GetChildren() {
 			fmt.Printf("Examining child %+v\n", citem)
-			this.renderItem(citem)
+			this.renderItem(citem, surface)
 		}
 	} else if treeChild, ok := rootNode.(sg.Nodeable); ok {
 		fmt.Printf("%+v: Nodable.\n", rootNode)
 		for _, citem := range treeChild.GetChildren() {
 			fmt.Printf("Examining child %+v\n", citem)
-			this.renderItem(citem)
+			this.renderItem(citem, surface)
 		}
 	} else {
 		panic(fmt.Sprintf("Bad node type (not a pointer?) returned: %+v, %+v", item, rootNode))

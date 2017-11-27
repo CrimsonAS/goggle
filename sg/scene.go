@@ -1,4 +1,4 @@
-package main
+package sg
 
 import (
 	"fmt"
@@ -19,9 +19,8 @@ func (this *Scene) MarkDirty(renderable Renderable) {
 
 // Renders a single Renderable, and its children (if it is also a Nodeable).
 func (this *Scene) renderItem(item Renderable) TreeNode {
-	fmt.Printf("Rendering %p %+v\n", item, item)
 	node := item.Render()
-	fmt.Printf("Got node %p %+v\n", node, node)
+	fmt.Printf("Rendered %+v to node %+v\n", item, node)
 
 	// If the child is also a tree item, render those.
 	if treeChild, ok := item.(Nodeable); ok {

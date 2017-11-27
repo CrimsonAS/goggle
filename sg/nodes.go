@@ -1,4 +1,4 @@
-package main
+package sg
 
 // Syntactic sugar.
 type TreeNode interface{}

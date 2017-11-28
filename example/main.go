@@ -7,44 +7,48 @@ import (
 )
 
 type OtherButton struct {
-	ObjectName string
+	sg.BasicNode
 }
 
 func (this *OtherButton) Render() sg.TreeNode {
 	return &sg.Rectangle{
-		ObjectName: "OtherButtonRect",
-		X:          110,
-		Y:          110,
-		Width:      180,
-		Height:     180,
-		Color:      sg.Color{0.5, 0.0, 1.0, 0.0},
+		BasicNode: sg.BasicNode{
+			ObjectName: "OtherButtonRect",
+		},
+		X:      110,
+		Y:      110,
+		Width:  180,
+		Height: 180,
+		Color:  sg.Color{0.5, 0.0, 1.0, 0.0},
 	}
 }
 
 type Button struct {
-	ObjectName string
-	color      sg.Color
+	sg.BasicNode
+	color sg.Color
 }
 
 func (this *Button) Render() sg.TreeNode {
 	return &sg.Rectangle{
-		ObjectName: "Rect",
-		X:          100,
-		Y:          100,
-		Width:      200,
-		Height:     200,
-		Color:      this.color,
-		Children: []sg.TreeNode{
-			&OtherButton{
-				ObjectName: "OtherButton",
-			},
-			&sg.Rectangle{
-				ObjectName: "Rect2",
-				X:          100,
-				Y:          200,
-				Width:      50,
-				Height:     50,
-				Color:      sg.Color{0.5, 1.0, 0, 0},
+		X:      100,
+		Y:      100,
+		Width:  200,
+		Height: 200,
+		Color:  this.color,
+		BasicNode: sg.BasicNode{
+			ObjectName: "Rect",
+			Children: []sg.TreeNode{
+				&OtherButton{
+					sg.BasicNode{ObjectName: "OtherButton"},
+				},
+				&sg.Rectangle{
+					BasicNode: sg.BasicNode{ObjectName: "Rect2"},
+					X:         100,
+					Y:         200,
+					Width:     50,
+					Height:    50,
+					Color:     sg.Color{0.5, 1.0, 0, 0},
+				},
 			},
 		},
 	}
@@ -67,7 +71,7 @@ func main() {
 		panic(err)
 	}
 
-	thing := &Button{ObjectName: "Button"}
+	thing := &Button{BasicNode: sg.BasicNode{ObjectName: "Button"}}
 	for {
 		thing.SetColor(sg.Color{rand.Float32(), rand.Float32(), rand.Float32(), rand.Float32()})
 		w.Render(thing)

@@ -88,19 +88,16 @@ func (this *Window) renderItem(item sg.TreeNode, surface *sdl.Surface) {
 	// ### this is a wee bit ugly, but we need to check if either rootNode (the
 	// non-Renderable, decomposed node) or the original Item are of type
 	// Nodeable.
-	if treeChild, ok := item.(sg.Nodeable); ok {
-		fmt.Printf("%+v: Nodable.\n", rootNode)
-		for _, citem := range treeChild.GetChildren() {
+	// ### BUG: You also need to check anything in between.
+	// ### BUG: Order
+	for _, citem := range item.GetChildren() {
+		fmt.Printf("Examining child %+v\n", citem)
+		this.renderItem(citem, surface)
+	}
+	if item != rootNode {
+		for _, citem := range rootNode.GetChildren() {
 			fmt.Printf("Examining child %+v\n", citem)
 			this.renderItem(citem, surface)
 		}
-	} else if treeChild, ok := rootNode.(sg.Nodeable); ok {
-		fmt.Printf("%+v: Nodable.\n", rootNode)
-		for _, citem := range treeChild.GetChildren() {
-			fmt.Printf("Examining child %+v\n", citem)
-			this.renderItem(citem, surface)
-		}
-	} else {
-		panic(fmt.Sprintf("Bad node type (not a pointer?) returned: %+v, %+v", item, rootNode))
 	}
 }

@@ -1,13 +1,22 @@
 package sg
 
-// Syntactic sugar.
-type TreeNode interface{}
-
-// Nodeable is something that can have children, used by the engine.
-type Nodeable interface {
-	// Return a list of children (either Nodeable or Renderable) that are in
-	// this thing.
+// TreeNode is a basic node; embed BasicNode for standard implementation
+type TreeNode interface {
 	GetChildren() []TreeNode
+}
+
+// BasicNode provides a default embeddable implementation of TreeNode
+type BasicNode struct {
+	ObjectName string
+	Children   []TreeNode
+}
+
+func (node *BasicNode) GetObjectName() string {
+	return node.ObjectName
+}
+
+func (node *BasicNode) GetChildren() []TreeNode {
+	return node.Children
 }
 
 // Renderable is something that can be rendered, used by the engine.
@@ -22,16 +31,10 @@ type Color [4]float32
 
 // A Rectangle is a node that is rendered as a rectangle.
 type Rectangle struct {
-	ObjectName string
-	X          float32
-	Y          float32
-	Width      float32
-	Height     float32
-	Color      Color
-	Children   []TreeNode
-}
-
-// See Nodeable.
-func (this *Rectangle) GetChildren() []TreeNode {
-	return this.Children
+	BasicNode
+	X      float32
+	Y      float32
+	Width  float32
+	Height float32
+	Color  Color
 }

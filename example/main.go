@@ -1,8 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"github.com/CrimsonAS/goggle/renderer/sdlsoftware"
 	"github.com/CrimsonAS/goggle/sg"
+	"github.com/veandco/go-sdl2/sdl"
 	"math/rand"
 )
 
@@ -39,6 +41,11 @@ func (this *Button) Render() sg.TreeNode {
 			Children: []sg.TreeNode{
 				&OtherButton{
 					sg.BasicNode{ObjectName: "OtherButton"},
+				},
+				&sdlsoftware.SDLDrawNode{
+					Draw: func(surface *sdl.Surface, node *sdlsoftware.SDLDrawNode) {
+						fmt.Printf("custom drawing here\n")
+					},
 				},
 				&sg.Rectangle{
 					BasicNode: sg.BasicNode{

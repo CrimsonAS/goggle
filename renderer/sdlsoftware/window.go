@@ -119,6 +119,9 @@ func (this *Window) drawNode(surface *sdl.Surface, node sg.TreeNode) {
 		// argb -> rgba
 		var sdlColor uint32 = sdl.MapRGBA(surface.Format, uint8(255.0*rectangle.Color[1]), uint8(255.0*rectangle.Color[2]), uint8(255.0*rectangle.Color[3]), uint8(255.0*rectangle.Color[0]))
 		surface.FillRect(&rect, sdlColor)
+	} else if draw, ok := node.(*SDLDrawNode); ok {
+		fmt.Printf("Calling custom draw function %+v\n", draw.Draw)
+		draw.Draw(surface, draw)
 	} else {
 		panic("unknown drawable")
 	}

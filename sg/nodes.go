@@ -19,6 +19,8 @@ func (node *BasicNode) GetChildren() []TreeNode {
 	return node.Children
 }
 
+// ### The word 'render' is extremely overloaded in this API
+
 // Renderable is something that can be rendered, used by the engine.
 type Renderable interface {
 	// Render is expected to return a tree of nodes representing this thing's

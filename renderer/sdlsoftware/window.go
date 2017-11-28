@@ -47,8 +47,7 @@ func (this *Window) Destroy() {
 	this.window.Destroy()
 }
 
-// Render a scene onto the window. The scene should have been synced recently;
-// ideally once per render.
+// Render a scene onto the window
 func (this *Window) Render(scene sg.TreeNode) {
 	fmt.Printf("Rendering\n")
 	surface, err := this.window.GetSurface()
@@ -56,48 +55,57 @@ func (this *Window) Render(scene sg.TreeNode) {
 		panic(err)
 	}
 
-	this.renderItem(scene, surface)
+	// The strategy here is to render in two stages:
+	// first walk the scene and reduce the tree to a list of
+	// drawable primitives; then, iterate drawables and draw
+	// them into the window. These could be split up further
+	// in the future, and potentially happen across goroutines.
+	drawables := this.renderItem(scene)
+	fmt.Printf("Scene reduced to drawable: %+v\n", drawables)
+	for _, node := range drawables {
+		this.drawNode(surface, node)
+	}
+
 	this.window.UpdateSurface()
 	fmt.Printf("Done rendering\n")
 }
 
-func (this *Window) renderItem(item sg.TreeNode, surface *sdl.Surface) {
-	rootNode := item
+// renderItem walks a tree of nodes and reduces them to a list of drawable nodes
+func (this *Window) renderItem(item sg.TreeNode) []sg.TreeNode {
+	var drawables []sg.TreeNode
 
-	for {
-		fmt.Printf("Rendering %+v\n", rootNode)
-		if renderableNode, ok := rootNode.(sg.Renderable); ok {
-			// if it's a Renderable, try reduce it to a real node of some kind
-			fmt.Printf("Renderable. Going deeper.\n")
-			rootNode = renderableNode.Render()
-		} else {
-			break
-		}
+	// ### Need a proper test for what is actually drawable
+	// Drawable stacks lowest for a node (below Render and any children)
+	if _, ok := item.(*sg.Rectangle); ok {
+		fmt.Printf("Found drawable: %+v\n", item)
+		drawables = append(drawables, item)
 	}
 
-	// At this point, rootNode might be something we can draw.
-	if rectangle, ok := rootNode.(*sg.Rectangle); ok {
+	// Render stacks next, below children
+	if renderableNode, ok := item.(sg.Renderable); ok {
+		fmt.Printf("Renderable. Going deeper.\n")
+		rendered := renderableNode.Render()
+		drawables = append(drawables, this.renderItem(rendered)...)
+	}
+
+	// Children stack in listed order from bottom to top
+	for _, cNode := range item.GetChildren() {
+		fmt.Printf("Examining child %+v\n", cNode)
+		drawables = append(drawables, this.renderItem(cNode)...)
+	}
+
+	return drawables
+}
+
+func (this *Window) drawNode(surface *sdl.Surface, node sg.TreeNode) {
+	if rectangle, ok := node.(*sg.Rectangle); ok {
 		rect := sdl.Rect{int32(rectangle.X), int32(rectangle.Y), int32(rectangle.Width), int32(rectangle.Height)}
 		fmt.Printf("Filling rect xy %fx%f wh %fx%f with color %s\n", rectangle.X, rectangle.Y, rectangle.Width, rectangle.Height, rectangle.Color)
 
 		// argb -> rgba
 		var sdlColor uint32 = sdl.MapRGBA(surface.Format, uint8(255.0*rectangle.Color[1]), uint8(255.0*rectangle.Color[2]), uint8(255.0*rectangle.Color[3]), uint8(255.0*rectangle.Color[0]))
 		surface.FillRect(&rect, sdlColor)
-	}
-
-	// ### this is a wee bit ugly, but we need to check if either rootNode (the
-	// non-Renderable, decomposed node) or the original Item are of type
-	// Nodeable.
-	// ### BUG: You also need to check anything in between.
-	// ### BUG: Order
-	for _, citem := range item.GetChildren() {
-		fmt.Printf("Examining child %+v\n", citem)
-		this.renderItem(citem, surface)
-	}
-	if item != rootNode {
-		for _, citem := range rootNode.GetChildren() {
-			fmt.Printf("Examining child %+v\n", citem)
-			this.renderItem(citem, surface)
-		}
+	} else {
+		panic("unknown drawable")
 	}
 }

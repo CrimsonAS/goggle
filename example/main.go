@@ -14,8 +14,8 @@ func (this *OtherButton) Render() sg.TreeNode {
 	return &sg.Rectangle{
 		BasicNode: sg.BasicNode{
 			ObjectName: "OtherButtonRect",
-			X:          110,
-			Y:          110,
+			X:          10,
+			Y:          10,
 			Width:      180,
 			Height:     180,
 		},
@@ -43,8 +43,8 @@ func (this *Button) Render() sg.TreeNode {
 				&sg.Rectangle{
 					BasicNode: sg.BasicNode{
 						ObjectName: "Rect2",
-						X:          100,
-						Y:          200,
+						X:          0,
+						Y:          100,
 						Width:      50,
 						Height:     50,
 					},

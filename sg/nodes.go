@@ -50,6 +50,15 @@ type Renderable interface {
 	Render() TreeNode
 }
 
+// Drawable is something that the rendering backend can draw directly.
+type Drawable interface {
+	TreeNode
+	// CopyDrawable must return a copy of this instance with all information
+	// necessary for drawing preserved. Drawable copies should not preserve
+	// children or other unnecessary state.
+	CopyDrawable() Drawable
+}
+
 // A R G B
 type Color [4]float32
 
@@ -57,4 +66,10 @@ type Color [4]float32
 type Rectangle struct {
 	BasicNode
 	Color Color
+}
+
+func (rect *Rectangle) CopyDrawable() Drawable {
+	re := &Rectangle{rect.BasicNode, rect.Color}
+	re.Children = nil
+	return re
 }

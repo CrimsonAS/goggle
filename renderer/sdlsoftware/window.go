@@ -60,7 +60,7 @@ func (this *Window) Render(scene sg.TreeNode) {
 	// drawable primitives; then, iterate drawables and draw
 	// them into the window. These could be split up further
 	// in the future, and potentially happen across goroutines.
-	drawables := this.renderItem(scene)
+	drawables := this.renderItem(scene, 0, 0)
 	fmt.Printf("Scene reduced to drawable: %+v\n", drawables)
 	for _, node := range drawables {
 		this.drawNode(surface, node)
@@ -70,28 +70,42 @@ func (this *Window) Render(scene sg.TreeNode) {
 	fmt.Printf("Done rendering\n")
 }
 
-// renderItem walks a tree of nodes and reduces them to a list of drawable nodes
-func (this *Window) renderItem(item sg.TreeNode) []sg.TreeNode {
+// renderItem walks a tree of nodes and reduces them to a list of drawable nodes.
+// originX and originY translate the item's coordinates, such that originX + item.X
+// is the left side of the item in window coordinates.
+func (this *Window) renderItem(item sg.TreeNode, originX, originY float32) []sg.TreeNode {
 	var drawables []sg.TreeNode
 
 	// ### Need a proper test for what is actually drawable
 	// Drawable stacks lowest for a node (below Render and any children)
-	if _, ok := item.(*sg.Rectangle); ok {
+	if draw, ok := item.(sg.Drawable); ok {
 		fmt.Printf("Found drawable: %+v\n", item)
-		drawables = append(drawables, item)
+		// Copy instance for safe modification & independent draw
+		draw = draw.CopyDrawable()
+		// Offset position with originX/originY
+		x, y := draw.Pos()
+		x += originX
+		y += originY
+		draw.SetPos(x, y)
+
+		drawables = append(drawables, draw)
 	}
+
+	childX, childY := item.Pos()
+	childX += originX
+	childY += originY
 
 	// Render stacks next, below children
 	if renderableNode, ok := item.(sg.Renderable); ok {
 		fmt.Printf("Renderable. Going deeper.\n")
 		rendered := renderableNode.Render()
-		drawables = append(drawables, this.renderItem(rendered)...)
+		drawables = append(drawables, this.renderItem(rendered, childX, childY)...)
 	}
 
 	// Children stack in listed order from bottom to top
 	for _, cNode := range item.GetChildren() {
 		fmt.Printf("Examining child %+v\n", cNode)
-		drawables = append(drawables, this.renderItem(cNode)...)
+		drawables = append(drawables, this.renderItem(cNode, childX, childY)...)
 	}
 
 	return drawables

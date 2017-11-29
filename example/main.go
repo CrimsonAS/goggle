@@ -47,8 +47,8 @@ func (this *Button) Render() sg.Node {
 	}
 	this.color = sg.Color{rand.Float32(), rand.Float32(), rand.Float32(), rand.Float32()}
 
-	width := float32(200.0)
-	height := float32(200.0)
+	width := float32(200.0 + this.bstep)
+	height := float32(200.0 + this.bstep)
 
 	return &sg.Rectangle{
 		Width:  width,
@@ -68,6 +68,7 @@ func (this *Button) Render() sg.Node {
 				Color:  sg.Color{0.5, 1.0, 0, 0},
 			},
 			&sg.Text{
+				X:          float32(150 - this.bstep),
 				Width:      width,
 				Height:     42,
 				Text:       "Hello, world",

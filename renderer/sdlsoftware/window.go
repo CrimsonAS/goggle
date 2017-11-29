@@ -11,11 +11,16 @@ import (
 
 // ### consider an interface when/if we want multiple renderers
 type Renderer struct {
+	isRunning bool
 }
 
 // Perform any initialization needed
 func NewRenderer() (*Renderer, error) {
-	return &Renderer{}, sdl.Init(sdl.INIT_EVERYTHING)
+	return &Renderer{isRunning: true}, sdl.Init(sdl.INIT_EVERYTHING)
+}
+
+func (this *Renderer) IsRunning() bool {
+	return this.isRunning
 }
 
 // Shut down
@@ -25,7 +30,15 @@ func (this *Renderer) Quit() {
 
 // Spin the event loop
 func (this *Renderer) ProcessEvents() {
-	sdl.Delay(5)
+	var event sdl.Event
+	for event = sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
+		switch t := event.(type) {
+		case *sdl.QuitEvent:
+			this.isRunning = false
+		case *sdl.MouseMotionEvent:
+			fmt.Printf("[%d ms] MouseMotion\tid:%d\tx:%d\ty:%d\txrel:%d\tyrel:%d\n", t.Timestamp, t.Which, t.X, t.Y, t.XRel, t.YRel)
+		}
+	}
 }
 
 // Create (and show, for now) a window
@@ -87,7 +100,11 @@ func (this *Window) Render(scene sg.Node) {
 	if elapsed == 0 {
 		elapsed = 1
 	}
-	fmt.Printf("Done rendering in %d ms, %d FPS\n", elapsed, 1000/elapsed)
+
+	const fpsDebug = false
+	if fpsDebug {
+		fmt.Printf("Done rendering in %d ms, %d FPS\n", elapsed, 1000/elapsed)
+	}
 }
 
 // renderItem walks a tree of nodes and reduces them to a list of drawable nodes.

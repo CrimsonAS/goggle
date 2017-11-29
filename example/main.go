@@ -84,7 +84,7 @@ func main() {
 	}
 
 	thing := &Button{}
-	for {
+	for r.IsRunning() {
 		thing.SetColor(sg.Color{rand.Float32(), rand.Float32(), rand.Float32(), rand.Float32()})
 		w.Render(thing)
 		r.ProcessEvents()

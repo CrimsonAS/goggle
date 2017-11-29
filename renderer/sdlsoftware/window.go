@@ -5,6 +5,8 @@ import (
 	"github.com/CrimsonAS/goggle/sg"
 	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/sdl"
+	"github.com/veandco/go-sdl2/ttf"
+	"os"
 	"strings"
 	"time"
 )
@@ -17,7 +19,17 @@ type Renderer struct {
 
 // Perform any initialization needed
 func NewRenderer() (*Renderer, error) {
-	return &Renderer{isRunning: true}, sdl.Init(sdl.INIT_EVERYTHING)
+	r := &Renderer{isRunning: true}
+	err := sdl.Init(sdl.INIT_EVERYTHING)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := ttf.Init(); err != nil {
+		return nil, err
+	}
+
+	return r, nil
 }
 
 func (this *Renderer) IsRunning() bool {
@@ -177,15 +189,42 @@ func (this *Window) drawNode(baseNode sg.Node) {
 		this.sdlRenderer.FillRect(&rect)
 	case *sg.Image:
 		if fileTexture, ok := node.Texture.(*sg.FileTexture); ok {
+			// ### file caching
 			image, err := img.LoadTexture(this.sdlRenderer, fileTexture.Source)
-			rect := sdl.Rect{int32(node.X), int32(node.Y), int32(node.Width), int32(node.Height)}
 			if err != nil {
-				debugOut("Failed to load source: %s (%s)\n", fileTexture.Source, err.Error())
+				fmt.Fprintf(os.Stderr, "Failed to load source: %s (%s)\n", fileTexture.Source, err.Error())
 			} else {
+				// ###? defer image.Free()
+				rect := sdl.Rect{int32(node.X), int32(node.Y), int32(node.Width), int32(node.Height)}
 				this.sdlRenderer.Copy(image, nil, &rect)
 			}
 		} else {
 			panic("unknown texture")
+		}
+	case *sg.Text:
+		// ### font caching (and database)
+		if font, err := ttf.OpenFont(node.FontFamily, node.PixelSize); err != nil {
+			fmt.Fprint(os.Stderr, "Failed to open font %s (%s)\n", node.FontFamily, err)
+		} else {
+			defer font.Close()
+
+			transparentColor := sdl.Color{0, 0, 0, 0}
+			sdlColor := sdl.Color{uint8(255.0 * node.Color[1]), uint8(255.0 * node.Color[2]), uint8(255.0 * node.Color[3]), uint8(255.0 * node.Color[0])}
+			if renderedText, err := font.RenderUTF8Shaded("Hello, World!", sdlColor, transparentColor); err != nil {
+				fmt.Fprint(os.Stderr, "Failed to render text: %s\n", err)
+			} else {
+				defer renderedText.Free()
+
+				texture, err := this.sdlRenderer.CreateTextureFromSurface(renderedText)
+				if err != nil {
+					fmt.Fprint(os.Stderr, "Failed to get texture for text: %s\n", err)
+				} else {
+					// ###? defer texture.Free()
+					rect := sdl.Rect{int32(node.X), int32(node.Y), int32(node.Width), int32(node.Height)}
+					this.sdlRenderer.Copy(texture, nil, &rect)
+				}
+
+			}
 		}
 
 	case *DrawNode:

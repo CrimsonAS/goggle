@@ -11,12 +11,14 @@ import (
 type OtherButton struct{}
 
 func (this *OtherButton) Render() sg.Node {
-	return &sg.Rectangle{
+	return &sg.Image{
 		X:      10,
 		Y:      10,
 		Width:  180,
 		Height: 180,
-		Color:  sg.Color{0.5, 0.0, 1.0, 0.0},
+		Texture: &sg.FileTexture{
+			Source: "solid.png",
+		},
 	}
 }
 
@@ -33,7 +35,7 @@ func (this *Button) Render() sg.Node {
 		Children: []sg.Node{
 			&OtherButton{},
 			&sdlsoftware.DrawNode{
-				Draw: func(surface *sdl.Surface, node *sdlsoftware.DrawNode) {
+				Draw: func(renderer *sdl.Renderer, node *sdlsoftware.DrawNode) {
 					fmt.Printf("custom drawing here\n")
 				},
 			},

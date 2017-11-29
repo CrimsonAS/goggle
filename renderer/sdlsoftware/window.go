@@ -224,11 +224,10 @@ func (this *Window) drawText(node *sg.Text) {
 	}
 	defer font.Close()
 
-	transparentColor := sdl.Color{0, 0, 0, 0}
 	sdlColor := sdl.Color{uint8(255.0 * node.Color[1]), uint8(255.0 * node.Color[2]), uint8(255.0 * node.Color[3]), uint8(255.0 * node.Color[0])}
 
 	var renderedText *sdl.Surface
-	if renderedText, err = font.RenderUTF8Shaded("Hello, World!", sdlColor, transparentColor); err != nil {
+	if renderedText, err = font.RenderUTF8Blended("Hello, World!", sdlColor); err != nil {
 		fmt.Fprint(os.Stderr, "Failed to render text: %s\n", err)
 		return
 	}

@@ -6,6 +6,7 @@ import (
 	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/sdl"
 	"strings"
+	"time"
 )
 
 // ### consider an interface when/if we want multiple renderers
@@ -49,9 +50,19 @@ func (this *Window) Destroy() {
 	this.window.Destroy()
 }
 
+func debugOut(fstr string, vals ...interface{}) {
+	const debug = false
+
+	if debug {
+		fmt.Printf(fstr, vals...)
+	}
+}
+
 // Render a scene onto the window
 func (this *Window) Render(scene sg.Node) {
-	fmt.Printf("Rendering\n")
+	start := time.Now()
+
+	debugOut("Rendering\n")
 
 	// ### a 'clear color' on the Window might make sense
 	this.renderer.SetDrawColor(0, 0, 0, 0)
@@ -64,15 +75,19 @@ func (this *Window) Render(scene sg.Node) {
 	// in the future, and potentially happen across goroutines.
 	drawables := this.renderItem(scene, 0, 0)
 
-	fmt.Printf("scene rendered to %d drawables\n", len(drawables))
+	debugOut("scene rendered to %d drawables\n", len(drawables))
 	for _, node := range drawables {
-		fmt.Printf("drawing node %s: %+v\n", sg.NodeName(node), node)
+		debugOut("drawing node %s: %+v\n", sg.NodeName(node), node)
 		this.drawNode(node)
 	}
 
 	this.renderer.Present()
 
-	fmt.Printf("Done rendering\n")
+	elapsed := time.Since(start) / time.Millisecond
+	if elapsed == 0 {
+		elapsed = 1
+	}
+	fmt.Printf("Done rendering in %d ms, %d FPS\n", elapsed, 1000/elapsed)
 }
 
 // renderItem walks a tree of nodes and reduces them to a list of drawable nodes.
@@ -81,7 +96,7 @@ func (this *Window) Render(scene sg.Node) {
 func (this *Window) renderItem(item sg.Node, originX, originY float32) []sg.Node {
 	var drawables []sg.Node
 
-	fmt.Printf("rendering node %s (%s) to origin (%g,%g): %+v\n",
+	debugOut("rendering node %s (%s) to origin (%g,%g): %+v\n",
 		sg.NodeName(item),
 		strings.Join(sg.NodeInterfaces(item), " "),
 		originX, originY,
@@ -134,7 +149,7 @@ func (this *Window) drawNode(baseNode sg.Node) {
 	switch node := baseNode.(type) {
 	case *sg.Rectangle:
 		rect := sdl.Rect{int32(node.X), int32(node.Y), int32(node.Width), int32(node.Height)}
-		fmt.Printf("Filling rect xy %gx%g wh %gx%g with color %v\n", node.X, node.Y, node.Width, node.Height, node.Color)
+		debugOut("Filling rect xy %gx%g wh %gx%g with color %v\n", node.X, node.Y, node.Width, node.Height, node.Color)
 
 		// argb -> rgba
 		this.renderer.SetDrawColor(uint8(255.0*node.Color[1]), uint8(255.0*node.Color[2]), uint8(255.0*node.Color[3]), uint8(255.0*node.Color[0]))
@@ -144,7 +159,7 @@ func (this *Window) drawNode(baseNode sg.Node) {
 			image, err := img.LoadTexture(this.renderer, fileTexture.Source)
 			rect := sdl.Rect{int32(node.X), int32(node.Y), int32(node.Width), int32(node.Height)}
 			if err != nil {
-				fmt.Printf("Failed to load source: %s (%s)\n", fileTexture.Source, err.Error())
+				debugOut("Failed to load source: %s (%s)\n", fileTexture.Source, err.Error())
 			} else {
 				this.renderer.Copy(image, nil, &rect)
 			}
@@ -153,7 +168,7 @@ func (this *Window) drawNode(baseNode sg.Node) {
 		}
 
 	case *DrawNode:
-		fmt.Printf("Calling custom draw function %+v\n", node.Draw)
+		debugOut("Calling custom draw function %+v\n", node.Draw)
 		node.Draw(this.renderer, node)
 
 	default:

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/CrimsonAS/goggle/renderer/sdlsoftware"
 	"github.com/CrimsonAS/goggle/sg"
 	"github.com/veandco/go-sdl2/sdl"
@@ -36,7 +35,7 @@ func (this *Button) Render() sg.Node {
 			&OtherButton{},
 			&sdlsoftware.DrawNode{
 				Draw: func(renderer *sdl.Renderer, node *sdlsoftware.DrawNode) {
-					fmt.Printf("custom drawing here\n")
+					// custom drawing here
 				},
 			},
 			&sg.Rectangle{

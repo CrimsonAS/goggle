@@ -4,7 +4,10 @@ import (
 	"github.com/CrimsonAS/goggle/renderer/sdlsoftware"
 	"github.com/CrimsonAS/goggle/sg"
 	"github.com/veandco/go-sdl2/sdl"
+	"log"
 	"math/rand"
+	"os"
+	"runtime/trace"
 )
 
 type OtherButton struct{}
@@ -42,6 +45,7 @@ func (this *Button) Render() sg.Node {
 			this.bToLeft = true
 		}
 	}
+	this.color = sg.Color{rand.Float32(), rand.Float32(), rand.Float32(), rand.Float32()}
 	return &sg.Rectangle{
 		X:      100,
 		Y:      100,
@@ -66,11 +70,22 @@ func (this *Button) Render() sg.Node {
 	}
 }
 
-func (this *Button) SetColor(col sg.Color) {
-	this.color = col
-}
-
 func main() {
+	const shouldTrace = false
+	if shouldTrace {
+		traceFile, err := os.OpenFile("traceFile.out", os.O_RDWR|os.O_CREATE, 0600)
+		traceFile.Truncate(0)
+		if err != nil {
+			log.Println("Can't trace: %s", err.Error())
+		} else {
+			trace.Start(traceFile)
+			defer func() {
+				trace.Stop()
+				traceFile.Close()
+			}()
+		}
+	}
+
 	r, err := sdlsoftware.NewRenderer()
 	if err != nil {
 		panic(err)
@@ -84,10 +99,10 @@ func main() {
 	}
 
 	thing := &Button{}
+
 	for r.IsRunning() {
-		thing.SetColor(sg.Color{rand.Float32(), rand.Float32(), rand.Float32(), rand.Float32()})
-		w.Render(thing)
 		r.ProcessEvents()
+		w.Render(thing)
 	}
 
 	r.Quit()

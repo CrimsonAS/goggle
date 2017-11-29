@@ -12,6 +12,7 @@ import (
 // ### consider an interface when/if we want multiple renderers
 type Renderer struct {
 	isRunning bool
+	start     time.Time // when rendering this frame began
 }
 
 // Perform any initialization needed
@@ -30,6 +31,7 @@ func (this *Renderer) Quit() {
 
 // Spin the event loop
 func (this *Renderer) ProcessEvents() {
+	this.start = time.Now()
 	var event sdl.Event
 	for event = sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
 		switch t := event.(type) {
@@ -44,9 +46,9 @@ func (this *Renderer) ProcessEvents() {
 // Create (and show, for now) a window
 // ### params needed
 func (this *Renderer) CreateWindow() (*Window, error) {
-	w := &Window{}
+	w := &Window{ourRenderer: this}
 	var err error
-	w.window, w.renderer, err = sdl.CreateWindowAndRenderer(800, 600, sdl.WINDOW_SHOWN)
+	w.window, w.sdlRenderer, err = sdl.CreateWindowAndRenderer(800, 600, sdl.WINDOW_SHOWN)
 	if err != nil {
 		return nil, err
 	}
@@ -54,8 +56,9 @@ func (this *Renderer) CreateWindow() (*Window, error) {
 }
 
 type Window struct {
-	window   *sdl.Window
-	renderer *sdl.Renderer
+	window      *sdl.Window
+	sdlRenderer *sdl.Renderer
+	ourRenderer *Renderer
 }
 
 // Destroy a window
@@ -73,13 +76,11 @@ func debugOut(fstr string, vals ...interface{}) {
 
 // Render a scene onto the window
 func (this *Window) Render(scene sg.Node) {
-	start := time.Now()
-
 	debugOut("Rendering\n")
 
 	// ### a 'clear color' on the Window might make sense
-	this.renderer.SetDrawColor(0, 0, 0, 0)
-	this.renderer.Clear()
+	this.sdlRenderer.SetDrawColor(0, 0, 0, 0)
+	this.sdlRenderer.Clear()
 
 	// The strategy here is to render in two stages:
 	// first walk the scene and reduce the tree to a list of
@@ -94,17 +95,20 @@ func (this *Window) Render(scene sg.Node) {
 		this.drawNode(node)
 	}
 
-	this.renderer.Present()
+	this.sdlRenderer.Present()
 
-	elapsed := time.Since(start) / time.Millisecond
-	if elapsed == 0 {
-		elapsed = 1
-	}
-
-	const fpsDebug = false
+	elapsed := time.Since(this.ourRenderer.start) / time.Millisecond
+	sleepyTime := (1000/60 - elapsed) * time.Millisecond
+	const fpsDebug = true
 	if fpsDebug {
-		fmt.Printf("Done rendering in %d ms, %d FPS\n", elapsed, 1000/elapsed)
+
+		div := elapsed
+		if div == 0 {
+			div = 1
+		}
+		fmt.Printf("Done rendering in %s @ %d FPS, sleeping %s\n", time.Since(this.ourRenderer.start), 1000/div, sleepyTime)
 	}
+	time.Sleep(sleepyTime) // cap rendering
 }
 
 // renderItem walks a tree of nodes and reduces them to a list of drawable nodes.
@@ -169,16 +173,16 @@ func (this *Window) drawNode(baseNode sg.Node) {
 		debugOut("Filling rect xy %gx%g wh %gx%g with color %v\n", node.X, node.Y, node.Width, node.Height, node.Color)
 
 		// argb -> rgba
-		this.renderer.SetDrawColor(uint8(255.0*node.Color[1]), uint8(255.0*node.Color[2]), uint8(255.0*node.Color[3]), uint8(255.0*node.Color[0]))
-		this.renderer.FillRect(&rect)
+		this.sdlRenderer.SetDrawColor(uint8(255.0*node.Color[1]), uint8(255.0*node.Color[2]), uint8(255.0*node.Color[3]), uint8(255.0*node.Color[0]))
+		this.sdlRenderer.FillRect(&rect)
 	case *sg.Image:
 		if fileTexture, ok := node.Texture.(*sg.FileTexture); ok {
-			image, err := img.LoadTexture(this.renderer, fileTexture.Source)
+			image, err := img.LoadTexture(this.sdlRenderer, fileTexture.Source)
 			rect := sdl.Rect{int32(node.X), int32(node.Y), int32(node.Width), int32(node.Height)}
 			if err != nil {
 				debugOut("Failed to load source: %s (%s)\n", fileTexture.Source, err.Error())
 			} else {
-				this.renderer.Copy(image, nil, &rect)
+				this.sdlRenderer.Copy(image, nil, &rect)
 			}
 		} else {
 			panic("unknown texture")
@@ -186,7 +190,7 @@ func (this *Window) drawNode(baseNode sg.Node) {
 
 	case *DrawNode:
 		debugOut("Calling custom draw function %+v\n", node.Draw)
-		node.Draw(this.renderer, node)
+		node.Draw(this.sdlRenderer, node)
 
 	default:
 		panic("unknown drawable")

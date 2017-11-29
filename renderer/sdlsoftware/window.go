@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/CrimsonAS/goggle/sg"
 	"github.com/veandco/go-sdl2/sdl"
+	"strings"
 )
 
 // ### consider an interface when/if we want multiple renderers
@@ -48,7 +49,7 @@ func (this *Window) Destroy() {
 }
 
 // Render a scene onto the window
-func (this *Window) Render(scene sg.TreeNode) {
+func (this *Window) Render(scene sg.Node) {
 	fmt.Printf("Rendering\n")
 	surface, err := this.window.GetSurface()
 	if err != nil {
@@ -61,8 +62,10 @@ func (this *Window) Render(scene sg.TreeNode) {
 	// them into the window. These could be split up further
 	// in the future, and potentially happen across goroutines.
 	drawables := this.renderItem(scene, 0, 0)
-	fmt.Printf("Scene reduced to drawable: %+v\n", drawables)
+
+	fmt.Printf("scene rendered to %d drawables\n", len(drawables))
 	for _, node := range drawables {
+		fmt.Printf("drawing node %s: %+v\n", sg.NodeName(node), node)
 		this.drawNode(surface, node)
 	}
 
@@ -73,56 +76,73 @@ func (this *Window) Render(scene sg.TreeNode) {
 // renderItem walks a tree of nodes and reduces them to a list of drawable nodes.
 // originX and originY translate the item's coordinates, such that originX + item.X
 // is the left side of the item in window coordinates.
-func (this *Window) renderItem(item sg.TreeNode, originX, originY float32) []sg.TreeNode {
-	var drawables []sg.TreeNode
+func (this *Window) renderItem(item sg.Node, originX, originY float32) []sg.Node {
+	var drawables []sg.Node
 
-	// ### Need a proper test for what is actually drawable
+	fmt.Printf("rendering node %s (%s) to origin (%g,%g): %+v\n",
+		sg.NodeName(item),
+		strings.Join(sg.NodeInterfaces(item), " "),
+		originX, originY,
+		item)
+
 	// Drawable stacks lowest for a node (below Render and any children)
 	if draw, ok := item.(sg.Drawable); ok {
-		fmt.Printf("Found drawable: %+v\n", item)
 		// Copy instance for safe modification & independent draw
 		draw = draw.CopyDrawable()
-		// Offset position with originX/originY
-		x, y := draw.Pos()
-		x += originX
-		y += originY
-		draw.SetPos(x, y)
+
+		if geo, ok := draw.(sg.GeometryNode); ok {
+			// Offset position with originX/originY
+			x, y, w, h := geo.Geometry()
+			x += originX
+			y += originY
+			geo.SetGeometry(x, y, w, h)
+		}
 
 		drawables = append(drawables, draw)
 	}
 
-	childX, childY := item.Pos()
-	childX += originX
-	childY += originY
+	// If node is a GeometryNode, adjust originX/originY for relative
+	// coordinates in the rendered tree and in children
+	if geo, ok := item.(sg.GeometryNode); ok {
+		childX, childY, _, _ := geo.Geometry()
+		originX += childX
+		originY += childY
+	}
 
 	// Render stacks next, below children
 	if renderableNode, ok := item.(sg.Renderable); ok {
-		fmt.Printf("Renderable. Going deeper.\n")
 		rendered := renderableNode.Render()
-		drawables = append(drawables, this.renderItem(rendered, childX, childY)...)
+		drawables = append(drawables, this.renderItem(rendered, originX, originY)...)
 	}
 
 	// Children stack in listed order from bottom to top
-	for _, cNode := range item.GetChildren() {
-		fmt.Printf("Examining child %+v\n", cNode)
-		drawables = append(drawables, this.renderItem(cNode, childX, childY)...)
+	if parentNode, ok := item.(sg.Parentable); ok {
+		for _, cNode := range parentNode.GetChildren() {
+			drawables = append(drawables, this.renderItem(cNode, originX, originY)...)
+		}
 	}
+
+	// ### A node that is not geometry, renderable, drawable, or parentable
+	// has no effect on rendering and is plausibly a bug. Is it worth erroring?
 
 	return drawables
 }
 
-func (this *Window) drawNode(surface *sdl.Surface, node sg.TreeNode) {
-	if rectangle, ok := node.(*sg.Rectangle); ok {
-		rect := sdl.Rect{int32(rectangle.X), int32(rectangle.Y), int32(rectangle.Width), int32(rectangle.Height)}
-		fmt.Printf("Filling rect xy %fx%f wh %fx%f with color %s\n", rectangle.X, rectangle.Y, rectangle.Width, rectangle.Height, rectangle.Color)
+func (this *Window) drawNode(surface *sdl.Surface, baseNode sg.Node) {
+	switch node := baseNode.(type) {
+	case *sg.Rectangle:
+		rect := sdl.Rect{int32(node.X), int32(node.Y), int32(node.Width), int32(node.Height)}
+		fmt.Printf("Filling rect xy %gx%g wh %gx%g with color %v\n", node.X, node.Y, node.Width, node.Height, node.Color)
 
 		// argb -> rgba
-		var sdlColor uint32 = sdl.MapRGBA(surface.Format, uint8(255.0*rectangle.Color[1]), uint8(255.0*rectangle.Color[2]), uint8(255.0*rectangle.Color[3]), uint8(255.0*rectangle.Color[0]))
+		var sdlColor uint32 = sdl.MapRGBA(surface.Format, uint8(255.0*node.Color[1]), uint8(255.0*node.Color[2]), uint8(255.0*node.Color[3]), uint8(255.0*node.Color[0]))
 		surface.FillRect(&rect, sdlColor)
-	} else if draw, ok := node.(*SDLDrawNode); ok {
-		fmt.Printf("Calling custom draw function %+v\n", draw.Draw)
-		draw.Draw(surface, draw)
-	} else {
+
+	case *DrawNode:
+		fmt.Printf("Calling custom draw function %+v\n", node.Draw)
+		node.Draw(surface, node)
+
+	default:
 		panic("unknown drawable")
 	}
 }

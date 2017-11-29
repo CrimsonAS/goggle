@@ -1,62 +1,54 @@
 package sg
 
-// TreeNode is a basic node; embed BasicNode for standard implementation
-type TreeNode interface {
-	GetChildren() []TreeNode
-	Pos() (x, y float32)
-	SetPos(x, y float32)
-	Size() (w, h float32)
-	SetSize(w, h float32)
+import (
+	"fmt"
+)
+
+// Node is the basic element in a node tree
+type Node interface{}
+
+// Parentable is a node that can have child nodes in the tree
+type Parentable interface {
+	GetChildren() []Node
 }
 
-// BasicNode provides a default embeddable implementation of TreeNode
-type BasicNode struct {
-	ObjectName    string
-	Children      []TreeNode
-	X, Y          float32
-	Width, Height float32
-}
-
-func (node *BasicNode) GetObjectName() string {
-	return node.ObjectName
-}
-
-func (node *BasicNode) GetChildren() []TreeNode {
-	return node.Children
-}
-
-func (node *BasicNode) Pos() (x, y float32) {
-	return node.X, node.Y
-}
-
-func (node *BasicNode) SetPos(x, y float32) {
-	node.X, node.Y = x, y
-}
-
-func (node *BasicNode) Size() (w, h float32) {
-	return node.Width, node.Height
-}
-
-func (node *BasicNode) SetSize(w, h float32) {
-	node.Width, node.Height = w, h
-}
-
-// ### The word 'render' is extremely overloaded in this API
-
-// Renderable is something that can be rendered, used by the engine.
+// Renderable is a node that can be rendered by the engine,
+// returning a tree of nodes to draw.
 type Renderable interface {
-	// Render is expected to return a tree of nodes representing this thing's
-	// current graphical state.
-	Render() TreeNode
+	Node
+	// Render is expected to return a tree of nodes representing the
+	// current graphical state of this node.
+	Render() Node
 }
 
-// Drawable is something that the rendering backend can draw directly.
+// Drawable is a node that the rendering backend implements
+// primitive drawing functions for. Only drawable nodes have a
+// visual representation on the surface.
 type Drawable interface {
-	TreeNode
+	Node
 	// CopyDrawable must return a copy of this instance with all information
 	// necessary for drawing preserved. Drawable copies should not preserve
 	// children or other unnecessary state.
 	CopyDrawable() Drawable
+}
+
+// GeometryNode is a node with a position and size in the canvas.
+// They do not necessarily have a visual representation, but will
+// translate the coordinate space of any rendered or child nodes.
+type GeometryNode interface {
+	Node
+	Geometry() (x, y, w, h float32)
+	SetGeometry(x, y, w, h float32)
+}
+
+// ParentNode is a node that acts as a container for child nodes,
+// provided for your tree-building convenience.
+type ParentNode struct {
+	Children []Node
+}
+
+func (node *ParentNode) GetChildren() []Node {
+	return node.Children
 }
 
 // A R G B
@@ -64,12 +56,48 @@ type Color [4]float32
 
 // A Rectangle is a node that is rendered as a rectangle.
 type Rectangle struct {
-	BasicNode
-	Color Color
+	Children      []Node
+	X, Y          float32
+	Width, Height float32
+	Color         Color
+}
+
+func (rect *Rectangle) GetChildren() []Node {
+	return rect.Children
+}
+
+func (rect *Rectangle) Geometry() (x, y, w, h float32) {
+	return rect.X, rect.Y, rect.Width, rect.Height
+}
+
+func (rect *Rectangle) SetGeometry(x, y, w, h float32) {
+	rect.X, rect.Y, rect.Width, rect.Height = x, y, w, h
 }
 
 func (rect *Rectangle) CopyDrawable() Drawable {
-	re := &Rectangle{rect.BasicNode, rect.Color}
+	re := *rect
 	re.Children = nil
+	return &re
+}
+
+// Useful debug/info functions for nodes
+func NodeName(node Node) string {
+	return fmt.Sprintf("%T", node)
+}
+
+func NodeInterfaces(node Node) []string {
+	var re []string
+	if _, yes := node.(Parentable); yes {
+		re = append(re, "parentable")
+	}
+	if _, yes := node.(Drawable); yes {
+		re = append(re, "drawable")
+	}
+	if _, yes := node.(Renderable); yes {
+		re = append(re, "renderable")
+	}
+	if _, yes := node.(GeometryNode); yes {
+		re = append(re, "geometry")
+	}
 	return re
 }

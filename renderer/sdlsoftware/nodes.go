@@ -5,13 +5,27 @@ import (
 	"github.com/veandco/go-sdl2/sdl"
 )
 
-type SDLDrawNode struct {
-	sg.BasicNode
-	Draw func(surface *sdl.Surface, node *SDLDrawNode)
+type DrawNode struct {
+	Children      []sg.Node
+	X, Y          float32
+	Width, Height float32
+	Draw          func(surface *sdl.Surface, node *DrawNode)
 }
 
-func (node *SDLDrawNode) CopyDrawable() sg.Drawable {
-	re := &SDLDrawNode{node.BasicNode, node.Draw}
+func (node *DrawNode) GetChildren() []sg.Node {
+	return node.Children
+}
+
+func (node *DrawNode) Geometry() (x, y, w, h float32) {
+	return node.X, node.Y, node.Width, node.Height
+}
+
+func (node *DrawNode) SetGeometry(x, y, w, h float32) {
+	node.X, node.Y, node.Width, node.Height = x, y, w, h
+}
+
+func (node *DrawNode) CopyDrawable() sg.Drawable {
+	re := *node
 	re.Children = nil
-	return re
+	return &re
 }

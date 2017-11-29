@@ -8,55 +8,41 @@ import (
 	"math/rand"
 )
 
-type OtherButton struct {
-	sg.BasicNode
-}
+type OtherButton struct{}
 
-func (this *OtherButton) Render() sg.TreeNode {
+func (this *OtherButton) Render() sg.Node {
 	return &sg.Rectangle{
-		BasicNode: sg.BasicNode{
-			ObjectName: "OtherButtonRect",
-			X:          10,
-			Y:          10,
-			Width:      180,
-			Height:     180,
-		},
-		Color: sg.Color{0.5, 0.0, 1.0, 0.0},
+		X:      10,
+		Y:      10,
+		Width:  180,
+		Height: 180,
+		Color:  sg.Color{0.5, 0.0, 1.0, 0.0},
 	}
 }
 
 type Button struct {
-	sg.BasicNode
 	color sg.Color
 }
 
-func (this *Button) Render() sg.TreeNode {
+func (this *Button) Render() sg.Node {
 	return &sg.Rectangle{
-		BasicNode: sg.BasicNode{
-			ObjectName: "Rect",
-			X:          100,
-			Y:          100,
-			Width:      200,
-			Height:     200,
-			Children: []sg.TreeNode{
-				&OtherButton{
-					sg.BasicNode{ObjectName: "OtherButton"},
+		X:      100,
+		Y:      100,
+		Width:  200,
+		Height: 200,
+		Children: []sg.Node{
+			&OtherButton{},
+			&sdlsoftware.DrawNode{
+				Draw: func(surface *sdl.Surface, node *sdlsoftware.DrawNode) {
+					fmt.Printf("custom drawing here\n")
 				},
-				&sdlsoftware.SDLDrawNode{
-					Draw: func(surface *sdl.Surface, node *sdlsoftware.SDLDrawNode) {
-						fmt.Printf("custom drawing here\n")
-					},
-				},
-				&sg.Rectangle{
-					BasicNode: sg.BasicNode{
-						ObjectName: "Rect2",
-						X:          0,
-						Y:          100,
-						Width:      50,
-						Height:     50,
-					},
-					Color: sg.Color{0.5, 1.0, 0, 0},
-				},
+			},
+			&sg.Rectangle{
+				X:      0,
+				Y:      100,
+				Width:  50,
+				Height: 50,
+				Color:  sg.Color{0.5, 1.0, 0, 0},
 			},
 		},
 		Color: this.color,
@@ -80,7 +66,7 @@ func main() {
 		panic(err)
 	}
 
-	thing := &Button{BasicNode: sg.BasicNode{ObjectName: "Button"}}
+	thing := &Button{}
 	for {
 		thing.SetColor(sg.Color{rand.Float32(), rand.Float32(), rand.Float32(), rand.Float32()})
 		w.Render(thing)

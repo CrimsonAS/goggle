@@ -22,10 +22,26 @@ func (this *OtherButton) Render() sg.Node {
 }
 
 type Button struct {
-	color sg.Color
+	color   sg.Color
+	bstep   int
+	bToLeft bool
 }
 
 func (this *Button) Render() sg.Node {
+	if this.bToLeft {
+		this.bstep -= 1
+		if this.bstep < 0 {
+			this.bstep = 0
+			this.bToLeft = false
+		}
+	} else {
+		this.bstep += 1
+		if this.bstep > 150 {
+			/* our width - inner rect's width */
+			this.bstep = 150
+			this.bToLeft = true
+		}
+	}
 	return &sg.Rectangle{
 		X:      100,
 		Y:      100,
@@ -39,7 +55,7 @@ func (this *Button) Render() sg.Node {
 				},
 			},
 			&sg.Rectangle{
-				X:      0,
+				X:      float32(this.bstep),
 				Y:      100,
 				Width:  50,
 				Height: 50,

@@ -184,6 +184,11 @@ func (this *Window) drawRectangle(node *sg.Rectangle) {
 
 	// argb -> rgba
 	this.sdlRenderer.SetDrawColor(uint8(255.0*node.Color[1]), uint8(255.0*node.Color[2]), uint8(255.0*node.Color[3]), uint8(255.0*node.Color[0]))
+	if node.Color[0] == 1 {
+		this.sdlRenderer.SetDrawBlendMode(sdl.BLENDMODE_NONE)
+	} else {
+		this.sdlRenderer.SetDrawBlendMode(sdl.BLENDMODE_BLEND)
+	}
 	this.sdlRenderer.FillRect(&rect)
 }
 
@@ -235,6 +240,11 @@ func (this *Window) drawText(node *sg.Text) {
 	} else {
 		// ###? defer texture.Free()
 		rect := sdl.Rect{int32(node.X), int32(node.Y), int32(node.Width), int32(node.Height)}
+		if node.Color[0] == 1 {
+			this.sdlRenderer.SetDrawBlendMode(sdl.BLENDMODE_NONE)
+		} else {
+			this.sdlRenderer.SetDrawBlendMode(sdl.BLENDMODE_BLEND)
+		}
 		this.sdlRenderer.Copy(texture, nil, &rect)
 	}
 

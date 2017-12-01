@@ -2,13 +2,14 @@ package sdlsoftware
 
 import (
 	"fmt"
+	"os"
+	"strings"
+	"time"
+
 	"github.com/CrimsonAS/goggle/sg"
 	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/ttf"
-	"os"
-	"strings"
-	"time"
 )
 
 // ### consider an interface when/if we want multiple renderers
@@ -111,7 +112,7 @@ func (this *Window) Render(scene sg.Node) {
 
 	elapsed := time.Since(this.ourRenderer.start) / time.Millisecond
 	sleepyTime := (1000/60 - elapsed) * time.Millisecond
-	const fpsDebug = true
+	const fpsDebug = false
 	if fpsDebug {
 
 		div := elapsed

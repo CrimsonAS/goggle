@@ -58,6 +58,10 @@ type Hoverable interface {
 	PointerLeave(TouchPoint)
 }
 
+type Tappable interface {
+	PointerTapped(TouchPoint)
+}
+
 // ### Pressable: OnPressed, OnReleased
 // ### Tappable: OnTap
 // ... etc. These are a bit more complicated though, as they need to "grab"

@@ -56,6 +56,12 @@ func (this *Renderer) ProcessEvents() {
 			// ### windowId to find the window
 			this.window.mousePos = sg.TouchPoint{X: float32(t.X), Y: float32(t.Y)}
 			//fmt.Printf("[%d ms] MouseMotion\tid:%d\tx:%d\ty:%d\txrel:%d\tyrel:%d\n", t.Timestamp, t.Which, t.X, t.Y, t.XRel, t.YRel)
+		case *sdl.MouseButtonEvent:
+			if t.Type == sdl.MOUSEBUTTONUP {
+				this.window.buttonUp = true
+			} else if t.Type == sdl.MOUSEBUTTONDOWN {
+				this.window.buttonDown = true
+			}
 		case *sdl.WindowEvent:
 			if t.Event == sdl.WINDOWEVENT_LEAVE {
 				log.Printf("Cursor left window")
@@ -90,6 +96,9 @@ type Window struct {
 	hoveredNodes    map[sg.Node]bool
 	oldHoveredNodes map[sg.Node]bool
 	mousePos        sg.TouchPoint
+	buttonUp        bool
+	buttonDown      bool
+	mouseGrabber    sg.Node
 }
 
 // Destroy a window
@@ -112,9 +121,6 @@ func (this *Window) Render(scene sg.Node) {
 	// ### a 'clear color' on the Window might make sense
 	this.sdlRenderer.SetDrawColor(0, 0, 0, 0)
 	this.sdlRenderer.Clear()
-
-	this.oldHoveredNodes = this.hoveredNodes
-	this.hoveredNodes = make(map[sg.Node]bool)
 
 	// The strategy here is to render in two stages:
 	// first walk the scene and reduce the tree to a list of
@@ -144,6 +150,13 @@ func (this *Window) Render(scene sg.Node) {
 	}
 
 	time.Sleep(sleepyTime) // cap rendering
+
+	// restore state
+	this.oldHoveredNodes = this.hoveredNodes
+	this.hoveredNodes = make(map[sg.Node]bool)
+
+	this.buttonDown = false
+	this.buttonUp = false
 }
 
 // renderItem walks a tree of nodes and reduces them to a list of drawable nodes.
@@ -194,6 +207,17 @@ func (this *Window) renderItem(item sg.Node, originX, originY float32) []sg.Node
 			} else if _, ok = this.oldHoveredNodes[item]; ok {
 				log.Printf("Mouse at %fx%f leaving item %+v geom %fx%f %fx%f", this.mousePos.X, this.mousePos.Y, item, originX, originY, originX+childWidth, originY+childWidth)
 				hoverable.PointerLeave(sg.TouchPoint{this.mousePos.X, this.mousePos.Y})
+			}
+		}
+		if this.buttonDown || this.buttonUp {
+			if tappable, ok := item.(sg.Tappable); ok {
+				if this.buttonDown {
+					this.mouseGrabber = item
+				} else if this.buttonUp {
+					if this.mouseGrabber == item {
+						tappable.PointerTapped(sg.TouchPoint{this.mousePos.X, this.mousePos.Y})
+					}
+				}
 			}
 		}
 	}

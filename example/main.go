@@ -30,6 +30,7 @@ func (this *OtherButton) Render() sg.Node {
 type Button struct {
 	color           sg.Color
 	containsPointer bool
+	active          bool
 	rectAnimation   *animation.FloatAnimation
 	bgAnimation     *animation.FloatAnimation
 }
@@ -62,11 +63,19 @@ func (this *Button) PointerLeave(tp sg.TouchPoint) {
 	this.containsPointer = false
 }
 
+func (this *Button) PointerTapped(tp sg.TouchPoint) {
+	this.active = !this.active
+}
+
 func (this *Button) Render() sg.Node {
-	if this.containsPointer {
-		this.color = sg.Color{1, 0, 1, 0}
+	if this.active {
+		this.color = sg.Color{1, 0, 0, 1}
 	} else {
-		this.color = sg.Color{rand.Float32(), rand.Float32(), rand.Float32(), rand.Float32()}
+		if this.containsPointer {
+			this.color = sg.Color{1, 0, 1, 0}
+		} else {
+			this.color = sg.Color{rand.Float32(), rand.Float32(), rand.Float32(), rand.Float32()}
+		}
 	}
 
 	_, _, width, height := this.Geometry()

@@ -58,11 +58,11 @@ type Hoverable interface {
 	PointerLeave(TouchPoint)
 }
 
-// A Touchable is a node that will get events when a point is pressed or
+// A Pressable is a node that will get events when a point is pressed or
 // released in its boundary.
-type Touchable interface {
-	TouchBegin(TouchPoint)
-	TouchEnd(TouchPoint)
+type Pressable interface {
+	PointerPressed(TouchPoint)
+	PointerReleased(TouchPoint)
 }
 
 // A Movable is a node that will get events when a mouse is inside its boundary.

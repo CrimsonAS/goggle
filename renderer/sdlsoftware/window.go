@@ -182,15 +182,15 @@ func (this *Window) processPointerEvents(originX, originY, childWidth, childHeig
 		}
 	}
 	if this.buttonDown || this.buttonUp {
-		if touchable, ok := item.(sg.Touchable); ok {
+		if pressable, ok := item.(sg.Pressable); ok {
 			if this.buttonDown {
 				if this.mouseGrabber == nil {
 					this.mouseGrabber = item
-					touchable.TouchBegin(sg.TouchPoint{this.mousePos.X, this.mousePos.Y})
+					pressable.PointerPressed(sg.TouchPoint{this.mousePos.X, this.mousePos.Y})
 				}
 			} else if this.buttonUp {
 				if this.mouseGrabber == item {
-					touchable.TouchEnd(sg.TouchPoint{this.mousePos.X, this.mousePos.Y})
+					pressable.PointerReleased(sg.TouchPoint{this.mousePos.X, this.mousePos.Y})
 				}
 			}
 		}

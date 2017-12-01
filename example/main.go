@@ -55,27 +55,35 @@ func (this *Button) SetGeometry(x, y, w, h float32) { // why does GeometryNode r
 
 }
 
+// hoverable
 func (this *Button) PointerEnter(tp sg.TouchPoint) {
 	this.containsPointer = true
 	log.Printf("Pointer entered: %+v", this)
 }
 
+// hoverable
 func (this *Button) PointerLeave(tp sg.TouchPoint) {
 	this.containsPointer = false
 	log.Printf("Pointer left: %+v", this)
 }
 
+// tapable
 func (this *Button) PointerTapped(tp sg.TouchPoint) {
 	this.active = !this.active
 	log.Printf("Pointer tapped: %+v", this)
 }
 
-func (this *Button) TouchBegin(tp sg.TouchPoint) {
+// touchable
+func (this *Button) PointerPressed(tp sg.TouchPoint) {
 	log.Printf("Pointer touched: %+v", this)
 }
-func (this *Button) TouchEnd(tp sg.TouchPoint) {
+
+// touchable
+func (this *Button) PointerReleased(tp sg.TouchPoint) {
 	log.Printf("Pointer released: %+v", this)
 }
+
+// moveable
 func (this *Button) PointerMoved(tp sg.TouchPoint) {
 	log.Printf("Pointer moved: %+v", this)
 }

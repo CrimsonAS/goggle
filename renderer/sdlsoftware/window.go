@@ -118,6 +118,12 @@ func debugOut(fstr string, vals ...interface{}) {
 func (this *Window) Render(scene sg.Node) {
 	debugOut("Rendering\n")
 
+	if this.mouseGrabber != nil {
+		if moveable, ok := this.mouseGrabber.(sg.Moveable); ok {
+			moveable.PointerMoved(sg.TouchPoint{this.mousePos.X, this.mousePos.Y})
+		}
+	}
+
 	// ### a 'clear color' on the Window might make sense
 	this.sdlRenderer.SetDrawColor(0, 0, 0, 0)
 	this.sdlRenderer.Clear()
@@ -210,14 +216,32 @@ func (this *Window) renderItem(item sg.Node, originX, originY float32) []sg.Node
 			}
 		}
 		if this.buttonDown || this.buttonUp {
+			if touchable, ok := item.(sg.Touchable); ok {
+				if this.buttonDown {
+					if this.mouseGrabber == nil {
+						this.mouseGrabber = item
+						touchable.TouchBegin(sg.TouchPoint{this.mousePos.X, this.mousePos.Y})
+					}
+				} else if this.buttonUp {
+					if this.mouseGrabber == item {
+						touchable.TouchEnd(sg.TouchPoint{this.mousePos.X, this.mousePos.Y})
+					}
+				}
+			}
 			if tappable, ok := item.(sg.Tappable); ok {
 				if this.buttonDown {
-					this.mouseGrabber = item
+					if this.mouseGrabber == nil {
+						// a Tappable takes an implicit grab
+						this.mouseGrabber = item
+					}
 				} else if this.buttonUp {
 					if this.mouseGrabber == item {
 						tappable.PointerTapped(sg.TouchPoint{this.mousePos.X, this.mousePos.Y})
 					}
 				}
+			}
+			if this.buttonUp && this.mouseGrabber == item {
+				this.mouseGrabber = nil
 			}
 		}
 	}

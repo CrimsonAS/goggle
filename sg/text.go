@@ -12,6 +12,8 @@ type Text struct {
 	Text                string
 	Color               Color
 	PixelSize           int
+	Scale               float32
+	Rotation            float32
 
 	// ### right now a path, I think the Renderer interface will also have to
 	// make use of a font database type provider thing.
@@ -34,4 +36,20 @@ func (this *Text) CopyDrawable() Drawable {
 	re := *this
 	re.Children = nil
 	return &re
+}
+
+func (this *Text) GetScale() float32 {
+	return this.Scale
+}
+
+func (this *Text) SetScale(r float32) {
+	this.Scale = r
+}
+
+func (this *Text) GetRotation() float32 {
+	return this.Rotation
+}
+
+func (this *Text) SetRotation(r float32) {
+	this.Rotation = r
 }

@@ -17,10 +17,12 @@ type OtherButton struct{}
 
 func (this *OtherButton) Render() sg.Node {
 	return &sg.Image{
-		X:      10,
-		Y:      10,
-		Width:  180,
-		Height: 180,
+		X:        10,
+		Y:        10,
+		Width:    180,
+		Height:   180,
+		Scale:    1.0,
+		Rotation: 1.0,
 		Texture: &sg.FileTexture{
 			Source: "solid.png",
 		},
@@ -33,6 +35,7 @@ type Button struct {
 	active          bool
 	rectAnimation   *animation.FloatAnimation
 	bgAnimation     *animation.FloatAnimation
+	scaleAnimation  *animation.FloatAnimation
 }
 
 func (this *Button) Geometry() (x, y, w, h float32) {
@@ -46,6 +49,11 @@ func (this *Button) Geometry() (x, y, w, h float32) {
 			From:     200,
 			To:       1000,
 			Duration: 2000 * time.Millisecond,
+		}
+		this.scaleAnimation = &animation.FloatAnimation{
+			From:     0.0,
+			To:       10.0,
+			Duration: 5000 * time.Millisecond,
 		}
 	}
 	return 0, 0, 200, this.bgAnimation.Get()
@@ -102,8 +110,11 @@ func (this *Button) Render() sg.Node {
 	_, _, width, height := this.Geometry()
 
 	return &sg.Rectangle{
-		Width:  width,
-		Height: height,
+		Color:    this.color,
+		Width:    width,
+		Height:   height,
+		Scale:    1.0,
+		Rotation: 1.0,
 		Children: []sg.Node{
 			&OtherButton{},
 			&sdlsoftware.DrawNode{
@@ -112,11 +123,13 @@ func (this *Button) Render() sg.Node {
 				},
 			},
 			&sg.Rectangle{
-				X:      float32(this.rectAnimation.Get()),
-				Y:      height / 2,
-				Width:  50,
-				Height: 50,
-				Color:  sg.Color{0.5, 1.0, 0, 0},
+				X:        float32(this.rectAnimation.Get()),
+				Y:        height / 2,
+				Width:    50,
+				Height:   50,
+				Color:    sg.Color{0.5, 1.0, 0, 0},
+				Scale:    this.scaleAnimation.Get(),
+				Rotation: 1.0,
 			},
 			&sg.Text{
 				X:          float32(width - this.rectAnimation.Get()),
@@ -126,9 +139,10 @@ func (this *Button) Render() sg.Node {
 				Color:      sg.Color{rand.Float32(), rand.Float32(), rand.Float32(), rand.Float32()},
 				PixelSize:  42,
 				FontFamily: "Barlow/Barlow-Regular.ttf",
+				Scale:      1.0,
+				Rotation:   1.0,
 			},
 		},
-		Color: this.color,
 	}
 }
 

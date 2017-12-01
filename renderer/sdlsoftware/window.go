@@ -145,12 +145,20 @@ func (this *Window) Render(scene sg.Node) {
 	// drawable primitives; then, iterate drawables and draw
 	// them into the window. These could be split up further
 	// in the future, and potentially happen across goroutines.
-	drawables := this.renderItem(scene, 0, 0)
+	drawables := this.renderItem(scene, 0, 0, 1.0, 1.0)
 
 	debugOut("scene rendered to %d drawables\n", len(drawables))
 	for _, node := range drawables {
 		debugOut("drawing node %s: %+v\n", sg.NodeName(node), node)
-		this.drawNode(node)
+		scale := float32(1.0)
+		rotation := float32(1.0)
+		switch node := node.(type) {
+		case sg.Scaleable:
+			scale = node.GetScale()
+		case sg.Rotateable:
+			rotation = node.GetRotation()
+		}
+		this.drawNode(node, scale, rotation)
 	}
 
 	this.sdlRenderer.Present()
@@ -177,6 +185,7 @@ func (this *Window) Render(scene sg.Node) {
 	this.buttonUp = false
 }
 
+// ### should scale/rotate affect input events? i'd say yes, personally.
 func (this *Window) processPointerEvents(originX, originY, childWidth, childHeight float32, item sg.Node) {
 	// BUG: ### unsolved problems: we should also probably block propagation of hover.
 	// We could have a return code to block hover propagating further down the tree,
@@ -237,7 +246,7 @@ func (this *Window) processPointerEvents(originX, originY, childWidth, childHeig
 // renderItem walks a tree of nodes and reduces them to a list of drawable nodes.
 // originX and originY translate the item's coordinates, such that originX + item.X
 // is the left side of the item in window coordinates.
-func (this *Window) renderItem(item sg.Node, originX, originY float32) []sg.Node {
+func (this *Window) renderItem(item sg.Node, originX, originY, scale, rotation float32) []sg.Node {
 	var drawables []sg.Node
 
 	debugOut("rendering node %s (%s) to origin (%g,%g): %+v\n",
@@ -259,6 +268,18 @@ func (this *Window) renderItem(item sg.Node, originX, originY float32) []sg.Node
 			geo.SetGeometry(x, y, w, h)
 		}
 
+		if scaleable, ok := draw.(sg.Scaleable); ok {
+			childScale := scaleable.GetScale()
+			childScale *= scale
+			scaleable.SetScale(childScale)
+		}
+
+		if rotateable, ok := draw.(sg.Rotateable); ok {
+			childRotation := rotateable.GetRotation()
+			childRotation *= rotation
+			rotateable.SetRotation(childRotation)
+		}
+
 		drawables = append(drawables, draw)
 	}
 
@@ -268,6 +289,14 @@ func (this *Window) renderItem(item sg.Node, originX, originY float32) []sg.Node
 		childX, childY, childWidth, childHeight := geo.Geometry()
 		originX += childX
 		originY += childY
+
+		if scaleable, ok := geo.(sg.Scaleable); ok {
+			scale *= scaleable.GetScale()
+		}
+
+		if rotateable, ok := geo.(sg.Rotateable); ok {
+			rotation *= rotateable.GetRotation()
+		}
 
 		// ### this isn't really right. I think we should traverse the tree of
 		// renderables twice: once to deliver input events (and this must be
@@ -279,13 +308,13 @@ func (this *Window) renderItem(item sg.Node, originX, originY float32) []sg.Node
 	// Render stacks next, below children
 	if renderableNode, ok := item.(sg.Renderable); ok {
 		rendered := renderableNode.Render()
-		drawables = append(drawables, this.renderItem(rendered, originX, originY)...)
+		drawables = append(drawables, this.renderItem(rendered, originX, originY, scale, rotation)...)
 	}
 
 	// Children stack in listed order from bottom to top
 	if parentNode, ok := item.(sg.Parentable); ok {
 		for _, cNode := range parentNode.GetChildren() {
-			drawables = append(drawables, this.renderItem(cNode, originX, originY)...)
+			drawables = append(drawables, this.renderItem(cNode, originX, originY, scale, rotation)...)
 		}
 	}
 
@@ -295,9 +324,11 @@ func (this *Window) renderItem(item sg.Node, originX, originY float32) []sg.Node
 	return drawables
 }
 
-func (this *Window) drawRectangle(node *sg.Rectangle) {
-	rect := sdl.Rect{int32(node.X), int32(node.Y), int32(node.Width), int32(node.Height)}
-	debugOut("Filling rect xy %gx%g wh %gx%g with color %v\n", node.X, node.Y, node.Width, node.Height, node.Color)
+func (this *Window) drawRectangle(node *sg.Rectangle, scale, rotation float32) {
+	w := node.Width * scale
+	h := node.Height * scale
+	rect := sdl.Rect{int32(node.X), int32(node.Y), int32(w), int32(h)}
+	debugOut("Filling rect xy %gx%g wh %gx%g with color %v\n", node.X, node.Y, w, h, node.Color)
 
 	// argb -> rgba
 	this.sdlRenderer.SetDrawColor(uint8(255.0*node.Color[1]), uint8(255.0*node.Color[2]), uint8(255.0*node.Color[3]), uint8(255.0*node.Color[0]))
@@ -309,7 +340,9 @@ func (this *Window) drawRectangle(node *sg.Rectangle) {
 	this.sdlRenderer.FillRect(&rect)
 }
 
-func (this *Window) drawImage(node *sg.Image) {
+func (this *Window) drawImage(node *sg.Image, scale, rotation float32) {
+	w := node.Width * scale
+	h := node.Height * scale
 	var fileTexture *sg.FileTexture
 	var err error
 	var ok bool
@@ -326,11 +359,13 @@ func (this *Window) drawImage(node *sg.Image) {
 	}
 
 	// ###? defer image.Free()
-	rect := sdl.Rect{int32(node.X), int32(node.Y), int32(node.Width), int32(node.Height)}
+	rect := sdl.Rect{int32(node.X), int32(node.Y), int32(w), int32(h)}
 	this.sdlRenderer.Copy(image, nil, &rect)
 }
 
-func (this *Window) drawText(node *sg.Text) {
+func (this *Window) drawText(node *sg.Text, scale, rotation float32) {
+	w := node.Width * scale
+	h := node.Height * scale
 	// ### font caching (and database)
 	var font *ttf.Font
 	var err error
@@ -355,7 +390,7 @@ func (this *Window) drawText(node *sg.Text) {
 		fmt.Fprint(os.Stderr, "Failed to get texture for text: %s\n", err)
 	} else {
 		// ###? defer texture.Free()
-		rect := sdl.Rect{int32(node.X), int32(node.Y), int32(node.Width), int32(node.Height)}
+		rect := sdl.Rect{int32(node.X), int32(node.Y), int32(w), int32(h)}
 		if node.Color[0] == 1 {
 			this.sdlRenderer.SetDrawBlendMode(sdl.BLENDMODE_NONE)
 		} else {
@@ -366,14 +401,14 @@ func (this *Window) drawText(node *sg.Text) {
 
 }
 
-func (this *Window) drawNode(baseNode sg.Node) {
+func (this *Window) drawNode(baseNode sg.Node, scale, rotation float32) {
 	switch node := baseNode.(type) {
 	case *sg.Rectangle:
-		this.drawRectangle(node)
+		this.drawRectangle(node, scale, rotation)
 	case *sg.Image:
-		this.drawImage(node)
+		this.drawImage(node, scale, rotation)
 	case *sg.Text:
-		this.drawText(node)
+		this.drawText(node, scale, rotation)
 	case *DrawNode:
 		debugOut("Calling custom draw function %+v\n", node.Draw)
 		node.Draw(this.sdlRenderer, node)

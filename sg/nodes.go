@@ -75,11 +75,6 @@ type Tappable interface {
 	PointerTapped(TouchPoint)
 }
 
-// ### Pressable: OnPressed, OnReleased
-// ### Tappable: OnTap
-// ... etc. These are a bit more complicated though, as they need to "grab"
-// pointers, rather than just acting as state notifiers like Hoverable.
-
 // GeometryNode is a node with a position and size in the canvas.
 // They do not necessarily have a visual representation, but will
 // translate the coordinate space of any rendered or child nodes.

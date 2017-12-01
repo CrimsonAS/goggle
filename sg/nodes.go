@@ -32,6 +32,37 @@ type Drawable interface {
 	CopyDrawable() Drawable
 }
 
+type TouchPoint struct {
+	X float32
+	Y float32
+}
+
+// A Hoverable is a node that will get events when a point's coordintes are
+// above the item. Note tht Hoverable must also implement GeometryNode for the
+// scenegraph to know that the point is inside the item's boundaries.
+//
+// ### unsolved problems: we should also probably block propagation of hover.
+// We could have a return code to block hover propagating further down the tree,
+// letting someone write code like:
+//
+// Root UI node
+//     Sidebar PointerEnter() { return true; /* block */ }
+//         Button Hoverable // to highlight as need be
+//     UI page
+//
+// This would also imply that we need to invert delivery such that we deliver to
+// children first up to parents, and we also need to deliver based on paint
+// order.
+type Hoverable interface {
+	PointerEnter(TouchPoint)
+	PointerLeave(TouchPoint)
+}
+
+// ### Pressable: OnPressed, OnReleased
+// ### Tappable: OnTap
+// ... etc. These are a bit more complicated though, as they need to "grab"
+// pointers, rather than just acting as state notifiers like Hoverable.
+
 // GeometryNode is a node with a position and size in the canvas.
 // They do not necessarily have a visual representation, but will
 // translate the coordinate space of any rendered or child nodes.

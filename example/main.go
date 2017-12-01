@@ -28,12 +28,13 @@ func (this *OtherButton) Render() sg.Node {
 }
 
 type Button struct {
-	color         sg.Color
-	rectAnimation *animation.FloatAnimation
-	bgAnimation   *animation.FloatAnimation
+	color           sg.Color
+	containsPointer bool
+	rectAnimation   *animation.FloatAnimation
+	bgAnimation     *animation.FloatAnimation
 }
 
-func (this *Button) Render() sg.Node {
+func (this *Button) Geometry() (x, y, w, h float32) {
 	if this.rectAnimation == nil {
 		this.rectAnimation = &animation.FloatAnimation{
 			From:     0,
@@ -46,11 +47,29 @@ func (this *Button) Render() sg.Node {
 			Duration: 2000 * time.Millisecond,
 		}
 	}
+	return 0, 0, 200, this.bgAnimation.Get()
+}
 
-	this.color = sg.Color{rand.Float32(), rand.Float32(), rand.Float32(), rand.Float32()}
+func (this *Button) SetGeometry(x, y, w, h float32) { // why does GeometryNode require this?
 
-	width := this.bgAnimation.Get()
-	height := width
+}
+
+func (this *Button) PointerEnter(tp sg.TouchPoint) {
+	this.containsPointer = true
+}
+
+func (this *Button) PointerLeave(tp sg.TouchPoint) {
+	this.containsPointer = false
+}
+
+func (this *Button) Render() sg.Node {
+	if this.containsPointer {
+		this.color = sg.Color{1, 0, 1, 0}
+	} else {
+		this.color = sg.Color{rand.Float32(), rand.Float32(), rand.Float32(), rand.Float32()}
+	}
+
+	_, _, width, height := this.Geometry()
 
 	return &sg.Rectangle{
 		Width:  width,

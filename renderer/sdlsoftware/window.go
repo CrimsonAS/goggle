@@ -2,6 +2,7 @@ package sdlsoftware
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"strings"
 	"time"
@@ -16,6 +17,7 @@ import (
 type Renderer struct {
 	isRunning bool
 	start     time.Time // when rendering this frame began
+	window    *Window   // ### fixme input handling
 }
 
 // Perform any initialization needed
@@ -51,7 +53,14 @@ func (this *Renderer) ProcessEvents() {
 		case *sdl.QuitEvent:
 			this.isRunning = false
 		case *sdl.MouseMotionEvent:
-			fmt.Printf("[%d ms] MouseMotion\tid:%d\tx:%d\ty:%d\txrel:%d\tyrel:%d\n", t.Timestamp, t.Which, t.X, t.Y, t.XRel, t.YRel)
+			// ### windowId to find the window
+			this.window.mousePos = sg.TouchPoint{X: float32(t.X), Y: float32(t.Y)}
+			//fmt.Printf("[%d ms] MouseMotion\tid:%d\tx:%d\ty:%d\txrel:%d\tyrel:%d\n", t.Timestamp, t.Which, t.X, t.Y, t.XRel, t.YRel)
+		case *sdl.WindowEvent:
+			if t.Event == sdl.WINDOWEVENT_LEAVE {
+				log.Printf("Cursor left window")
+				this.window.mousePos = sg.TouchPoint{-1, -1} // ### this initial state isn't really acceptable, items may have negative coords.
+			}
 		}
 	}
 }
@@ -59,7 +68,13 @@ func (this *Renderer) ProcessEvents() {
 // Create (and show, for now) a window
 // ### params needed
 func (this *Renderer) CreateWindow() (*Window, error) {
-	w := &Window{ourRenderer: this}
+	w := &Window{
+		ourRenderer:     this,
+		hoveredNodes:    make(map[sg.Node]bool),
+		oldHoveredNodes: make(map[sg.Node]bool),
+		mousePos:        sg.TouchPoint{-1, -1},
+	}
+	this.window = w
 	var err error
 	w.window, w.sdlRenderer, err = sdl.CreateWindowAndRenderer(800, 600, sdl.WINDOW_SHOWN)
 	if err != nil {
@@ -69,9 +84,12 @@ func (this *Renderer) CreateWindow() (*Window, error) {
 }
 
 type Window struct {
-	window      *sdl.Window
-	sdlRenderer *sdl.Renderer
-	ourRenderer *Renderer
+	window          *sdl.Window
+	sdlRenderer     *sdl.Renderer
+	ourRenderer     *Renderer
+	hoveredNodes    map[sg.Node]bool
+	oldHoveredNodes map[sg.Node]bool
+	mousePos        sg.TouchPoint
 }
 
 // Destroy a window
@@ -83,7 +101,7 @@ func debugOut(fstr string, vals ...interface{}) {
 	const debug = false
 
 	if debug {
-		fmt.Printf(fstr, vals...)
+		log.Printf(fstr, vals...)
 	}
 }
 
@@ -94,6 +112,9 @@ func (this *Window) Render(scene sg.Node) {
 	// ### a 'clear color' on the Window might make sense
 	this.sdlRenderer.SetDrawColor(0, 0, 0, 0)
 	this.sdlRenderer.Clear()
+
+	this.oldHoveredNodes = this.hoveredNodes
+	this.hoveredNodes = make(map[sg.Node]bool)
 
 	// The strategy here is to render in two stages:
 	// first walk the scene and reduce the tree to a list of
@@ -121,6 +142,7 @@ func (this *Window) Render(scene sg.Node) {
 		}
 		fmt.Printf("Done rendering in %s @ %d FPS, sleeping %s\n", time.Since(this.ourRenderer.start), 1000/div, sleepyTime)
 	}
+
 	time.Sleep(sleepyTime) // cap rendering
 }
 
@@ -155,9 +177,25 @@ func (this *Window) renderItem(item sg.Node, originX, originY float32) []sg.Node
 	// If node is a GeometryNode, adjust originX/originY for relative
 	// coordinates in the rendered tree and in children
 	if geo, ok := item.(sg.GeometryNode); ok {
-		childX, childY, _, _ := geo.Geometry()
+		childX, childY, childWidth, childHeight := geo.Geometry()
 		originX += childX
 		originY += childY
+
+		if hoverable, ok := item.(sg.Hoverable); ok {
+			if this.mousePos.X >= originX &&
+				this.mousePos.Y >= originY &&
+				this.mousePos.X <= originX+childWidth &&
+				this.mousePos.Y <= originY+childHeight {
+				this.hoveredNodes[item] = true
+				if _, ok = this.oldHoveredNodes[item]; !ok {
+					log.Printf("Mouse at %fx%f entering item %+v geom %fx%f %fx%f", this.mousePos.X, this.mousePos.Y, item, originX, originY, originX+childWidth, originY+childWidth)
+					hoverable.PointerEnter(sg.TouchPoint{this.mousePos.X, this.mousePos.Y})
+				}
+			} else if _, ok = this.oldHoveredNodes[item]; ok {
+				log.Printf("Mouse at %fx%f leaving item %+v geom %fx%f %fx%f", this.mousePos.X, this.mousePos.Y, item, originX, originY, originX+childWidth, originY+childWidth)
+				hoverable.PointerLeave(sg.TouchPoint{this.mousePos.X, this.mousePos.Y})
+			}
+		}
 	}
 
 	// Render stacks next, below children

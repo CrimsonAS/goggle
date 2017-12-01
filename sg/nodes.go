@@ -76,5 +76,17 @@ func NodeInterfaces(node Node) []string {
 	if _, yes := node.(GeometryNode); yes {
 		re = append(re, "geometry")
 	}
+	if _, yes := node.(Hoverable); yes {
+		re = append(re, "hoverable")
+	}
+	if _, yes := node.(Pressable); yes {
+		re = append(re, "pressable")
+	}
+	if _, yes := node.(Moveable); yes {
+		re = append(re, "moveable")
+	}
+	if _, yes := node.(Tappable); yes {
+		re = append(re, "tappable")
+	}
 	return re
 }

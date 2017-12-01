@@ -30,7 +30,7 @@ type Pressable interface {
 	PointerReleased(TouchPoint)
 }
 
-// A Movable is a node that will get events when a mouse is inside its boundary.
+// A Moveable is a node that will get events when a mouse is inside its boundary.
 //
 // Note that Moveable must also implement GeometryNode for the
 // scenegraph to know that the point is inside the item's boundaries.

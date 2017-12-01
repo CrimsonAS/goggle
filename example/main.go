@@ -83,13 +83,13 @@ func (this *Button) Render() sg.Node {
 			},
 			&sg.Rectangle{
 				X:      float32(this.rectAnimation.Get()),
-				Y:      100,
+				Y:      height / 2,
 				Width:  50,
 				Height: 50,
 				Color:  sg.Color{0.5, 1.0, 0, 0},
 			},
 			&sg.Text{
-				X:          float32(150 - this.rectAnimation.Get()),
+				X:          float32(width - this.rectAnimation.Get()),
 				Width:      width,
 				Height:     42,
 				Text:       "Hello, world",

@@ -88,5 +88,11 @@ func NodeInterfaces(node Node) []string {
 	if _, yes := node.(Tappable); yes {
 		re = append(re, "tappable")
 	}
+	if _, yes := node.(Scaleable); yes {
+		re = append(re, "scaleable")
+	}
+	if _, yes := node.(Rotateable); yes {
+		re = append(re, "rotateable")
+	}
 	return re
 }

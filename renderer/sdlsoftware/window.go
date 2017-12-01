@@ -165,6 +165,53 @@ func (this *Window) Render(scene sg.Node) {
 	this.buttonUp = false
 }
 
+func (this *Window) processPointerEvents(originX, originY, childWidth, childHeight float32, item sg.Node) {
+	if hoverable, ok := item.(sg.Hoverable); ok {
+		if this.mousePos.X >= originX &&
+			this.mousePos.Y >= originY &&
+			this.mousePos.X <= originX+childWidth &&
+			this.mousePos.Y <= originY+childHeight {
+			this.hoveredNodes[item] = true
+			if _, ok = this.oldHoveredNodes[item]; !ok {
+				log.Printf("Mouse at %fx%f entering item %+v geom %fx%f %fx%f", this.mousePos.X, this.mousePos.Y, item, originX, originY, originX+childWidth, originY+childWidth)
+				hoverable.PointerEnter(sg.TouchPoint{this.mousePos.X, this.mousePos.Y})
+			}
+		} else if _, ok = this.oldHoveredNodes[item]; ok {
+			log.Printf("Mouse at %fx%f leaving item %+v geom %fx%f %fx%f", this.mousePos.X, this.mousePos.Y, item, originX, originY, originX+childWidth, originY+childWidth)
+			hoverable.PointerLeave(sg.TouchPoint{this.mousePos.X, this.mousePos.Y})
+		}
+	}
+	if this.buttonDown || this.buttonUp {
+		if touchable, ok := item.(sg.Touchable); ok {
+			if this.buttonDown {
+				if this.mouseGrabber == nil {
+					this.mouseGrabber = item
+					touchable.TouchBegin(sg.TouchPoint{this.mousePos.X, this.mousePos.Y})
+				}
+			} else if this.buttonUp {
+				if this.mouseGrabber == item {
+					touchable.TouchEnd(sg.TouchPoint{this.mousePos.X, this.mousePos.Y})
+				}
+			}
+		}
+		if tappable, ok := item.(sg.Tappable); ok {
+			if this.buttonDown {
+				if this.mouseGrabber == nil {
+					// a Tappable takes an implicit grab
+					this.mouseGrabber = item
+				}
+			} else if this.buttonUp {
+				if this.mouseGrabber == item {
+					tappable.PointerTapped(sg.TouchPoint{this.mousePos.X, this.mousePos.Y})
+				}
+			}
+		}
+		if this.buttonUp && this.mouseGrabber == item {
+			this.mouseGrabber = nil
+		}
+	}
+}
+
 // renderItem walks a tree of nodes and reduces them to a list of drawable nodes.
 // originX and originY translate the item's coordinates, such that originX + item.X
 // is the left side of the item in window coordinates.
@@ -200,50 +247,11 @@ func (this *Window) renderItem(item sg.Node, originX, originY float32) []sg.Node
 		originX += childX
 		originY += childY
 
-		if hoverable, ok := item.(sg.Hoverable); ok {
-			if this.mousePos.X >= originX &&
-				this.mousePos.Y >= originY &&
-				this.mousePos.X <= originX+childWidth &&
-				this.mousePos.Y <= originY+childHeight {
-				this.hoveredNodes[item] = true
-				if _, ok = this.oldHoveredNodes[item]; !ok {
-					log.Printf("Mouse at %fx%f entering item %+v geom %fx%f %fx%f", this.mousePos.X, this.mousePos.Y, item, originX, originY, originX+childWidth, originY+childWidth)
-					hoverable.PointerEnter(sg.TouchPoint{this.mousePos.X, this.mousePos.Y})
-				}
-			} else if _, ok = this.oldHoveredNodes[item]; ok {
-				log.Printf("Mouse at %fx%f leaving item %+v geom %fx%f %fx%f", this.mousePos.X, this.mousePos.Y, item, originX, originY, originX+childWidth, originY+childWidth)
-				hoverable.PointerLeave(sg.TouchPoint{this.mousePos.X, this.mousePos.Y})
-			}
-		}
-		if this.buttonDown || this.buttonUp {
-			if touchable, ok := item.(sg.Touchable); ok {
-				if this.buttonDown {
-					if this.mouseGrabber == nil {
-						this.mouseGrabber = item
-						touchable.TouchBegin(sg.TouchPoint{this.mousePos.X, this.mousePos.Y})
-					}
-				} else if this.buttonUp {
-					if this.mouseGrabber == item {
-						touchable.TouchEnd(sg.TouchPoint{this.mousePos.X, this.mousePos.Y})
-					}
-				}
-			}
-			if tappable, ok := item.(sg.Tappable); ok {
-				if this.buttonDown {
-					if this.mouseGrabber == nil {
-						// a Tappable takes an implicit grab
-						this.mouseGrabber = item
-					}
-				} else if this.buttonUp {
-					if this.mouseGrabber == item {
-						tappable.PointerTapped(sg.TouchPoint{this.mousePos.X, this.mousePos.Y})
-					}
-				}
-			}
-			if this.buttonUp && this.mouseGrabber == item {
-				this.mouseGrabber = nil
-			}
-		}
+		// ### this isn't really right. I think we should traverse the tree of
+		// renderables twice: once to deliver input events (and this must be
+		// done in paint order, so deepest children first), recursing up to
+		// parents.
+		this.processPointerEvents(originX, originY, childWidth, childHeight, item)
 	}
 
 	// Render stacks next, below children

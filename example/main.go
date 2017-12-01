@@ -1,13 +1,16 @@
 package main
 
 import (
-	"github.com/CrimsonAS/goggle/renderer/sdlsoftware"
-	"github.com/CrimsonAS/goggle/sg"
-	"github.com/veandco/go-sdl2/sdl"
 	"log"
 	"math/rand"
 	"os"
 	"runtime/trace"
+	"time"
+
+	"github.com/CrimsonAS/goggle/animation"
+	"github.com/CrimsonAS/goggle/renderer/sdlsoftware"
+	"github.com/CrimsonAS/goggle/sg"
+	"github.com/veandco/go-sdl2/sdl"
 )
 
 type OtherButton struct{}
@@ -25,30 +28,29 @@ func (this *OtherButton) Render() sg.Node {
 }
 
 type Button struct {
-	color   sg.Color
-	bstep   int
-	bToLeft bool
+	color         sg.Color
+	rectAnimation *animation.FloatAnimation
+	bgAnimation   *animation.FloatAnimation
 }
 
 func (this *Button) Render() sg.Node {
-	if this.bToLeft {
-		this.bstep -= 1
-		if this.bstep < 0 {
-			this.bstep = 0
-			this.bToLeft = false
+	if this.rectAnimation == nil {
+		this.rectAnimation = &animation.FloatAnimation{
+			From:     0,
+			To:       150,
+			Duration: 1000 * time.Millisecond,
 		}
-	} else {
-		this.bstep += 1
-		if this.bstep > 150 {
-			/* our width - inner rect's width */
-			this.bstep = 150
-			this.bToLeft = true
+		this.bgAnimation = &animation.FloatAnimation{
+			From:     200,
+			To:       1000,
+			Duration: 2000 * time.Millisecond,
 		}
 	}
+
 	this.color = sg.Color{rand.Float32(), rand.Float32(), rand.Float32(), rand.Float32()}
 
-	width := float32(200.0 + this.bstep)
-	height := float32(200.0 + this.bstep)
+	width := this.bgAnimation.Get()
+	height := width
 
 	return &sg.Rectangle{
 		Width:  width,
@@ -61,14 +63,14 @@ func (this *Button) Render() sg.Node {
 				},
 			},
 			&sg.Rectangle{
-				X:      float32(this.bstep),
+				X:      float32(this.rectAnimation.Get()),
 				Y:      100,
 				Width:  50,
 				Height: 50,
 				Color:  sg.Color{0.5, 1.0, 0, 0},
 			},
 			&sg.Text{
-				X:          float32(150 - this.bstep),
+				X:          float32(150 - this.rectAnimation.Get()),
 				Width:      width,
 				Height:     42,
 				Text:       "Hello, world",

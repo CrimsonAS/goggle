@@ -38,7 +38,7 @@ type Button struct {
 	scaleAnimation  *animation.FloatAnimation
 }
 
-func (this *Button) Geometry() (x, y, w, h float32) {
+func (this *Button) Size() (w, h float32) {
 	if this.rectAnimation == nil {
 		this.rectAnimation = &animation.FloatAnimation{
 			From:     0,
@@ -56,10 +56,10 @@ func (this *Button) Geometry() (x, y, w, h float32) {
 			Duration: 5000 * time.Millisecond,
 		}
 	}
-	return 0, 0, 200, this.bgAnimation.Get()
+	return 200, this.bgAnimation.Get()
 }
 
-func (this *Button) SetGeometry(x, y, w, h float32) { // why does GeometryNode require this?
+func (this *Button) SetSize(w, h float32) { // why does Sizeable require this?
 
 }
 
@@ -107,7 +107,7 @@ func (this *Button) Render() sg.Node {
 		}
 	}
 
-	_, _, width, height := this.Geometry()
+	width, height := this.Size()
 
 	return &sg.Rectangle{
 		Color:    this.color,

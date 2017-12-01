@@ -6,7 +6,7 @@ import (
 
 // Node is the basic element in a node tree
 // Nodes may implement interfaces to gain capabilities like the ability to have
-// a size in the scenegraph through the GeometryNode interface, or to be
+// a size in the scenegraph through the Sizeable interface, or to be
 // notified about input events through interfaces like Hoverable.
 type Node interface{}
 
@@ -35,13 +35,21 @@ type Drawable interface {
 	CopyDrawable() Drawable
 }
 
-// GeometryNode is a node with a position and size in the canvas.
+// Positionable is a node with a position in the scene.
 // They do not necessarily have a visual representation, but will
 // translate the coordinate space of any rendered or child nodes.
-type GeometryNode interface {
+type Positionable interface {
 	Node
-	Geometry() (x, y, w, h float32)
-	SetGeometry(x, y, w, h float32)
+	Position() (x, y float32)
+	SetPosition(x, y float32)
+}
+
+// Sizeable is a node with a size in the scene.
+// The size may be used for rendering, or things like hit testing.
+type Sizeable interface {
+	Node
+	Size() (w, h float32)
+	SetSize(w, h float32)
 }
 
 // ParentNode is a node that acts as a container for child nodes,
@@ -73,8 +81,11 @@ func NodeInterfaces(node Node) []string {
 	if _, yes := node.(Renderable); yes {
 		re = append(re, "renderable")
 	}
-	if _, yes := node.(GeometryNode); yes {
-		re = append(re, "geometry")
+	if _, yes := node.(Positionable); yes {
+		re = append(re, "positionable")
+	}
+	if _, yes := node.(Sizeable); yes {
+		re = append(re, "sizeable")
 	}
 	if _, yes := node.(Hoverable); yes {
 		re = append(re, "hoverable")

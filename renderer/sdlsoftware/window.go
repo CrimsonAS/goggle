@@ -260,12 +260,12 @@ func (this *Window) renderItem(item sg.Node, originX, originY, scale, rotation f
 		// Copy instance for safe modification & independent draw
 		draw = draw.CopyDrawable()
 
-		if geo, ok := draw.(sg.GeometryNode); ok {
+		if positionable, ok := draw.(sg.Positionable); ok {
 			// Offset position with originX/originY
-			x, y, w, h := geo.Geometry()
+			x, y := positionable.Position()
 			x += originX
 			y += originY
-			geo.SetGeometry(x, y, w, h)
+			positionable.SetPosition(x, y)
 		}
 
 		if scaleable, ok := draw.(sg.Scaleable); ok {
@@ -283,21 +283,24 @@ func (this *Window) renderItem(item sg.Node, originX, originY, scale, rotation f
 		drawables = append(drawables, draw)
 	}
 
-	// If node is a GeometryNode, adjust originX/originY for relative
+	// If node is a Positionable, adjust originX/originY for relative
 	// coordinates in the rendered tree and in children
-	if geo, ok := item.(sg.GeometryNode); ok {
-		childX, childY, childWidth, childHeight := geo.Geometry()
+	if geo, ok := item.(sg.Positionable); ok {
+		childX, childY := geo.Position()
 		originX += childX
 		originY += childY
+	}
 
-		if scaleable, ok := geo.(sg.Scaleable); ok {
-			scale *= scaleable.GetScale()
-		}
+	if scaleable, ok := item.(sg.Scaleable); ok {
+		scale *= scaleable.GetScale()
+	}
 
-		if rotateable, ok := geo.(sg.Rotateable); ok {
-			rotation *= rotateable.GetRotation()
-		}
+	if rotateable, ok := item.(sg.Rotateable); ok {
+		rotation *= rotateable.GetRotation()
+	}
 
+	if sizeable, ok := item.(sg.Sizeable); ok {
+		childWidth, childHeight := sizeable.Size()
 		// ### this isn't really right. I think we should traverse the tree of
 		// renderables twice: once to deliver input events (and this must be
 		// done in paint order, so deepest children first), recursing up to

@@ -9,7 +9,7 @@ type TouchPoint struct {
 // A Hoverable is a node that will get events when a point's coordintes are
 // above the item.
 //
-// Note that Hoverable must also implement GeometryNode for the
+// Note that Hoverable must also implement Sizeable for the
 // scenegraph to know that the point is inside the item's boundaries.
 type Hoverable interface {
 	PointerEnter(TouchPoint)
@@ -23,7 +23,7 @@ type Hoverable interface {
 // A Pressable is a node that will get events when a point is pressed or
 // released in its boundary.
 //
-// Note that Pressable must also implement GeometryNode for the
+// Note that Pressable must also implement Sizeable for the
 // scenegraph to know that the point is inside the item's boundaries.
 type Pressable interface {
 	PointerPressed(TouchPoint)
@@ -32,7 +32,7 @@ type Pressable interface {
 
 // A Moveable is a node that will get events when a mouse is inside its boundary.
 //
-// Note that Moveable must also implement GeometryNode for the
+// Note that Moveable must also implement Sizeable for the
 // scenegraph to know that the point is inside the item's boundaries.
 type Moveable interface {
 	PointerMoved(TouchPoint)
@@ -40,7 +40,7 @@ type Moveable interface {
 
 // A Tappable is a node that will get events when a touch is pressed and released.
 //
-// Note that Moveable must also implement GeometryNode for the
+// Note that Moveable must also implement Sizeable for the
 // scenegraph to know that the point is inside the item's boundaries.
 type Tappable interface {
 	PointerTapped(TouchPoint)

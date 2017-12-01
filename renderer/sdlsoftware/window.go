@@ -17,12 +17,15 @@ import (
 type Renderer struct {
 	isRunning bool
 	start     time.Time // when rendering this frame began
-	window    *Window   // ### fixme input handling
+	windows   map[uint32]*Window
 }
 
 // Perform any initialization needed
 func NewRenderer() (*Renderer, error) {
-	r := &Renderer{isRunning: true}
+	r := &Renderer{
+		isRunning: true,
+		windows:   make(map[uint32]*Window),
+	}
 	err := sdl.Init(sdl.INIT_EVERYTHING)
 	if err != nil {
 		return nil, err
@@ -53,19 +56,19 @@ func (this *Renderer) ProcessEvents() {
 		case *sdl.QuitEvent:
 			this.isRunning = false
 		case *sdl.MouseMotionEvent:
-			// ### windowId to find the window
-			this.window.mousePos = sg.TouchPoint{X: float32(t.X), Y: float32(t.Y)}
-			//fmt.Printf("[%d ms] MouseMotion\tid:%d\tx:%d\ty:%d\txrel:%d\tyrel:%d\n", t.Timestamp, t.Which, t.X, t.Y, t.XRel, t.YRel)
+			win := this.windows[t.WindowID]
+			win.mousePos = sg.TouchPoint{X: float32(t.X), Y: float32(t.Y)}
 		case *sdl.MouseButtonEvent:
+			win := this.windows[t.WindowID]
 			if t.Type == sdl.MOUSEBUTTONUP {
-				this.window.buttonUp = true
+				win.buttonUp = true
 			} else if t.Type == sdl.MOUSEBUTTONDOWN {
-				this.window.buttonDown = true
+				win.buttonDown = true
 			}
 		case *sdl.WindowEvent:
+			win := this.windows[t.WindowID]
 			if t.Event == sdl.WINDOWEVENT_LEAVE {
-				log.Printf("Cursor left window")
-				this.window.mousePos = sg.TouchPoint{-1, -1} // ### this initial state isn't really acceptable, items may have negative coords.
+				win.mousePos = sg.TouchPoint{-1, -1} // ### this initial state isn't really acceptable, items may have negative coords.
 			}
 		}
 	}
@@ -80,9 +83,13 @@ func (this *Renderer) CreateWindow() (*Window, error) {
 		oldHoveredNodes: make(map[sg.Node]bool),
 		mousePos:        sg.TouchPoint{-1, -1},
 	}
-	this.window = w
 	var err error
 	w.window, w.sdlRenderer, err = sdl.CreateWindowAndRenderer(800, 600, sdl.WINDOW_SHOWN)
+	id, err := w.window.GetID()
+	if err != nil {
+		return nil, err
+	}
+	this.windows[id] = w
 	if err != nil {
 		return nil, err
 	}
@@ -103,6 +110,11 @@ type Window struct {
 
 // Destroy a window
 func (this *Window) Destroy() {
+	id, err := this.window.GetID()
+	if err != nil {
+		panic("No window ID!")
+	}
+	delete(this.ourRenderer.windows, id)
 	this.window.Destroy()
 }
 

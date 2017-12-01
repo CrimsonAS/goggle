@@ -5,6 +5,9 @@ import (
 )
 
 // Node is the basic element in a node tree
+// Nodes may implement interfaces to gain capabilities like the ability to have
+// a size in the scenegraph through the GeometryNode interface, or to be
+// notified about input events through interfaces like Hoverable.
 type Node interface{}
 
 // Parentable is a node that can have child nodes in the tree
@@ -30,49 +33,6 @@ type Drawable interface {
 	// necessary for drawing preserved. Drawable copies should not preserve
 	// children or other unnecessary state.
 	CopyDrawable() Drawable
-}
-
-type TouchPoint struct {
-	X float32
-	Y float32
-}
-
-// A Hoverable is a node that will get events when a point's coordintes are
-// above the item. Note tht Hoverable must also implement GeometryNode for the
-// scenegraph to know that the point is inside the item's boundaries.
-//
-// ### unsolved problems: we should also probably block propagation of hover.
-// We could have a return code to block hover propagating further down the tree,
-// letting someone write code like:
-//
-// Root UI node
-//     Sidebar PointerEnter() { return true; /* block */ }
-//         Button Hoverable // to highlight as need be
-//     UI page
-//
-// This would also imply that we need to invert delivery such that we deliver to
-// children first up to parents, and we also need to deliver based on paint
-// order.
-type Hoverable interface {
-	PointerEnter(TouchPoint)
-	PointerLeave(TouchPoint)
-}
-
-// A Pressable is a node that will get events when a point is pressed or
-// released in its boundary.
-type Pressable interface {
-	PointerPressed(TouchPoint)
-	PointerReleased(TouchPoint)
-}
-
-// A Movable is a node that will get events when a mouse is inside its boundary.
-type Moveable interface {
-	PointerMoved(TouchPoint)
-}
-
-// A Tappable is a node that will get events when a touch is pressed and released.
-type Tappable interface {
-	PointerTapped(TouchPoint)
 }
 
 // GeometryNode is a node with a position and size in the canvas.

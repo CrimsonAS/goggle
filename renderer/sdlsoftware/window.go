@@ -166,6 +166,14 @@ func (this *Window) Render(scene sg.Node) {
 }
 
 func (this *Window) processPointerEvents(originX, originY, childWidth, childHeight float32, item sg.Node) {
+	// BUG: ### unsolved problems: we should also probably block propagation of hover.
+	// We could have a return code to block hover propagating further down the tree,
+	// letting someone write code like:
+	//
+	// Root UI node
+	//     Sidebar PointerEnter() { return true; /* block */ }
+	//         Button Hoverable // to highlight as need be
+	//     UI page
 	if hoverable, ok := item.(sg.Hoverable); ok {
 		if this.mousePos.X >= originX &&
 			this.mousePos.Y >= originY &&
@@ -201,6 +209,8 @@ func (this *Window) processPointerEvents(originX, originY, childWidth, childHeig
 					this.mouseGrabber = item
 				}
 			} else if this.buttonUp {
+				// BUG: right now, PointerTapped is called regardless of whether or not the
+				// release happens inside the item boundary.
 				if this.mouseGrabber == item {
 					tappable.PointerTapped(sg.TouchPoint{this.mousePos.X, this.mousePos.Y})
 				}

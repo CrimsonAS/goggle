@@ -78,7 +78,7 @@ func (this *Renderer) CreateWindow() (*Window, error) {
 		inputHelper: private.NewInputHelper(),
 	}
 	var err error
-	w.window, w.sdlRenderer, err = sdl.CreateWindowAndRenderer(800, 600, sdl.WINDOW_SHOWN)
+	w.window, w.sdlRenderer, err = sdl.CreateWindowAndRenderer(800, 600, sdl.WINDOW_SHOWN|sdl.WINDOW_RESIZABLE)
 	id, err := w.window.GetID()
 	if err != nil {
 		return nil, err

@@ -18,34 +18,16 @@ type Button struct {
 	containsPointer bool
 	active          bool
 	rectAnimation   *animation.FloatAnimation
-	bgAnimation     *animation.FloatAnimation
 	scaleAnimation  *animation.FloatAnimation
 	otherButton     *OtherButton
+	windowable      sg.Windowable
 }
 
 func (this *Button) Size() (w, h float32) {
-	if this.rectAnimation == nil {
-		this.rectAnimation = &animation.FloatAnimation{
-			From:     0,
-			To:       150,
-			Duration: 1000 * time.Millisecond,
-		}
-		this.rectAnimation.Restart()
-		this.bgAnimation = &animation.FloatAnimation{
-			From:     200,
-			To:       1000,
-			Duration: 2000 * time.Millisecond,
-		}
-		this.bgAnimation.Restart()
-		this.scaleAnimation = &animation.FloatAnimation{
-			From:     0.0,
-			To:       10.0,
-			Duration: 5000 * time.Millisecond,
-		}
-		this.scaleAnimation.Restart()
-		this.otherButton = &OtherButton{w: 100, h: 100}
+	if this.windowable != nil {
+		return this.windowable.GetSize()
 	}
-	return 200, this.bgAnimation.Get()
+	return 0, 0
 }
 
 func (this *Button) SetSize(w, h float32) { // why does Sizeable require this?
@@ -80,9 +62,24 @@ func (this *Button) PointerMoved(tp sg.TouchPoint) {
 }
 
 func (this *Button) Render(w sg.Windowable) sg.Node {
+	this.windowable = w
+	if this.rectAnimation == nil {
+		this.rectAnimation = &animation.FloatAnimation{
+			From:     0,
+			To:       150,
+			Duration: 1000 * time.Millisecond,
+		}
+		this.rectAnimation.Restart()
+		this.scaleAnimation = &animation.FloatAnimation{
+			From:     0.0,
+			To:       10.0,
+			Duration: 5000 * time.Millisecond,
+		}
+		this.scaleAnimation.Restart()
+		this.otherButton = &OtherButton{w: 100, h: 100}
+	}
 	this.rectAnimation.Advance(w.FrameTime())
 	this.scaleAnimation.Advance(w.FrameTime())
-	this.bgAnimation.Advance(w.FrameTime())
 
 	if this.active {
 		this.color = sg.Color{1, 0, 0, 1}
@@ -94,7 +91,7 @@ func (this *Button) Render(w sg.Windowable) sg.Node {
 		}
 	}
 
-	width, height := this.Size()
+	width, height := w.GetSize()
 
 	return &sg.RectangleNode{
 		Color:  this.color,
@@ -111,17 +108,17 @@ func (this *Button) Render(w sg.Windowable) sg.Node {
 				Scale: this.scaleAnimation.Get(),
 				Children: []sg.Node{
 					&sg.RectangleNode{
-						X:      float32(this.rectAnimation.Get()),
+						X:      float32(this.rectAnimation.Get()) / 2,
 						Y:      height / 2,
-						Width:  50,
-						Height: 50,
+						Width:  this.rectAnimation.Get(),
+						Height: this.rectAnimation.Get(),
 						Color:  sg.Color{0.5, 1.0, 0, 0},
 					},
 				},
 			},
 			&sg.TextNode{
-				X:          float32(width - this.rectAnimation.Get()),
-				Width:      width,
+				X:          float32(width/2 - this.rectAnimation.Get()),
+				Width:      300,
 				Height:     42,
 				Text:       "Hello, world",
 				Color:      sg.Color{rand.Float32(), rand.Float32(), rand.Float32(), rand.Float32()},

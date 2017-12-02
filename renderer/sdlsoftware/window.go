@@ -23,6 +23,11 @@ type Window struct {
 	frameDuration time.Duration
 }
 
+func (this *Window) GetSize() (w, h float32) {
+	ww, hh := this.window.GetSize()
+	return float32(ww), float32(hh)
+}
+
 // Returns the time between frames. Used to advance animations.
 func (this *Window) FrameTime() time.Duration {
 	return this.frameDuration

@@ -11,6 +11,7 @@ type OtherButton struct {
 	containsPointer bool
 	scaleAnimation  *animation.FloatAnimation
 	w, h            float32
+	currentScale    float32
 }
 
 func (this *OtherButton) Size() (w, h float32) {
@@ -23,7 +24,6 @@ func (this *OtherButton) SetSize(w, h float32) {
 
 // hoverable
 func (this *OtherButton) PointerEnter(tp sg.TouchPoint) {
-	this.scaleAnimation.Restart()
 	this.containsPointer = true
 }
 
@@ -41,14 +41,15 @@ func (this *OtherButton) Render(w sg.Windowable) sg.Node {
 		}
 		this.scaleAnimation.Restart()
 	}
-	this.scaleAnimation.Advance(w.FrameTime())
 
-	scale := float32(1.0)
 	if this.containsPointer {
-		scale = this.scaleAnimation.Get()
+		this.scaleAnimation.Advance(w.FrameTime())
+		this.currentScale = this.scaleAnimation.Get()
+	} else if this.currentScale < 0.2 {
+		this.currentScale = 0.2
 	}
 	return &sg.ScaleNode{
-		Scale: scale,
+		Scale: this.currentScale,
 		Children: []sg.Node{
 			&sg.ImageNode{
 				X:      10,

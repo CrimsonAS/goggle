@@ -45,26 +45,32 @@ func TestTouchTestNodeInterface(t *testing.T) {
 	}
 }
 
-type enterLeaveDeliveryTest struct {
-	touchPositions []sg.TouchPoint
-	itemGeometry   [][4]float32
-	enterPoints    [][]sg.TouchPoint
-	movePoints     [][]sg.TouchPoint
-	leavePoints    [][]sg.TouchPoint
+type touchState struct {
+	touchPoint sg.TouchPoint
+	buttonDown bool
+	buttonUp   bool
+}
+
+type touchDeliveryTest struct {
+	touchStates  []touchState
+	itemGeometry [][4]float32
+	enterPoints  [][]sg.TouchPoint
+	movePoints   [][]sg.TouchPoint
+	leavePoints  [][]sg.TouchPoint
 }
 
 // Should not get any events: mouse position stays out of bounds the whole time.
 func TestNoEnterLeave(t *testing.T) {
-	testData := enterLeaveDeliveryTest{
-		touchPositions: []sg.TouchPoint{
-			sg.TouchPoint{X: -1, Y: -1}, // top left
-			sg.TouchPoint{X: 5, Y: -1},  // top center
-			sg.TouchPoint{X: 11, Y: -1}, // top right
-			sg.TouchPoint{X: -1, Y: 11}, // bottom left
-			sg.TouchPoint{X: 5, Y: 11},  // bottom center
-			sg.TouchPoint{X: 11, Y: 11}, // bottom right
-			sg.TouchPoint{X: -1, Y: 5},  // left center
-			sg.TouchPoint{X: 5, Y: 55},  // right center
+	testData := touchDeliveryTest{
+		touchStates: []touchState{
+			{touchPoint: sg.TouchPoint{X: -1, Y: -1}}, // top left
+			{touchPoint: sg.TouchPoint{X: 5, Y: -1}},  // top center
+			{touchPoint: sg.TouchPoint{X: 11, Y: -1}}, // top right
+			{touchPoint: sg.TouchPoint{X: -1, Y: 11}}, // bottom left
+			{touchPoint: sg.TouchPoint{X: 5, Y: 11}},  // bottom center
+			{touchPoint: sg.TouchPoint{X: 11, Y: 11}}, // bottom right
+			{touchPoint: sg.TouchPoint{X: -1, Y: 5}},  // left center
+			{touchPoint: sg.TouchPoint{X: 5, Y: 55}},  // right center
 		},
 		itemGeometry: [][4]float32{
 			[4]float32{0, 0, 10, 10},
@@ -112,11 +118,11 @@ func TestNoEnterLeave(t *testing.T) {
 
 // Should get a single enter event, mouse enters the position and stays there.
 func TestSingleEnterWhenCursorMoves(t *testing.T) {
-	testData := enterLeaveDeliveryTest{
-		touchPositions: []sg.TouchPoint{
-			sg.TouchPoint{X: -1, Y: -1},
-			sg.TouchPoint{X: 1, Y: 1},
-			sg.TouchPoint{X: 1, Y: 1},
+	testData := touchDeliveryTest{
+		touchStates: []touchState{
+			{touchPoint: sg.TouchPoint{X: -1, Y: -1}},
+			{touchPoint: sg.TouchPoint{X: 1, Y: 1}},
+			{touchPoint: sg.TouchPoint{X: 1, Y: 1}},
 		},
 		itemGeometry: [][4]float32{
 			[4]float32{0, 0, 10, 10},
@@ -144,13 +150,13 @@ func TestSingleEnterWhenCursorMoves(t *testing.T) {
 
 // Should get a single leave event, mouse enters the position and leaves it.
 func TestSingleLeaveWhenCursorMoves(t *testing.T) {
-	testData := enterLeaveDeliveryTest{
-		touchPositions: []sg.TouchPoint{
-			sg.TouchPoint{X: -1, Y: -1},
-			sg.TouchPoint{X: 1, Y: 1},
-			sg.TouchPoint{X: 1, Y: 1},
-			sg.TouchPoint{X: -1, Y: -1},
-			sg.TouchPoint{X: -1, Y: -1},
+	testData := touchDeliveryTest{
+		touchStates: []touchState{
+			{touchPoint: sg.TouchPoint{X: -1, Y: -1}},
+			{touchPoint: sg.TouchPoint{X: 1, Y: 1}},
+			{touchPoint: sg.TouchPoint{X: 1, Y: 1}},
+			{touchPoint: sg.TouchPoint{X: -1, Y: -1}},
+			{touchPoint: sg.TouchPoint{X: -1, Y: -1}},
 		},
 		itemGeometry: [][4]float32{
 			[4]float32{0, 0, 10, 10},
@@ -186,11 +192,11 @@ func TestSingleLeaveWhenCursorMoves(t *testing.T) {
 
 // If the item size changes to move under the pointer, we should get an enter.
 func TestEnterWhenItemSizeChanges(t *testing.T) {
-	testData := enterLeaveDeliveryTest{
-		touchPositions: []sg.TouchPoint{
-			sg.TouchPoint{X: 15, Y: 1},
-			sg.TouchPoint{X: 15, Y: 1},
-			sg.TouchPoint{X: 15, Y: 1},
+	testData := touchDeliveryTest{
+		touchStates: []touchState{
+			{touchPoint: sg.TouchPoint{X: 15, Y: 1}},
+			{touchPoint: sg.TouchPoint{X: 15, Y: 1}},
+			{touchPoint: sg.TouchPoint{X: 15, Y: 1}},
 		},
 		itemGeometry: [][4]float32{
 			[4]float32{0, 0, 10, 10},
@@ -218,12 +224,12 @@ func TestEnterWhenItemSizeChanges(t *testing.T) {
 
 // If the item size changes to move out from under the pointer, we should get a leave.
 func TestLeaveWhenItemSizeChanges(t *testing.T) {
-	testData := enterLeaveDeliveryTest{
-		touchPositions: []sg.TouchPoint{
-			sg.TouchPoint{X: 15, Y: 1},
-			sg.TouchPoint{X: 15, Y: 1},
-			sg.TouchPoint{X: 15, Y: 1},
-			sg.TouchPoint{X: 15, Y: 1},
+	testData := touchDeliveryTest{
+		touchStates: []touchState{
+			{touchPoint: sg.TouchPoint{X: 15, Y: 1}},
+			{touchPoint: sg.TouchPoint{X: 15, Y: 1}},
+			{touchPoint: sg.TouchPoint{X: 15, Y: 1}},
+			{touchPoint: sg.TouchPoint{X: 15, Y: 1}},
 		},
 		itemGeometry: [][4]float32{
 			[4]float32{0, 0, 20, 10},
@@ -256,15 +262,15 @@ func TestLeaveWhenItemSizeChanges(t *testing.T) {
 // Make sure that item dimensions don't affect point contains testing
 // That is, that a point is always inside, no matter which dimension is larger.
 func TestTallerThanWider(t *testing.T) {
-	testData := enterLeaveDeliveryTest{
-		touchPositions: []sg.TouchPoint{
+	testData := touchDeliveryTest{
+		touchStates: []touchState{
 			// taller than wider
-			sg.TouchPoint{X: 1, Y: 25},
-			sg.TouchPoint{X: 1, Y: 15},
+			{touchPoint: sg.TouchPoint{X: 1, Y: 25}},
+			{touchPoint: sg.TouchPoint{X: 1, Y: 15}},
 
 			// wider than taller
-			sg.TouchPoint{X: 25, Y: 1},
-			sg.TouchPoint{X: 15, Y: 1},
+			{touchPoint: sg.TouchPoint{X: 25, Y: 1}},
+			{touchPoint: sg.TouchPoint{X: 15, Y: 1}},
 		},
 		itemGeometry: [][4]float32{
 			// taller than wider
@@ -300,19 +306,21 @@ func TestTallerThanWider(t *testing.T) {
 	touchTestHelper(t, &testData)
 }
 
-func touchTestHelper(t *testing.T, testData *enterLeaveDeliveryTest) {
+func touchTestHelper(t *testing.T, testData *touchDeliveryTest) {
 	hn := &TouchTestNode{}
 	ih := NewInputHelper()
 
-	if len(testData.touchPositions) != len(testData.enterPoints) ||
-		len(testData.touchPositions) != len(testData.leavePoints) ||
-		len(testData.touchPositions) != len(testData.movePoints) ||
-		len(testData.touchPositions) != len(testData.itemGeometry) {
+	if len(testData.touchStates) != len(testData.enterPoints) ||
+		len(testData.touchStates) != len(testData.leavePoints) ||
+		len(testData.touchStates) != len(testData.movePoints) ||
+		len(testData.touchStates) != len(testData.itemGeometry) {
 		t.Fatalf("Invalid form of test data. Input sizes must match output sizes.")
 	}
 
-	for idx, _ := range testData.touchPositions {
-		ih.MousePos = testData.touchPositions[idx]
+	for idx, _ := range testData.touchStates {
+		ih.MousePos = testData.touchStates[idx].touchPoint
+		ih.ButtonDown = testData.touchStates[idx].buttonDown
+		ih.ButtonUp = testData.touchStates[idx].buttonUp
 
 		geo := testData.itemGeometry[idx]
 		ih.ProcessPointerEvents(geo[0], geo[1], geo[2], geo[3], hn)

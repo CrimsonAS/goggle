@@ -9,7 +9,7 @@ import (
 type InputHelper struct {
 	hoveredNodes    map[sg.Node]bool
 	oldHoveredNodes map[sg.Node]bool
-	MousePos        sg.TouchPoint
+	MousePos        sg.Vec2
 	ButtonUp        bool
 	ButtonDown      bool
 	MouseGrabber    sg.Node
@@ -19,7 +19,7 @@ func NewInputHelper() InputHelper {
 	return InputHelper{
 		hoveredNodes:    make(map[sg.Node]bool),
 		oldHoveredNodes: make(map[sg.Node]bool),
-		MousePos:        sg.TouchPoint{-1, -1},
+		MousePos:        sg.Vec2{-1, -1},
 	}
 }
 
@@ -46,7 +46,7 @@ func (this *InputHelper) ResetFrameState() {
 	this.ButtonUp = false
 }
 
-func pointInside(x, y, w, h float32, tp sg.TouchPoint) bool {
+func pointInside(x, y, w, h float32, tp sg.Vec2) bool {
 	return (tp.X >= x && tp.X <= x+w) && (tp.Y >= y && tp.Y <= y+h)
 }
 
@@ -61,7 +61,7 @@ func (this *InputHelper) ProcessPointerEvents(origin sg.Vec2, childWidth, childH
 	//     Sidebar PointerEnter() { return true; /* block */ }
 	//         Button Hoverable // to highlight as need be
 	//     UI page
-	tp := sg.TouchPoint{X: this.MousePos.X - origin.X, Y: this.MousePos.Y - origin.Y}
+	tp := sg.Vec2{X: this.MousePos.X - origin.X, Y: this.MousePos.Y - origin.Y}
 	if hoverable, ok := item.(sg.Hoverable); ok {
 		if pointInside(origin.X, origin.Y, childWidth, childHeight, this.MousePos) {
 			this.hoveredNodes[item] = true

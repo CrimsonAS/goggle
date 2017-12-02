@@ -53,7 +53,7 @@ func (this *Renderer) ProcessEvents() {
 			this.isRunning = false
 		case *sdl.MouseMotionEvent:
 			win := this.windows[t.WindowID]
-			win.inputHelper.MousePos = sg.TouchPoint{X: float32(t.X), Y: float32(t.Y)}
+			win.inputHelper.MousePos = sg.Vec2{X: float32(t.X), Y: float32(t.Y)}
 		case *sdl.MouseButtonEvent:
 			win := this.windows[t.WindowID]
 			if t.Type == sdl.MOUSEBUTTONUP {
@@ -64,7 +64,7 @@ func (this *Renderer) ProcessEvents() {
 		case *sdl.WindowEvent:
 			win := this.windows[t.WindowID]
 			if t.Event == sdl.WINDOWEVENT_LEAVE {
-				win.inputHelper.MousePos = sg.TouchPoint{-1, -1} // ### this initial state isn't really acceptable, items may have negative coords.
+				win.inputHelper.MousePos = sg.Vec2{-1, -1} // ### this initial state isn't really acceptable, items may have negative coords.
 			}
 		}
 	}

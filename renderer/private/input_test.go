@@ -8,18 +8,18 @@ import (
 
 type TouchTestNode struct {
 	X, Y, W, H float32
-	Enters     []sg.TouchPoint
-	Leaves     []sg.TouchPoint
-	Moves      []sg.TouchPoint
+	Enters     []sg.Vec2
+	Leaves     []sg.Vec2
+	Moves      []sg.Vec2
 }
 
-func (this *TouchTestNode) PointerEnter(tp sg.TouchPoint) {
+func (this *TouchTestNode) PointerEnter(tp sg.Vec2) {
 	this.Enters = append(this.Enters, tp)
 }
-func (this *TouchTestNode) PointerLeave(tp sg.TouchPoint) {
+func (this *TouchTestNode) PointerLeave(tp sg.Vec2) {
 	this.Leaves = append(this.Enters, tp)
 }
-func (this *TouchTestNode) PointerMoved(tp sg.TouchPoint) {
+func (this *TouchTestNode) PointerMoved(tp sg.Vec2) {
 	this.Moves = append(this.Moves, tp)
 }
 
@@ -34,7 +34,7 @@ func TestTouchTestNodeInterface(t *testing.T) {
 }
 
 type touchState struct {
-	touchPoint sg.TouchPoint
+	touchPoint sg.Vec2
 	buttonDown bool
 	buttonUp   bool
 }
@@ -42,23 +42,23 @@ type touchState struct {
 type touchDeliveryTest struct {
 	touchStates  []touchState
 	itemGeometry [][4]float32
-	enterPoints  [][]sg.TouchPoint
-	movePoints   [][]sg.TouchPoint
-	leavePoints  [][]sg.TouchPoint
+	enterPoints  [][]sg.Vec2
+	movePoints   [][]sg.Vec2
+	leavePoints  [][]sg.Vec2
 }
 
 // Should not get any events: mouse position stays out of bounds the whole time.
 func TestNoEnterLeave(t *testing.T) {
 	testData := touchDeliveryTest{
 		touchStates: []touchState{
-			{touchPoint: sg.TouchPoint{X: -1, Y: -1}}, // top left
-			{touchPoint: sg.TouchPoint{X: 5, Y: -1}},  // top center
-			{touchPoint: sg.TouchPoint{X: 11, Y: -1}}, // top right
-			{touchPoint: sg.TouchPoint{X: -1, Y: 11}}, // bottom left
-			{touchPoint: sg.TouchPoint{X: 5, Y: 11}},  // bottom center
-			{touchPoint: sg.TouchPoint{X: 11, Y: 11}}, // bottom right
-			{touchPoint: sg.TouchPoint{X: -1, Y: 5}},  // left center
-			{touchPoint: sg.TouchPoint{X: 5, Y: 55}},  // right center
+			{touchPoint: sg.Vec2{X: -1, Y: -1}}, // top left
+			{touchPoint: sg.Vec2{X: 5, Y: -1}},  // top center
+			{touchPoint: sg.Vec2{X: 11, Y: -1}}, // top right
+			{touchPoint: sg.Vec2{X: -1, Y: 11}}, // bottom left
+			{touchPoint: sg.Vec2{X: 5, Y: 11}},  // bottom center
+			{touchPoint: sg.Vec2{X: 11, Y: 11}}, // bottom right
+			{touchPoint: sg.Vec2{X: -1, Y: 5}},  // left center
+			{touchPoint: sg.Vec2{X: 5, Y: 55}},  // right center
 		},
 		itemGeometry: [][4]float32{
 			[4]float32{0, 0, 10, 10},
@@ -70,9 +70,9 @@ func TestNoEnterLeave(t *testing.T) {
 			[4]float32{0, 0, 10, 10},
 			[4]float32{0, 0, 10, 10},
 		},
-		movePoints:  [][]sg.TouchPoint{},
-		enterPoints: [][]sg.TouchPoint{},
-		leavePoints: [][]sg.TouchPoint{},
+		movePoints:  [][]sg.Vec2{},
+		enterPoints: [][]sg.Vec2{},
+		leavePoints: [][]sg.Vec2{},
 	}
 	touchTestHelper(t, &testData)
 }
@@ -81,22 +81,22 @@ func TestNoEnterLeave(t *testing.T) {
 func TestSingleEnterWhenCursorMoves(t *testing.T) {
 	testData := touchDeliveryTest{
 		touchStates: []touchState{
-			{touchPoint: sg.TouchPoint{X: -1, Y: -1}},
-			{touchPoint: sg.TouchPoint{X: 1, Y: 1}},
-			{touchPoint: sg.TouchPoint{X: 1, Y: 1}},
+			{touchPoint: sg.Vec2{X: -1, Y: -1}},
+			{touchPoint: sg.Vec2{X: 1, Y: 1}},
+			{touchPoint: sg.Vec2{X: 1, Y: 1}},
 		},
 		itemGeometry: [][4]float32{
 			[4]float32{0, 0, 10, 10},
 			[4]float32{0, 0, 10, 10},
 			[4]float32{0, 0, 10, 10},
 		},
-		enterPoints: [][]sg.TouchPoint{
-			[]sg.TouchPoint{},                          // initial touch outside: no enter
-			[]sg.TouchPoint{sg.TouchPoint{X: 1, Y: 1}}, // touch inside: enter
-			[]sg.TouchPoint{},
+		enterPoints: [][]sg.Vec2{
+			[]sg.Vec2{},                          // initial touch outside: no enter
+			[]sg.Vec2{sg.Vec2{X: 1, Y: 1}}, // touch inside: enter
+			[]sg.Vec2{},
 		},
-		movePoints:  [][]sg.TouchPoint{},
-		leavePoints: [][]sg.TouchPoint{},
+		movePoints:  [][]sg.Vec2{},
+		leavePoints: [][]sg.Vec2{},
 	}
 	touchTestHelper(t, &testData)
 }
@@ -105,11 +105,11 @@ func TestSingleEnterWhenCursorMoves(t *testing.T) {
 func TestSingleLeaveWhenCursorMoves(t *testing.T) {
 	testData := touchDeliveryTest{
 		touchStates: []touchState{
-			{touchPoint: sg.TouchPoint{X: -1, Y: -1}},
-			{touchPoint: sg.TouchPoint{X: 1, Y: 1}},
-			{touchPoint: sg.TouchPoint{X: 1, Y: 1}},
-			{touchPoint: sg.TouchPoint{X: -1, Y: -1}},
-			{touchPoint: sg.TouchPoint{X: -1, Y: -1}},
+			{touchPoint: sg.Vec2{X: -1, Y: -1}},
+			{touchPoint: sg.Vec2{X: 1, Y: 1}},
+			{touchPoint: sg.Vec2{X: 1, Y: 1}},
+			{touchPoint: sg.Vec2{X: -1, Y: -1}},
+			{touchPoint: sg.Vec2{X: -1, Y: -1}},
 		},
 		itemGeometry: [][4]float32{
 			[4]float32{0, 0, 10, 10},
@@ -118,20 +118,20 @@ func TestSingleLeaveWhenCursorMoves(t *testing.T) {
 			[4]float32{0, 0, 10, 10},
 			[4]float32{0, 0, 10, 10},
 		},
-		enterPoints: [][]sg.TouchPoint{
-			[]sg.TouchPoint{},                          // initial touch outside: no enter
-			[]sg.TouchPoint{sg.TouchPoint{X: 1, Y: 1}}, // touch inside: enter
-			[]sg.TouchPoint{},                          // stationary
-			[]sg.TouchPoint{},
-			[]sg.TouchPoint{},
+		enterPoints: [][]sg.Vec2{
+			[]sg.Vec2{},                          // initial touch outside: no enter
+			[]sg.Vec2{sg.Vec2{X: 1, Y: 1}}, // touch inside: enter
+			[]sg.Vec2{},                          // stationary
+			[]sg.Vec2{},
+			[]sg.Vec2{},
 		},
-		movePoints: [][]sg.TouchPoint{},
-		leavePoints: [][]sg.TouchPoint{
-			[]sg.TouchPoint{},
-			[]sg.TouchPoint{},
-			[]sg.TouchPoint{},
-			[]sg.TouchPoint{sg.TouchPoint{X: -1, Y: -1}}, // point leaves
-			[]sg.TouchPoint{},                            // point already left; no second leave
+		movePoints: [][]sg.Vec2{},
+		leavePoints: [][]sg.Vec2{
+			[]sg.Vec2{},
+			[]sg.Vec2{},
+			[]sg.Vec2{},
+			[]sg.Vec2{sg.Vec2{X: -1, Y: -1}}, // point leaves
+			[]sg.Vec2{},                            // point already left; no second leave
 		},
 	}
 	touchTestHelper(t, &testData)
@@ -141,22 +141,22 @@ func TestSingleLeaveWhenCursorMoves(t *testing.T) {
 func TestEnterWhenItemSizeChanges(t *testing.T) {
 	testData := touchDeliveryTest{
 		touchStates: []touchState{
-			{touchPoint: sg.TouchPoint{X: 15, Y: 1}},
-			{touchPoint: sg.TouchPoint{X: 15, Y: 1}},
-			{touchPoint: sg.TouchPoint{X: 15, Y: 1}},
+			{touchPoint: sg.Vec2{X: 15, Y: 1}},
+			{touchPoint: sg.Vec2{X: 15, Y: 1}},
+			{touchPoint: sg.Vec2{X: 15, Y: 1}},
 		},
 		itemGeometry: [][4]float32{
 			[4]float32{0, 0, 10, 10},
 			[4]float32{0, 0, 15, 10},
 			[4]float32{0, 0, 15, 10},
 		},
-		enterPoints: [][]sg.TouchPoint{
-			[]sg.TouchPoint{},                           // initial touch outside: no enter
-			[]sg.TouchPoint{sg.TouchPoint{X: 15, Y: 1}}, // touch inside: enter
-			[]sg.TouchPoint{},                           // no additional enter
+		enterPoints: [][]sg.Vec2{
+			[]sg.Vec2{},                           // initial touch outside: no enter
+			[]sg.Vec2{sg.Vec2{X: 15, Y: 1}}, // touch inside: enter
+			[]sg.Vec2{},                           // no additional enter
 		},
-		movePoints:  [][]sg.TouchPoint{},
-		leavePoints: [][]sg.TouchPoint{},
+		movePoints:  [][]sg.Vec2{},
+		leavePoints: [][]sg.Vec2{},
 	}
 	touchTestHelper(t, &testData)
 }
@@ -165,10 +165,10 @@ func TestEnterWhenItemSizeChanges(t *testing.T) {
 func TestLeaveWhenItemSizeChanges(t *testing.T) {
 	testData := touchDeliveryTest{
 		touchStates: []touchState{
-			{touchPoint: sg.TouchPoint{X: 15, Y: 1}},
-			{touchPoint: sg.TouchPoint{X: 15, Y: 1}},
-			{touchPoint: sg.TouchPoint{X: 15, Y: 1}},
-			{touchPoint: sg.TouchPoint{X: 15, Y: 1}},
+			{touchPoint: sg.Vec2{X: 15, Y: 1}},
+			{touchPoint: sg.Vec2{X: 15, Y: 1}},
+			{touchPoint: sg.Vec2{X: 15, Y: 1}},
+			{touchPoint: sg.Vec2{X: 15, Y: 1}},
 		},
 		itemGeometry: [][4]float32{
 			[4]float32{0, 0, 20, 10},
@@ -176,18 +176,18 @@ func TestLeaveWhenItemSizeChanges(t *testing.T) {
 			[4]float32{0, 0, 5, 10},
 			[4]float32{0, 0, 5, 10},
 		},
-		enterPoints: [][]sg.TouchPoint{
-			[]sg.TouchPoint{sg.TouchPoint{X: 15, Y: 1}}, // touch inside: enter
-			[]sg.TouchPoint{},                           // no further enters
-			[]sg.TouchPoint{},
-			[]sg.TouchPoint{},
+		enterPoints: [][]sg.Vec2{
+			[]sg.Vec2{sg.Vec2{X: 15, Y: 1}}, // touch inside: enter
+			[]sg.Vec2{},                           // no further enters
+			[]sg.Vec2{},
+			[]sg.Vec2{},
 		},
-		movePoints: [][]sg.TouchPoint{},
-		leavePoints: [][]sg.TouchPoint{
-			[]sg.TouchPoint{},
-			[]sg.TouchPoint{},
-			[]sg.TouchPoint{sg.TouchPoint{X: 15, Y: 1}},
-			[]sg.TouchPoint{}, // no further leaves
+		movePoints: [][]sg.Vec2{},
+		leavePoints: [][]sg.Vec2{
+			[]sg.Vec2{},
+			[]sg.Vec2{},
+			[]sg.Vec2{sg.Vec2{X: 15, Y: 1}},
+			[]sg.Vec2{}, // no further leaves
 		},
 	}
 	touchTestHelper(t, &testData)
@@ -199,12 +199,12 @@ func TestTallerThanWider(t *testing.T) {
 	testData := touchDeliveryTest{
 		touchStates: []touchState{
 			// taller than wider
-			{touchPoint: sg.TouchPoint{X: 1, Y: 25}},
-			{touchPoint: sg.TouchPoint{X: 1, Y: 15}},
+			{touchPoint: sg.Vec2{X: 1, Y: 25}},
+			{touchPoint: sg.Vec2{X: 1, Y: 15}},
 
 			// wider than taller
-			{touchPoint: sg.TouchPoint{X: 25, Y: 1}},
-			{touchPoint: sg.TouchPoint{X: 15, Y: 1}},
+			{touchPoint: sg.Vec2{X: 25, Y: 1}},
+			{touchPoint: sg.Vec2{X: 15, Y: 1}},
 		},
 		itemGeometry: [][4]float32{
 			// taller than wider
@@ -215,21 +215,21 @@ func TestTallerThanWider(t *testing.T) {
 			[4]float32{0, 0, 20, 10},
 			[4]float32{0, 0, 20, 10},
 		},
-		enterPoints: [][]sg.TouchPoint{
+		enterPoints: [][]sg.Vec2{
 			// taller than wider
-			[]sg.TouchPoint{},                           // start outside
-			[]sg.TouchPoint{sg.TouchPoint{X: 1, Y: 15}}, // move inside
+			[]sg.Vec2{},                           // start outside
+			[]sg.Vec2{sg.Vec2{X: 1, Y: 15}}, // move inside
 
 			// wider than taller
-			[]sg.TouchPoint{},                           // start outside
-			[]sg.TouchPoint{sg.TouchPoint{X: 15, Y: 1}}, // move inside
+			[]sg.Vec2{},                           // start outside
+			[]sg.Vec2{sg.Vec2{X: 15, Y: 1}}, // move inside
 		},
-		movePoints: [][]sg.TouchPoint{},
-		leavePoints: [][]sg.TouchPoint{
-			[]sg.TouchPoint{},
-			[]sg.TouchPoint{},
-			[]sg.TouchPoint{sg.TouchPoint{X: 25, Y: 1}},
-			[]sg.TouchPoint{},
+		movePoints: [][]sg.Vec2{},
+		leavePoints: [][]sg.Vec2{
+			[]sg.Vec2{},
+			[]sg.Vec2{},
+			[]sg.Vec2{sg.Vec2{X: 25, Y: 1}},
+			[]sg.Vec2{},
 		},
 	}
 	touchTestHelper(t, &testData)
@@ -240,21 +240,21 @@ func TestTallerThanWider(t *testing.T) {
 func TestItemNotAtOrigin(t *testing.T) {
 	testData := touchDeliveryTest{
 		touchStates: []touchState{
-			{touchPoint: sg.TouchPoint{X: 15, Y: 25}},
-			{touchPoint: sg.TouchPoint{X: 25, Y: 35}},
+			{touchPoint: sg.Vec2{X: 15, Y: 25}},
+			{touchPoint: sg.Vec2{X: 25, Y: 35}},
 		},
 		itemGeometry: [][4]float32{
 			[4]float32{5, 5, 20, 20},
 			[4]float32{5, 5, 20, 20},
 		},
-		enterPoints: [][]sg.TouchPoint{
-			[]sg.TouchPoint{sg.TouchPoint{X: 10, Y: 20}},
-			[]sg.TouchPoint{},
+		enterPoints: [][]sg.Vec2{
+			[]sg.Vec2{sg.Vec2{X: 10, Y: 20}},
+			[]sg.Vec2{},
 		},
-		movePoints: [][]sg.TouchPoint{},
-		leavePoints: [][]sg.TouchPoint{
-			[]sg.TouchPoint{},
-			[]sg.TouchPoint{sg.TouchPoint{X: 20, Y: 30}},
+		movePoints: [][]sg.Vec2{},
+		leavePoints: [][]sg.Vec2{
+			[]sg.Vec2{},
+			[]sg.Vec2{sg.Vec2{X: 20, Y: 30}},
 		},
 	}
 	touchTestHelper(t, &testData)
@@ -280,9 +280,9 @@ func touchTestHelper(t *testing.T, testData *touchDeliveryTest) {
 		ih.ProcessPointerEvents(sg.Vec2{geo[0], geo[1]}, geo[2], geo[3], hn)
 		ih.ResetFrameState()
 
-		expectedEnters := []sg.TouchPoint{}
-		expectedLeaves := []sg.TouchPoint{}
-		expectedMoves := []sg.TouchPoint{}
+		expectedEnters := []sg.Vec2{}
+		expectedLeaves := []sg.Vec2{}
+		expectedMoves := []sg.Vec2{}
 		if len(testData.enterPoints) != 0 {
 			expectedEnters = testData.enterPoints[idx]
 		}
@@ -318,8 +318,8 @@ func touchTestHelper(t *testing.T, testData *touchDeliveryTest) {
 			}
 		}
 
-		hn.Enters = []sg.TouchPoint{}
-		hn.Leaves = []sg.TouchPoint{}
-		hn.Moves = []sg.TouchPoint{}
+		hn.Enters = []sg.Vec2{}
+		hn.Leaves = []sg.Vec2{}
+		hn.Moves = []sg.Vec2{}
 	}
 }

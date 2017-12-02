@@ -1,25 +1,13 @@
 package sg
 
-import "fmt"
-
-// A TouchPoint contains information about a pointer during an event.
-type TouchPoint struct {
-	X float32
-	Y float32
-}
-
-func (this TouchPoint) String() string {
-	return fmt.Sprintf("%fx%f", this.X, this.Y)
-}
-
 // A Hoverable is a node that will get events when a point's coordintes are
 // above the item.
 //
 // Note that Hoverable must also implement Sizeable for the
 // scenegraph to know that the point is inside the item's boundaries.
 type Hoverable interface {
-	PointerEnter(TouchPoint)
-	PointerLeave(TouchPoint)
+	PointerEnter(Vec2)
+	PointerLeave(Vec2)
 }
 
 // BUG:
@@ -32,8 +20,8 @@ type Hoverable interface {
 // Note that Pressable must also implement Sizeable for the
 // scenegraph to know that the point is inside the item's boundaries.
 type Pressable interface {
-	PointerPressed(TouchPoint)
-	PointerReleased(TouchPoint)
+	PointerPressed(Vec2)
+	PointerReleased(Vec2)
 }
 
 // A Moveable is a node that will get events when a mouse is inside its boundary.
@@ -41,7 +29,7 @@ type Pressable interface {
 // Note that Moveable must also implement Sizeable for the
 // scenegraph to know that the point is inside the item's boundaries.
 type Moveable interface {
-	PointerMoved(TouchPoint)
+	PointerMoved(Vec2)
 }
 
 // A Tappable is a node that will get events when a touch is pressed and released.
@@ -49,5 +37,5 @@ type Moveable interface {
 // Note that Moveable must also implement Sizeable for the
 // scenegraph to know that the point is inside the item's boundaries.
 type Tappable interface {
-	PointerTapped(TouchPoint)
+	PointerTapped(Vec2)
 }

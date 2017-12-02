@@ -23,12 +23,12 @@ func (this *OtherButton) SetSize(sz sg.Vec2) {
 }
 
 // hoverable
-func (this *OtherButton) PointerEnter(tp sg.TouchPoint) {
+func (this *OtherButton) PointerEnter(tp sg.Vec2) {
 	this.containsPointer = true
 }
 
 // hoverable
-func (this *OtherButton) PointerLeave(tp sg.TouchPoint) {
+func (this *OtherButton) PointerLeave(tp sg.Vec2) {
 	this.containsPointer = false
 }
 

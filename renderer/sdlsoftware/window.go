@@ -58,7 +58,7 @@ func (this *Window) Render(scene sg.Node) {
 	// drawable primitives; then, iterate drawables and draw
 	// them into the window. These could be split up further
 	// in the future, and potentially happen across goroutines.
-	drawables := this.renderItem(scene, 0, 0, 1.0, 1.0)
+	drawables := this.renderItem(scene, nil, 0, 0, 1.0, 1.0)
 
 	debugOut("scene rendered to %d drawables\n", len(drawables))
 	for _, node := range drawables {
@@ -97,7 +97,7 @@ func (this *Window) Render(scene sg.Node) {
 // renderItem walks a tree of nodes and reduces them to a list of drawable nodes.
 // originX and originY translate the item's coordinates, such that originX + item.X
 // is the left side of the item in window coordinates.
-func (this *Window) renderItem(item sg.Node, originX, originY, scale, rotation float32) []sg.Node {
+func (this *Window) renderItem(item, itemRendered sg.Node, originX, originY, scale, rotation float32) []sg.Node {
 	var drawables []sg.Node
 
 	debugOut("rendering node %s (%s) to origin (%g,%g): %+v\n",
@@ -163,19 +163,42 @@ func (this *Window) renderItem(item sg.Node, originX, originY, scale, rotation f
 
 	// Render stacks next, below children
 	if renderableNode, ok := item.(sg.Renderable); ok {
-		rendered := renderableNode.Render(this)
-		drawables = append(drawables, this.renderItem(rendered, originX, originY, scale, rotation)...)
+		if itemRendered == nil {
+			itemRendered = renderableNode.Render(this)
+		}
+		drawables = append(drawables, this.renderItem(itemRendered, nil, originX, originY, scale, rotation)...)
 	}
 
-	// Children stack in listed order from bottom to top
-	if parentNode, ok := item.(sg.Parentable); ok {
+	// If this item is a positioner, iterate children to process geometry. For some
+	// children, this may also require calling Render, in which case we need to save
+	// the rendered node for renderItem on that child.
+	if positioner, ok := item.(sg.Positioner); ok {
+		children := positioner.GetChildren()
+		geoNodes := make([]sg.Geometryable, len(children))
+		renderNodes := make([]sg.Node, len(children))
+
+		for i, cNode := range children {
+			if cGeo, ok := cNode.(sg.Geometryable); ok {
+				geoNodes[i] = cGeo
+			} else if renderableNode, ok := cNode.(sg.Renderable); ok {
+				renderNodes[i] = renderableNode.Render(this)
+				if cGeo, ok := renderNodes[i].(sg.Geometryable); ok {
+					geoNodes[i] = cGeo
+				}
+			}
+		}
+
+		positioner.PositionChildren(geoNodes)
+
+		for i, cNode := range children {
+			drawables = append(drawables, this.renderItem(cNode, renderNodes[i], originX, originY, scale, rotation)...)
+		}
+	} else if parentNode, ok := item.(sg.Parentable); ok {
+		// Children stack in listed order from bottom to top
 		for _, cNode := range parentNode.GetChildren() {
-			drawables = append(drawables, this.renderItem(cNode, originX, originY, scale, rotation)...)
+			drawables = append(drawables, this.renderItem(cNode, nil, originX, originY, scale, rotation)...)
 		}
 	}
-
-	// ### A node that is not geometry, renderable, drawable, or parentable
-	// has no effect on rendering and is plausibly a bug. Is it worth erroring?
 
 	return drawables
 }

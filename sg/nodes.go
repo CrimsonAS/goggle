@@ -61,6 +61,12 @@ type Sizeable interface {
 	SetSize(w, h float32)
 }
 
+// Geometryable is both Positionable and Sizeable
+type Geometryable interface {
+	Positionable
+	Sizeable
+}
+
 // ParentNode is a node that acts as a container for child nodes,
 // provided for your tree-building convenience.
 type ParentNode struct {

@@ -126,6 +126,29 @@ func (this *Button) Render(w sg.Windowable) sg.Node {
 				PixelSize:  42,
 				FontFamily: "Barlow/Barlow-Regular.ttf",
 			},
+			&sg.RectangleNode{
+				X:      10,
+				Y:      300,
+				Width:  200,
+				Height: 50,
+				Color:  sg.Color{0, 0, 0, 0},
+				Children: []sg.Node{
+					&sg.Row{
+						Children: []sg.Node{
+							&sg.RectangleNode{
+								Width:  50,
+								Height: 50,
+								Color:  sg.Color{1, 1, 1, 1},
+							},
+							&sg.RectangleNode{
+								Width:  50,
+								Height: 50,
+								Color:  sg.Color{0.5, 0.5, 0.5, 1},
+							},
+						},
+					},
+				},
+			},
 		},
 	}
 }

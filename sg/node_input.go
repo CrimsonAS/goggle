@@ -1,9 +1,15 @@
 package sg
 
+import "fmt"
+
 // A TouchPoint contains information about a pointer during an event.
 type TouchPoint struct {
 	X float32
 	Y float32
+}
+
+func (this TouchPoint) String() string {
+	return fmt.Sprintf("%fx%f", this.X, this.Y)
 }
 
 // A Hoverable is a node that will get events when a point's coordintes are

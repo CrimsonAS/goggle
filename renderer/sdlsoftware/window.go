@@ -118,6 +118,20 @@ func (this *Window) Destroy() {
 	this.window.Destroy()
 }
 
+func mouseDebug(fstr string, vals ...interface{}) {
+	const debug = true
+
+	if debug {
+		log.Printf(fstr, vals...)
+	}
+}
+func mouseMoveDebug(fstr string, vals ...interface{}) {
+	const debug = false
+
+	if debug {
+		log.Printf(fstr, vals...)
+	}
+}
 func debugOut(fstr string, vals ...interface{}) {
 	const debug = false
 
@@ -132,6 +146,7 @@ func (this *Window) Render(scene sg.Node) {
 
 	if this.mouseGrabber != nil {
 		if moveable, ok := this.mouseGrabber.(sg.Moveable); ok {
+			mouseMoveDebug("Pointer moved over %+v at %s", this.mouseGrabber, this.mousePos)
 			moveable.PointerMoved(sg.TouchPoint{this.mousePos.X, this.mousePos.Y})
 		}
 	}
@@ -202,11 +217,11 @@ func (this *Window) processPointerEvents(originX, originY, childWidth, childHeig
 			this.mousePos.Y <= originY+childHeight {
 			this.hoveredNodes[item] = true
 			if _, ok = this.oldHoveredNodes[item]; !ok {
-				log.Printf("Mouse at %fx%f entering item %+v geom %fx%f %fx%f", this.mousePos.X, this.mousePos.Y, item, originX, originY, originX+childWidth, originY+childWidth)
+				mouseDebug("Pointer entering: %+v at %s", hoverable, this.mousePos)
 				hoverable.PointerEnter(sg.TouchPoint{this.mousePos.X, this.mousePos.Y})
 			}
 		} else if _, ok = this.oldHoveredNodes[item]; ok {
-			log.Printf("Mouse at %fx%f leaving item %+v geom %fx%f %fx%f", this.mousePos.X, this.mousePos.Y, item, originX, originY, originX+childWidth, originY+childWidth)
+			mouseDebug("Pointer leaving: %+v at %s", hoverable, this.mousePos)
 			hoverable.PointerLeave(sg.TouchPoint{this.mousePos.X, this.mousePos.Y})
 		}
 	}
@@ -215,10 +230,12 @@ func (this *Window) processPointerEvents(originX, originY, childWidth, childHeig
 			if this.buttonDown {
 				if this.mouseGrabber == nil {
 					this.mouseGrabber = item
+					mouseDebug("Pointer pressed (and grabbed): %+v at %s", pressable, this.mousePos)
 					pressable.PointerPressed(sg.TouchPoint{this.mousePos.X, this.mousePos.Y})
 				}
 			} else if this.buttonUp {
 				if this.mouseGrabber == item {
+					mouseDebug("Pointer released (ungrabbed): %+v at %s", pressable, this.mousePos)
 					pressable.PointerReleased(sg.TouchPoint{this.mousePos.X, this.mousePos.Y})
 				}
 			}
@@ -227,12 +244,14 @@ func (this *Window) processPointerEvents(originX, originY, childWidth, childHeig
 			if this.buttonDown {
 				if this.mouseGrabber == nil {
 					// a Tappable takes an implicit grab
+					mouseDebug("Tappable pressed (grabbed): %+v at %s", tappable, this.mousePos)
 					this.mouseGrabber = item
 				}
 			} else if this.buttonUp {
 				// BUG: right now, PointerTapped is called regardless of whether or not the
 				// release happens inside the item boundary.
 				if this.mouseGrabber == item {
+					mouseDebug("Tappable released (ungrabbed): %+v at %s", tappable, this.mousePos)
 					tappable.PointerTapped(sg.TouchPoint{this.mousePos.X, this.mousePos.Y})
 				}
 			}

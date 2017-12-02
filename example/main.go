@@ -66,34 +66,28 @@ func (this *Button) SetSize(w, h float32) { // why does Sizeable require this?
 // hoverable
 func (this *Button) PointerEnter(tp sg.TouchPoint) {
 	this.containsPointer = true
-	log.Printf("Pointer entered: %+v", this)
 }
 
 // hoverable
 func (this *Button) PointerLeave(tp sg.TouchPoint) {
 	this.containsPointer = false
-	log.Printf("Pointer left: %+v", this)
 }
 
 // tapable
 func (this *Button) PointerTapped(tp sg.TouchPoint) {
 	this.active = !this.active
-	log.Printf("Pointer tapped: %+v", this)
 }
 
 // touchable
 func (this *Button) PointerPressed(tp sg.TouchPoint) {
-	log.Printf("Pointer touched: %+v", this)
 }
 
 // touchable
 func (this *Button) PointerReleased(tp sg.TouchPoint) {
-	log.Printf("Pointer released: %+v", this)
 }
 
 // moveable
 func (this *Button) PointerMoved(tp sg.TouchPoint) {
-	log.Printf("Pointer moved: %+v", this)
 }
 
 func (this *Button) Render() sg.Node {

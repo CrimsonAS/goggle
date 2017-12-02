@@ -254,55 +254,46 @@ func TestLeaveWhenItemSizeChanges(t *testing.T) {
 }
 
 // Make sure that item dimensions don't affect point contains testing
-// Wider than taller rectangle geometry.
-func TestWiderThanTaller(t *testing.T) {
+// That is, that a point is always inside, no matter which dimension is larger.
+func TestTallerThanWider(t *testing.T) {
 	testData := enterLeaveDeliveryTest{
 		touchPositions: []sg.TouchPoint{
+			// taller than wider
+			sg.TouchPoint{X: 1, Y: 25},
+			sg.TouchPoint{X: 1, Y: 15},
+
+			// wider than taller
 			sg.TouchPoint{X: 25, Y: 1},
 			sg.TouchPoint{X: 15, Y: 1},
 		},
 		itemGeometry: [][4]float32{
+			// taller than wider
+			[4]float32{0, 0, 10, 20},
+			[4]float32{0, 0, 10, 20},
+
+			// wider than taller
 			[4]float32{0, 0, 20, 10},
 			[4]float32{0, 0, 20, 10},
 		},
 		enterPoints: [][]sg.TouchPoint{
+			// taller than wider
+			[]sg.TouchPoint{},                           // start outside
+			[]sg.TouchPoint{sg.TouchPoint{X: 1, Y: 15}}, // move inside
+
+			// wider than taller
 			[]sg.TouchPoint{},                           // start outside
 			[]sg.TouchPoint{sg.TouchPoint{X: 15, Y: 1}}, // move inside
 		},
 		movePoints: [][]sg.TouchPoint{
 			[]sg.TouchPoint{},
 			[]sg.TouchPoint{},
-		},
-		leavePoints: [][]sg.TouchPoint{
-			[]sg.TouchPoint{},
-			[]sg.TouchPoint{},
-		},
-	}
-	touchTestHelper(t, &testData)
-}
-
-// Make sure that item dimensions don't affect point contains testing
-// Taller than wider rectangle geometry.
-func TestTallerThanWider(t *testing.T) {
-	testData := enterLeaveDeliveryTest{
-		touchPositions: []sg.TouchPoint{
-			sg.TouchPoint{X: 1, Y: 25},
-			sg.TouchPoint{X: 1, Y: 15},
-		},
-		itemGeometry: [][4]float32{
-			[4]float32{0, 0, 10, 20},
-			[4]float32{0, 0, 10, 20},
-		},
-		enterPoints: [][]sg.TouchPoint{
-			[]sg.TouchPoint{},                           // start outside
-			[]sg.TouchPoint{sg.TouchPoint{X: 1, Y: 15}}, // move inside
-		},
-		movePoints: [][]sg.TouchPoint{
 			[]sg.TouchPoint{},
 			[]sg.TouchPoint{},
 		},
 		leavePoints: [][]sg.TouchPoint{
 			[]sg.TouchPoint{},
+			[]sg.TouchPoint{},
+			[]sg.TouchPoint{sg.TouchPoint{X: 25, Y: 1}},
 			[]sg.TouchPoint{},
 		},
 	}

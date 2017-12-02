@@ -2,110 +2,22 @@ package sdlsoftware
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"strings"
 	"time"
 
+	"github.com/CrimsonAS/goggle/renderer/private"
 	"github.com/CrimsonAS/goggle/sg"
 	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/ttf"
 )
 
-// ### consider an interface when/if we want multiple renderers
-type Renderer struct {
-	isRunning bool
-	start     time.Time // when rendering this frame began
-	windows   map[uint32]*Window
-}
-
-// Perform any initialization needed
-func NewRenderer() (*Renderer, error) {
-	r := &Renderer{
-		isRunning: true,
-		windows:   make(map[uint32]*Window),
-	}
-	err := sdl.Init(sdl.INIT_EVERYTHING)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := ttf.Init(); err != nil {
-		return nil, err
-	}
-
-	return r, nil
-}
-
-func (this *Renderer) IsRunning() bool {
-	return this.isRunning
-}
-
-// Shut down
-func (this *Renderer) Quit() {
-	sdl.Quit()
-}
-
-// Spin the event loop
-func (this *Renderer) ProcessEvents() {
-	this.start = time.Now()
-	var event sdl.Event
-	for event = sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
-		switch t := event.(type) {
-		case *sdl.QuitEvent:
-			this.isRunning = false
-		case *sdl.MouseMotionEvent:
-			win := this.windows[t.WindowID]
-			win.mousePos = sg.TouchPoint{X: float32(t.X), Y: float32(t.Y)}
-		case *sdl.MouseButtonEvent:
-			win := this.windows[t.WindowID]
-			if t.Type == sdl.MOUSEBUTTONUP {
-				win.buttonUp = true
-			} else if t.Type == sdl.MOUSEBUTTONDOWN {
-				win.buttonDown = true
-			}
-		case *sdl.WindowEvent:
-			win := this.windows[t.WindowID]
-			if t.Event == sdl.WINDOWEVENT_LEAVE {
-				win.mousePos = sg.TouchPoint{-1, -1} // ### this initial state isn't really acceptable, items may have negative coords.
-			}
-		}
-	}
-}
-
-// Create (and show, for now) a window
-// ### params needed
-func (this *Renderer) CreateWindow() (*Window, error) {
-	w := &Window{
-		ourRenderer:     this,
-		hoveredNodes:    make(map[sg.Node]bool),
-		oldHoveredNodes: make(map[sg.Node]bool),
-		mousePos:        sg.TouchPoint{-1, -1},
-	}
-	var err error
-	w.window, w.sdlRenderer, err = sdl.CreateWindowAndRenderer(800, 600, sdl.WINDOW_SHOWN)
-	id, err := w.window.GetID()
-	if err != nil {
-		return nil, err
-	}
-	this.windows[id] = w
-	if err != nil {
-		return nil, err
-	}
-	return w, nil
-}
-
 type Window struct {
-	window          *sdl.Window
-	sdlRenderer     *sdl.Renderer
-	ourRenderer     *Renderer
-	hoveredNodes    map[sg.Node]bool
-	oldHoveredNodes map[sg.Node]bool
-	mousePos        sg.TouchPoint
-	buttonUp        bool
-	buttonDown      bool
-	mouseGrabber    sg.Node
+	window      *sdl.Window
+	sdlRenderer *sdl.Renderer
+	ourRenderer *Renderer
+	inputHelper private.InputHelper
 }
 
 // Destroy a window
@@ -118,38 +30,11 @@ func (this *Window) Destroy() {
 	this.window.Destroy()
 }
 
-func mouseDebug(fstr string, vals ...interface{}) {
-	const debug = true
-
-	if debug {
-		log.Printf(fstr, vals...)
-	}
-}
-func mouseMoveDebug(fstr string, vals ...interface{}) {
-	const debug = false
-
-	if debug {
-		log.Printf(fstr, vals...)
-	}
-}
-func debugOut(fstr string, vals ...interface{}) {
-	const debug = false
-
-	if debug {
-		log.Printf(fstr, vals...)
-	}
-}
-
 // Render a scene onto the window
 func (this *Window) Render(scene sg.Node) {
 	debugOut("Rendering\n")
 
-	if this.mouseGrabber != nil {
-		if moveable, ok := this.mouseGrabber.(sg.Moveable); ok {
-			mouseMoveDebug("Pointer moved over %+v at %s", this.mouseGrabber, this.mousePos)
-			moveable.PointerMoved(sg.TouchPoint{this.mousePos.X, this.mousePos.Y})
-		}
-	}
+	this.inputHelper.DispatchMouseMove()
 
 	// ### a 'clear color' on the Window might make sense
 	this.sdlRenderer.SetDrawColor(0, 0, 0, 0)
@@ -191,75 +76,7 @@ func (this *Window) Render(scene sg.Node) {
 	}
 
 	time.Sleep(sleepyTime) // cap rendering
-
-	// restore state
-	this.oldHoveredNodes = this.hoveredNodes
-	this.hoveredNodes = make(map[sg.Node]bool)
-
-	this.buttonDown = false
-	this.buttonUp = false
-}
-
-// ### should scale/rotate affect input events? i'd say yes, personally.
-func (this *Window) processPointerEvents(originX, originY, childWidth, childHeight float32, item sg.Node) {
-	// BUG: ### unsolved problems: we should also probably block propagation of hover.
-	// We could have a return code to block hover propagating further down the tree,
-	// letting someone write code like:
-	//
-	// Root UI node
-	//     Sidebar PointerEnter() { return true; /* block */ }
-	//         Button Hoverable // to highlight as need be
-	//     UI page
-	if hoverable, ok := item.(sg.Hoverable); ok {
-		if this.mousePos.X >= originX &&
-			this.mousePos.Y >= originY &&
-			this.mousePos.X <= originX+childWidth &&
-			this.mousePos.Y <= originY+childHeight {
-			this.hoveredNodes[item] = true
-			if _, ok = this.oldHoveredNodes[item]; !ok {
-				mouseDebug("Pointer entering: %+v at %s", hoverable, this.mousePos)
-				hoverable.PointerEnter(sg.TouchPoint{this.mousePos.X, this.mousePos.Y})
-			}
-		} else if _, ok = this.oldHoveredNodes[item]; ok {
-			mouseDebug("Pointer leaving: %+v at %s", hoverable, this.mousePos)
-			hoverable.PointerLeave(sg.TouchPoint{this.mousePos.X, this.mousePos.Y})
-		}
-	}
-	if this.buttonDown || this.buttonUp {
-		if pressable, ok := item.(sg.Pressable); ok {
-			if this.buttonDown {
-				if this.mouseGrabber == nil {
-					this.mouseGrabber = item
-					mouseDebug("Pointer pressed (and grabbed): %+v at %s", pressable, this.mousePos)
-					pressable.PointerPressed(sg.TouchPoint{this.mousePos.X, this.mousePos.Y})
-				}
-			} else if this.buttonUp {
-				if this.mouseGrabber == item {
-					mouseDebug("Pointer released (ungrabbed): %+v at %s", pressable, this.mousePos)
-					pressable.PointerReleased(sg.TouchPoint{this.mousePos.X, this.mousePos.Y})
-				}
-			}
-		}
-		if tappable, ok := item.(sg.Tappable); ok {
-			if this.buttonDown {
-				if this.mouseGrabber == nil {
-					// a Tappable takes an implicit grab
-					mouseDebug("Tappable pressed (grabbed): %+v at %s", tappable, this.mousePos)
-					this.mouseGrabber = item
-				}
-			} else if this.buttonUp {
-				// BUG: right now, PointerTapped is called regardless of whether or not the
-				// release happens inside the item boundary.
-				if this.mouseGrabber == item {
-					mouseDebug("Tappable released (ungrabbed): %+v at %s", tappable, this.mousePos)
-					tappable.PointerTapped(sg.TouchPoint{this.mousePos.X, this.mousePos.Y})
-				}
-			}
-		}
-		if this.buttonUp && this.mouseGrabber == item {
-			this.mouseGrabber = nil
-		}
-	}
+	this.inputHelper.ResetFrameState()
 }
 
 // renderItem walks a tree of nodes and reduces them to a list of drawable nodes.
@@ -326,7 +143,7 @@ func (this *Window) renderItem(item sg.Node, originX, originY, scale, rotation f
 		// renderables twice: once to deliver input events (and this must be
 		// done in paint order, so deepest children first), recursing up to
 		// parents.
-		this.processPointerEvents(originX, originY, childWidth, childHeight, item)
+		this.inputHelper.ProcessPointerEvents(originX, originY, childWidth, childHeight, item)
 	}
 
 	// Render stacks next, below children

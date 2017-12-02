@@ -57,8 +57,8 @@ type Positionable interface {
 // The size may be used for rendering, or things like hit testing.
 type Sizeable interface {
 	Node
-	Size() (w, h float32)
-	SetSize(w, h float32)
+	Size() Vec2
+	SetSize(Vec2)
 }
 
 // Geometryable is both Positionable and Sizeable

@@ -47,7 +47,7 @@ func (row *Row) PositionChildren(nodes []Geometryable) {
 			childPos.X = x
 			node.SetPosition(childPos)
 		}
-		w, _ := node.Size()
-		x += w + row.Padding
+		sz := node.Size()
+		x += sz.X + row.Padding
 	}
 }

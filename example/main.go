@@ -23,15 +23,14 @@ type Button struct {
 	windowable      sg.Windowable
 }
 
-func (this *Button) Size() (w, h float32) {
+func (this *Button) Size() sg.Vec2 {
 	if this.windowable != nil {
-		s := this.windowable.GetSize()
-		return s.X, s.Y
+		return this.windowable.GetSize()
 	}
-	return 0, 0
+	return sg.Vec2{0, 0}
 }
 
-func (this *Button) SetSize(w, h float32) { // why does Sizeable require this?
+func (this *Button) SetSize(sz sg.Vec2) {
 
 }
 

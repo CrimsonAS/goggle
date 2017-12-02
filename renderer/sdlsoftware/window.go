@@ -119,10 +119,10 @@ func (this *Window) renderItem(item, itemRendered sg.Node, origin sg.Vec2, scale
 		}
 
 		if sizeable, ok := draw.(sg.Sizeable); ok {
-			w, h := sizeable.Size()
-			w *= scale
-			h *= scale
-			sizeable.SetSize(w, h)
+			sz := sizeable.Size()
+			sz.X *= scale
+			sz.Y *= scale
+			sizeable.SetSize(sz)
 		}
 
 		if rotateable, ok := draw.(sg.Rotateable); ok {
@@ -151,12 +151,12 @@ func (this *Window) renderItem(item, itemRendered sg.Node, origin sg.Vec2, scale
 	}
 
 	if sizeable, ok := item.(sg.Sizeable); ok {
-		childWidth, childHeight := sizeable.Size()
+		childSize := sizeable.Size()
 		// ### this isn't really right. I think we should traverse the tree of
 		// renderables twice: once to deliver input events (and this must be
 		// done in paint order, so deepest children first), recursing up to
 		// parents.
-		this.inputHelper.ProcessPointerEvents(origin, childWidth, childHeight, item)
+		this.inputHelper.ProcessPointerEvents(origin, childSize.X, childSize.Y, item)
 	}
 
 	// Render stacks next, below children

@@ -14,12 +14,12 @@ type OtherButton struct {
 	currentScale    float32
 }
 
-func (this *OtherButton) Size() (w, h float32) {
-	return this.w, this.h
+func (this *OtherButton) Size() sg.Vec2 {
+	return sg.Vec2{this.w, this.h}
 }
 
-func (this *OtherButton) SetSize(w, h float32) {
-	this.w, this.h = w, h
+func (this *OtherButton) SetSize(sz sg.Vec2) {
+	this.w, this.h = sz.X, sz.Y
 }
 
 // hoverable

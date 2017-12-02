@@ -25,7 +25,8 @@ type Button struct {
 
 func (this *Button) Size() (w, h float32) {
 	if this.windowable != nil {
-		return this.windowable.GetSize()
+		s := this.windowable.GetSize()
+		return s.X, s.Y
 	}
 	return 0, 0
 }
@@ -91,12 +92,12 @@ func (this *Button) Render(w sg.Windowable) sg.Node {
 		}
 	}
 
-	width, height := w.GetSize()
+	sz := w.GetSize()
 
 	return &sg.RectangleNode{
 		Color:  this.color,
-		Width:  width,
-		Height: height,
+		Width:  sz.X,
+		Height: sz.Y,
 		Children: []sg.Node{
 			this.otherButton,
 			&sdlsoftware.DrawNode{
@@ -109,7 +110,7 @@ func (this *Button) Render(w sg.Windowable) sg.Node {
 				Children: []sg.Node{
 					&sg.RectangleNode{
 						X:      float32(this.rectAnimation.Get()) / 2,
-						Y:      height / 2,
+						Y:      sz.Y / 2,
 						Width:  this.rectAnimation.Get(),
 						Height: this.rectAnimation.Get(),
 						Color:  sg.Color{0.5, 1.0, 0, 0},
@@ -117,7 +118,7 @@ func (this *Button) Render(w sg.Windowable) sg.Node {
 				},
 			},
 			&sg.TextNode{
-				X:          float32(width/2 - this.rectAnimation.Get()),
+				X:          float32(sz.X/2 - this.rectAnimation.Get()),
 				Width:      300,
 				Height:     42,
 				Text:       "Hello, world",

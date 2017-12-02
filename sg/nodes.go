@@ -21,7 +21,7 @@ type Windowable interface {
 	// Return the time since the last frame. This should be used for advancing
 	// animations, to ensure that all animations advance in synchronisation.
 	FrameTime() time.Duration
-	GetSize() (w, h float32)
+	GetSize() Vec2
 }
 
 // Renderable is a node that can be rendered by the engine,

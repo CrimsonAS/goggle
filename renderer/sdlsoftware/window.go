@@ -23,9 +23,9 @@ type Window struct {
 	frameDuration time.Duration
 }
 
-func (this *Window) GetSize() (w, h float32) {
+func (this *Window) GetSize() sg.Vec2 {
 	ww, hh := this.window.GetSize()
-	return float32(ww), float32(hh)
+	return sg.Vec2{float32(ww), float32(hh)}
 }
 
 // Returns the time between frames. Used to advance animations.

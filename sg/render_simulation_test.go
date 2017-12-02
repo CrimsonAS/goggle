@@ -14,7 +14,7 @@ type simpleTestNode struct {
 // Some simple benchmarks testing the performance impact of creating trees of
 // items.
 
-func renderSingleRectangle() Node {
+func renderSingleTestNode() Node {
 	return &simpleTestNode{
 		X:      5,
 		Y:      5,
@@ -22,13 +22,13 @@ func renderSingleRectangle() Node {
 		Width:  100,
 	}
 }
-func BenchmarkSingleRectangle(b *testing.B) {
+func BenchmarkRenderSingleTestNode(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		rootNode = renderSingleRectangle()
+		rootNode = renderSingleTestNode()
 	}
 }
 
-func renderSingleRectangleWithChildrenRectangles() Node {
+func renderSingleTestNodeWithChildren() Node {
 	return &simpleTestNode{
 		X:      5,
 		Y:      5,
@@ -68,13 +68,13 @@ func renderSingleRectangleWithChildrenRectangles() Node {
 		},
 	}
 }
-func BenchmarkSingleRectangleWithChildrenRectangles(b *testing.B) {
+func BenchmarkRenderSingleTestNodeWithChildren(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		rootNode = renderSingleRectangleWithChildrenRectangles()
+		rootNode = renderSingleTestNodeWithChildren()
 	}
 }
 
-func renderRectangleTree() Node {
+func renderSimpleNodeTree() Node {
 	return &simpleTestNode{
 		X:      5,
 		Y:      5,
@@ -274,13 +274,13 @@ func renderRectangleTree() Node {
 		},
 	}
 }
-func BenchmarkRectangleTree(b *testing.B) {
+func BenchmarkRenderSimpleNodeTree(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		rootNode = renderRectangleTree()
+		rootNode = renderSimpleNodeTree()
 	}
 }
 
-func renderRectangleDeepTree() Node {
+func renderSimpleNodeDeepTree() Node {
 	return &simpleTestNode{
 		X:      5,
 		Y:      5,
@@ -320,8 +320,8 @@ func renderRectangleDeepTree() Node {
 		},
 	}
 }
-func BenchmarkRectangleDeepTree(b *testing.B) {
+func BenchmarkRenderSimpleNodeDeepTree(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		rootNode = renderRectangleDeepTree()
+		rootNode = renderSimpleNodeDeepTree()
 	}
 }

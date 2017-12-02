@@ -71,8 +71,7 @@ func (this *OtherButton) Render(w sg.Windowable) sg.Node {
 		this.currentScale = 0.2
 	}
 	return &sg.ScaleNode{
-		Scale: 1.0,
-		//Scale: this.currentScale,
+		Scale: this.currentScale,
 		Children: []sg.Node{
 			&sg.ImageNode{
 				X:      this.x,

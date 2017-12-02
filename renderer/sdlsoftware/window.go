@@ -91,15 +91,6 @@ func (this *Window) renderItem(item sg.Node, originX, originY, scale, rotation f
 		originX, originY,
 		item)
 
-	if sizeable, ok := item.(sg.Sizeable); ok {
-		childWidth, childHeight := sizeable.Size()
-		// ### this isn't really right. I think we should traverse the tree of
-		// renderables twice: once to deliver input events (and this must be
-		// done in paint order, so deepest children first), recursing up to
-		// parents.
-		this.inputHelper.ProcessPointerEvents(originX, originY, childWidth, childHeight, item)
-	}
-
 	// Drawable stacks lowest for a node (below Render and any children)
 	if draw, ok := item.(sg.Drawable); ok {
 		// Copy instance for safe modification & independent draw
@@ -144,6 +135,15 @@ func (this *Window) renderItem(item sg.Node, originX, originY, scale, rotation f
 
 	if rotateable, ok := item.(sg.Rotateable); ok {
 		rotation *= rotateable.GetRotation()
+	}
+
+	if sizeable, ok := item.(sg.Sizeable); ok {
+		childWidth, childHeight := sizeable.Size()
+		// ### this isn't really right. I think we should traverse the tree of
+		// renderables twice: once to deliver input events (and this must be
+		// done in paint order, so deepest children first), recursing up to
+		// parents.
+		this.inputHelper.ProcessPointerEvents(originX, originY, childWidth, childHeight, item)
 	}
 
 	// Render stacks next, below children

@@ -82,36 +82,9 @@ func TestNoEnterLeave(t *testing.T) {
 			[4]float32{0, 0, 10, 10},
 			[4]float32{0, 0, 10, 10},
 		},
-		movePoints: [][]sg.TouchPoint{
-			[]sg.TouchPoint{},
-			[]sg.TouchPoint{},
-			[]sg.TouchPoint{},
-			[]sg.TouchPoint{},
-			[]sg.TouchPoint{},
-			[]sg.TouchPoint{},
-			[]sg.TouchPoint{},
-			[]sg.TouchPoint{},
-		},
-		enterPoints: [][]sg.TouchPoint{
-			[]sg.TouchPoint{},
-			[]sg.TouchPoint{},
-			[]sg.TouchPoint{},
-			[]sg.TouchPoint{},
-			[]sg.TouchPoint{},
-			[]sg.TouchPoint{},
-			[]sg.TouchPoint{},
-			[]sg.TouchPoint{},
-		},
-		leavePoints: [][]sg.TouchPoint{
-			[]sg.TouchPoint{},
-			[]sg.TouchPoint{},
-			[]sg.TouchPoint{},
-			[]sg.TouchPoint{},
-			[]sg.TouchPoint{},
-			[]sg.TouchPoint{},
-			[]sg.TouchPoint{},
-			[]sg.TouchPoint{},
-		},
+		movePoints:  [][]sg.TouchPoint{},
+		enterPoints: [][]sg.TouchPoint{},
+		leavePoints: [][]sg.TouchPoint{},
 	}
 	touchTestHelper(t, &testData)
 }
@@ -134,16 +107,8 @@ func TestSingleEnterWhenCursorMoves(t *testing.T) {
 			[]sg.TouchPoint{sg.TouchPoint{X: 1, Y: 1}}, // touch inside: enter
 			[]sg.TouchPoint{},
 		},
-		movePoints: [][]sg.TouchPoint{
-			[]sg.TouchPoint{},
-			[]sg.TouchPoint{},
-			[]sg.TouchPoint{},
-		},
-		leavePoints: [][]sg.TouchPoint{
-			[]sg.TouchPoint{}, // points stay inside. no leaves.
-			[]sg.TouchPoint{},
-			[]sg.TouchPoint{},
-		},
+		movePoints:  [][]sg.TouchPoint{},
+		leavePoints: [][]sg.TouchPoint{},
 	}
 	touchTestHelper(t, &testData)
 }
@@ -172,13 +137,7 @@ func TestSingleLeaveWhenCursorMoves(t *testing.T) {
 			[]sg.TouchPoint{},
 			[]sg.TouchPoint{},
 		},
-		movePoints: [][]sg.TouchPoint{
-			[]sg.TouchPoint{},
-			[]sg.TouchPoint{},
-			[]sg.TouchPoint{},
-			[]sg.TouchPoint{},
-			[]sg.TouchPoint{},
-		},
+		movePoints: [][]sg.TouchPoint{},
 		leavePoints: [][]sg.TouchPoint{
 			[]sg.TouchPoint{},
 			[]sg.TouchPoint{},
@@ -208,16 +167,8 @@ func TestEnterWhenItemSizeChanges(t *testing.T) {
 			[]sg.TouchPoint{sg.TouchPoint{X: 15, Y: 1}}, // touch inside: enter
 			[]sg.TouchPoint{},                           // no additional enter
 		},
-		movePoints: [][]sg.TouchPoint{
-			[]sg.TouchPoint{},
-			[]sg.TouchPoint{},
-			[]sg.TouchPoint{},
-		},
-		leavePoints: [][]sg.TouchPoint{
-			[]sg.TouchPoint{}, // point never leaves
-			[]sg.TouchPoint{},
-			[]sg.TouchPoint{},
-		},
+		movePoints:  [][]sg.TouchPoint{},
+		leavePoints: [][]sg.TouchPoint{},
 	}
 	touchTestHelper(t, &testData)
 }
@@ -243,12 +194,7 @@ func TestLeaveWhenItemSizeChanges(t *testing.T) {
 			[]sg.TouchPoint{},
 			[]sg.TouchPoint{},
 		},
-		movePoints: [][]sg.TouchPoint{
-			[]sg.TouchPoint{},
-			[]sg.TouchPoint{},
-			[]sg.TouchPoint{},
-			[]sg.TouchPoint{},
-		},
+		movePoints: [][]sg.TouchPoint{},
 		leavePoints: [][]sg.TouchPoint{
 			[]sg.TouchPoint{},
 			[]sg.TouchPoint{},
@@ -290,12 +236,7 @@ func TestTallerThanWider(t *testing.T) {
 			[]sg.TouchPoint{},                           // start outside
 			[]sg.TouchPoint{sg.TouchPoint{X: 15, Y: 1}}, // move inside
 		},
-		movePoints: [][]sg.TouchPoint{
-			[]sg.TouchPoint{},
-			[]sg.TouchPoint{},
-			[]sg.TouchPoint{},
-			[]sg.TouchPoint{},
-		},
+		movePoints: [][]sg.TouchPoint{},
 		leavePoints: [][]sg.TouchPoint{
 			[]sg.TouchPoint{},
 			[]sg.TouchPoint{},
@@ -310,10 +251,10 @@ func touchTestHelper(t *testing.T, testData *touchDeliveryTest) {
 	hn := &TouchTestNode{}
 	ih := NewInputHelper()
 
-	if len(testData.touchStates) != len(testData.enterPoints) ||
-		len(testData.touchStates) != len(testData.leavePoints) ||
-		len(testData.touchStates) != len(testData.movePoints) ||
-		len(testData.touchStates) != len(testData.itemGeometry) {
+	if (len(testData.enterPoints) != 0 && len(testData.touchStates) != len(testData.enterPoints)) ||
+		(len(testData.leavePoints) != 0 && len(testData.touchStates) != len(testData.leavePoints)) ||
+		(len(testData.movePoints) != 0 && len(testData.touchStates) != len(testData.movePoints)) ||
+		(len(testData.touchStates) != len(testData.itemGeometry)) { // these are mandatory
 		t.Fatalf("Invalid form of test data. Input sizes must match output sizes.")
 	}
 
@@ -326,14 +267,26 @@ func touchTestHelper(t *testing.T, testData *touchDeliveryTest) {
 		ih.ProcessPointerEvents(geo[0], geo[1], geo[2], geo[3], hn)
 		ih.ResetFrameState()
 
-		if len(hn.Enters) != len(testData.enterPoints[idx]) {
-			t.Fatalf("Got unexpected enter count: %d, wanted %d", len(hn.Enters), len(testData.enterPoints[idx]))
+		expectedEnters := []sg.TouchPoint{}
+		expectedLeaves := []sg.TouchPoint{}
+		expectedMoves := []sg.TouchPoint{}
+		if len(testData.enterPoints) != 0 {
+			expectedEnters = testData.enterPoints[idx]
 		}
-		if len(hn.Leaves) != len(testData.leavePoints[idx]) {
-			t.Fatalf("Got unexpected leave count: %d, wanted %d", len(hn.Leaves), len(testData.leavePoints[idx]))
+		if len(testData.leavePoints) != 0 {
+			expectedLeaves = testData.leavePoints[idx]
 		}
-		if len(hn.Moves) != len(testData.movePoints[idx]) {
-			t.Fatalf("Got unexpected move count: %d, wanted %d", len(hn.Moves), len(testData.movePoints[idx]))
+		if len(testData.movePoints) != 0 {
+			expectedMoves = testData.movePoints[idx]
+		}
+		if len(hn.Enters) != len(expectedEnters) {
+			t.Fatalf("Got unexpected enter count: %d, wanted %d", len(hn.Enters), len(expectedEnters))
+		}
+		if len(hn.Leaves) != len(expectedLeaves) {
+			t.Fatalf("Got unexpected leave count: %d, wanted %d", len(hn.Leaves), len(expectedLeaves))
+		}
+		if len(hn.Moves) != len(expectedMoves) {
+			t.Fatalf("Got unexpected move count: %d, wanted %d", len(hn.Moves), len(expectedMoves))
 		}
 
 		hn.Enters = []sg.TouchPoint{}

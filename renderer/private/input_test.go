@@ -1,0 +1,242 @@
+package private
+
+import (
+	"testing"
+
+	"github.com/CrimsonAS/goggle/sg"
+)
+
+type HoverTestNode struct {
+	X, Y, W, H float32
+	Enters     []sg.TouchPoint
+	Leaves     []sg.TouchPoint
+}
+
+func (this *HoverTestNode) Position() (x, y float32) {
+	return this.X, this.Y
+}
+func (this *HoverTestNode) SetPosition(x, y float32) {
+	this.X, this.Y = x, y
+}
+func (this *HoverTestNode) Size() (w, h float32) {
+	return this.W, this.H
+}
+func (this *HoverTestNode) SetSize(w, h float32) {
+	this.W, this.H = w, h
+}
+func (this *HoverTestNode) PointerEnter(tp sg.TouchPoint) {
+	this.Enters = append(this.Enters, tp)
+}
+func (this *HoverTestNode) PointerLeave(tp sg.TouchPoint) {
+	this.Leaves = append(this.Enters, tp)
+}
+
+func TestHoverTestNodeInterface(t *testing.T) {
+	var hn sg.Node = &HoverTestNode{}
+	if _, ok := hn.(sg.Hoverable); !ok {
+		t.Fatalf("HoverTestNode does not implement sg.Hoverable")
+	}
+}
+
+type enterLeaveDeliveryTest struct {
+	touchPositions []sg.TouchPoint
+	itemGeometry   [][4]float32
+	enterPoints    [][]sg.TouchPoint
+	leavePoints    [][]sg.TouchPoint
+}
+
+// Should not get any events: mouse position stays out of bounds the whole time.
+func TestNoEnterLeave(t *testing.T) {
+	testData := enterLeaveDeliveryTest{
+		touchPositions: []sg.TouchPoint{
+			sg.TouchPoint{X: -1, Y: -1}, // top left
+			sg.TouchPoint{X: 5, Y: -1},  // top center
+			sg.TouchPoint{X: 11, Y: -1}, // top right
+			sg.TouchPoint{X: -1, Y: 11}, // bottom left
+			sg.TouchPoint{X: 5, Y: 11},  // bottom center
+			sg.TouchPoint{X: 11, Y: 11}, // bottom right
+			sg.TouchPoint{X: -1, Y: 5},  // left center
+			sg.TouchPoint{X: 5, Y: 55},  // right center
+		},
+		itemGeometry: [][4]float32{
+			[4]float32{0, 0, 10, 10},
+			[4]float32{0, 0, 10, 10},
+			[4]float32{0, 0, 10, 10},
+			[4]float32{0, 0, 10, 10},
+			[4]float32{0, 0, 10, 10},
+			[4]float32{0, 0, 10, 10},
+			[4]float32{0, 0, 10, 10},
+			[4]float32{0, 0, 10, 10},
+		},
+		enterPoints: [][]sg.TouchPoint{
+			[]sg.TouchPoint{},
+			[]sg.TouchPoint{},
+			[]sg.TouchPoint{},
+			[]sg.TouchPoint{},
+			[]sg.TouchPoint{},
+			[]sg.TouchPoint{},
+			[]sg.TouchPoint{},
+			[]sg.TouchPoint{},
+		},
+		leavePoints: [][]sg.TouchPoint{
+			[]sg.TouchPoint{},
+			[]sg.TouchPoint{},
+			[]sg.TouchPoint{},
+			[]sg.TouchPoint{},
+			[]sg.TouchPoint{},
+			[]sg.TouchPoint{},
+			[]sg.TouchPoint{},
+			[]sg.TouchPoint{},
+		},
+	}
+	enterLeaveTest(t, &testData)
+}
+
+// Should get a single enter event, mouse enters the position and stays there.
+func TestSingleEnterWhenCursorMoves(t *testing.T) {
+	testData := enterLeaveDeliveryTest{
+		touchPositions: []sg.TouchPoint{
+			sg.TouchPoint{X: -1, Y: -1},
+			sg.TouchPoint{X: 1, Y: 1},
+			sg.TouchPoint{X: 1, Y: 1},
+		},
+		itemGeometry: [][4]float32{
+			[4]float32{0, 0, 10, 10},
+			[4]float32{0, 0, 10, 10},
+			[4]float32{0, 0, 10, 10},
+		},
+		enterPoints: [][]sg.TouchPoint{
+			[]sg.TouchPoint{},                          // initial touch outside: no enter
+			[]sg.TouchPoint{sg.TouchPoint{X: 1, Y: 1}}, // touch inside: enter
+			[]sg.TouchPoint{},
+		},
+		leavePoints: [][]sg.TouchPoint{
+			[]sg.TouchPoint{}, // points stay inside. no leaves.
+			[]sg.TouchPoint{},
+			[]sg.TouchPoint{},
+		},
+	}
+	enterLeaveTest(t, &testData)
+}
+
+// Should get a single leave event, mouse enters the position and leaves it.
+func TestSingleLeaveWhenCursorMoves(t *testing.T) {
+	testData := enterLeaveDeliveryTest{
+		touchPositions: []sg.TouchPoint{
+			sg.TouchPoint{X: -1, Y: -1},
+			sg.TouchPoint{X: 1, Y: 1},
+			sg.TouchPoint{X: 1, Y: 1},
+			sg.TouchPoint{X: -1, Y: -1},
+			sg.TouchPoint{X: -1, Y: -1},
+		},
+		itemGeometry: [][4]float32{
+			[4]float32{0, 0, 10, 10},
+			[4]float32{0, 0, 10, 10},
+			[4]float32{0, 0, 10, 10},
+			[4]float32{0, 0, 10, 10},
+			[4]float32{0, 0, 10, 10},
+		},
+		enterPoints: [][]sg.TouchPoint{
+			[]sg.TouchPoint{},                          // initial touch outside: no enter
+			[]sg.TouchPoint{sg.TouchPoint{X: 1, Y: 1}}, // touch inside: enter
+			[]sg.TouchPoint{},                          // stationary
+			[]sg.TouchPoint{},
+			[]sg.TouchPoint{},
+		},
+		leavePoints: [][]sg.TouchPoint{
+			[]sg.TouchPoint{},
+			[]sg.TouchPoint{},
+			[]sg.TouchPoint{},
+			[]sg.TouchPoint{sg.TouchPoint{X: -1, Y: -1}}, // point leaves
+			[]sg.TouchPoint{},                            // point already left; no second leave
+		},
+	}
+	enterLeaveTest(t, &testData)
+}
+
+// If the item size changes to move under the pointer, we should get an enter.
+func TestEnterWhenItemSizeChanges(t *testing.T) {
+	testData := enterLeaveDeliveryTest{
+		touchPositions: []sg.TouchPoint{
+			sg.TouchPoint{X: 15, Y: 1},
+			sg.TouchPoint{X: 15, Y: 1},
+			sg.TouchPoint{X: 15, Y: 1},
+		},
+		itemGeometry: [][4]float32{
+			[4]float32{0, 0, 10, 10},
+			[4]float32{0, 0, 15, 10},
+			[4]float32{0, 0, 15, 10},
+		},
+		enterPoints: [][]sg.TouchPoint{
+			[]sg.TouchPoint{},                           // initial touch outside: no enter
+			[]sg.TouchPoint{sg.TouchPoint{X: 15, Y: 1}}, // touch inside: enter
+			[]sg.TouchPoint{},                           // no additional enter
+		},
+		leavePoints: [][]sg.TouchPoint{
+			[]sg.TouchPoint{}, // point never leaves
+			[]sg.TouchPoint{},
+			[]sg.TouchPoint{},
+		},
+	}
+	enterLeaveTest(t, &testData)
+}
+
+// If the item size changes to move out from under the pointer, we should get a leave.
+func TestLeaveWhenItemSizeChanges(t *testing.T) {
+	testData := enterLeaveDeliveryTest{
+		touchPositions: []sg.TouchPoint{
+			sg.TouchPoint{X: 15, Y: 1},
+			sg.TouchPoint{X: 15, Y: 1},
+			sg.TouchPoint{X: 15, Y: 1},
+			sg.TouchPoint{X: 15, Y: 1},
+		},
+		itemGeometry: [][4]float32{
+			[4]float32{0, 0, 20, 10},
+			[4]float32{0, 0, 20, 10},
+			[4]float32{0, 0, 5, 10},
+			[4]float32{0, 0, 5, 10},
+		},
+		enterPoints: [][]sg.TouchPoint{
+			[]sg.TouchPoint{sg.TouchPoint{X: 15, Y: 1}}, // touch inside: enter
+			[]sg.TouchPoint{},                           // no further enters
+			[]sg.TouchPoint{},
+			[]sg.TouchPoint{},
+		},
+		leavePoints: [][]sg.TouchPoint{
+			[]sg.TouchPoint{},
+			[]sg.TouchPoint{},
+			[]sg.TouchPoint{sg.TouchPoint{X: 15, Y: 1}},
+			[]sg.TouchPoint{}, // no further leaves
+		},
+	}
+	enterLeaveTest(t, &testData)
+}
+
+func enterLeaveTest(t *testing.T, testData *enterLeaveDeliveryTest) {
+	hn := &HoverTestNode{}
+	ih := NewInputHelper()
+
+	if len(testData.touchPositions) != len(testData.enterPoints) ||
+		len(testData.touchPositions) != len(testData.leavePoints) ||
+		len(testData.touchPositions) != len(testData.itemGeometry) {
+		t.Fatalf("Invalid form of test data. Input sizes must match output sizes.")
+	}
+
+	for idx, _ := range testData.touchPositions {
+		ih.MousePos = testData.touchPositions[idx]
+
+		geo := testData.itemGeometry[idx]
+		ih.ProcessPointerEvents(geo[0], geo[1], geo[2], geo[3], hn)
+		ih.ResetFrameState()
+
+		if len(hn.Enters) != len(testData.enterPoints[idx]) {
+			t.Fatalf("Got unexpected enter count: %d, wanted %d", len(hn.Enters), len(testData.enterPoints[idx]))
+		}
+		if len(hn.Leaves) != len(testData.leavePoints[idx]) {
+			t.Fatalf("Got unexpected leave count: %d, wanted %d", len(hn.Leaves), len(testData.leavePoints[idx]))
+		}
+
+		hn.Enters = []sg.TouchPoint{}
+		hn.Leaves = []sg.TouchPoint{}
+	}
+}

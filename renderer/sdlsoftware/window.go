@@ -348,7 +348,7 @@ func (this *Window) renderItem(item sg.Node, originX, originY, scale, rotation f
 	return drawables
 }
 
-func (this *Window) drawRectangle(node *sg.Rectangle, scale, rotation float32) {
+func (this *Window) drawRectangle(node *sg.RectangleNode, scale, rotation float32) {
 	w := node.Width * scale
 	h := node.Height * scale
 	rect := sdl.Rect{int32(node.X), int32(node.Y), int32(w), int32(h)}
@@ -364,7 +364,7 @@ func (this *Window) drawRectangle(node *sg.Rectangle, scale, rotation float32) {
 	this.sdlRenderer.FillRect(&rect)
 }
 
-func (this *Window) drawImage(node *sg.Image, scale, rotation float32) {
+func (this *Window) drawImage(node *sg.ImageNode, scale, rotation float32) {
 	w := node.Width * scale
 	h := node.Height * scale
 	var fileTexture *sg.FileTexture
@@ -387,7 +387,7 @@ func (this *Window) drawImage(node *sg.Image, scale, rotation float32) {
 	this.sdlRenderer.Copy(image, nil, &rect)
 }
 
-func (this *Window) drawText(node *sg.Text, scale, rotation float32) {
+func (this *Window) drawText(node *sg.TextNode, scale, rotation float32) {
 	w := node.Width * scale
 	h := node.Height * scale
 	// ### font caching (and database)
@@ -427,11 +427,11 @@ func (this *Window) drawText(node *sg.Text, scale, rotation float32) {
 
 func (this *Window) drawNode(baseNode sg.Node, scale, rotation float32) {
 	switch node := baseNode.(type) {
-	case *sg.Rectangle:
+	case *sg.RectangleNode:
 		this.drawRectangle(node, scale, rotation)
-	case *sg.Image:
+	case *sg.ImageNode:
 		this.drawImage(node, scale, rotation)
-	case *sg.Text:
+	case *sg.TextNode:
 		this.drawText(node, scale, rotation)
 	case *DrawNode:
 		debugOut("Calling custom draw function %+v\n", node.Draw)

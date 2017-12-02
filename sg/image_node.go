@@ -16,35 +16,35 @@ func (this *FileTexture) GetSource() string {
 	return this.Source
 }
 
-// An Image is a node that renders a texture.
-type Image struct {
+// An ImageNode is a node that renders a texture.
+type ImageNode struct {
 	Children      []Node
 	X, Y          float32
 	Width, Height float32
 	Texture       Texture
 }
 
-func (this *Image) GetChildren() []Node {
+func (this *ImageNode) GetChildren() []Node {
 	return this.Children
 }
 
-func (this *Image) Position() (x, y float32) {
+func (this *ImageNode) Position() (x, y float32) {
 	return this.X, this.Y
 }
 
-func (this *Image) SetPosition(x, y float32) {
+func (this *ImageNode) SetPosition(x, y float32) {
 	this.X, this.Y = x, y
 }
 
-func (this *Image) Size() (w, h float32) {
+func (this *ImageNode) Size() (w, h float32) {
 	return this.Width, this.Height
 }
 
-func (this *Image) SetSize(w, h float32) {
+func (this *ImageNode) SetSize(w, h float32) {
 	this.Width, this.Height = w, h
 }
 
-func (this *Image) CopyDrawable() Drawable {
+func (this *ImageNode) CopyDrawable() Drawable {
 	re := *this
 	re.Children = nil
 	return &re

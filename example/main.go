@@ -16,7 +16,7 @@ import (
 type OtherButton struct{}
 
 func (this *OtherButton) Render() sg.Node {
-	return &sg.Image{
+	return &sg.ImageNode{
 		X:      10,
 		Y:      10,
 		Width:  180,
@@ -101,7 +101,7 @@ func (this *Button) Render() sg.Node {
 
 	width, height := this.Size()
 
-	return &sg.Rectangle{
+	return &sg.RectangleNode{
 		Color:  this.color,
 		Width:  width,
 		Height: height,
@@ -115,7 +115,7 @@ func (this *Button) Render() sg.Node {
 			&sg.ScaleNode{
 				Scale: this.scaleAnimation.Get(),
 				Children: []sg.Node{
-					&sg.Rectangle{
+					&sg.RectangleNode{
 						X:      float32(this.rectAnimation.Get()),
 						Y:      height / 2,
 						Width:  50,
@@ -124,7 +124,7 @@ func (this *Button) Render() sg.Node {
 					},
 				},
 			},
-			&sg.Text{
+			&sg.TextNode{
 				X:          float32(width - this.rectAnimation.Get()),
 				Width:      width,
 				Height:     42,

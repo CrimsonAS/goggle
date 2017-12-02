@@ -34,8 +34,6 @@ func (this *Window) Destroy() {
 func (this *Window) Render(scene sg.Node) {
 	debugOut("Rendering\n")
 
-	this.inputHelper.DispatchMouseMove()
-
 	// ### a 'clear color' on the Window might make sense
 	this.sdlRenderer.SetDrawColor(0, 0, 0, 0)
 	this.sdlRenderer.Clear()

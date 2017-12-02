@@ -38,15 +38,6 @@ func mouseMoveDebug(fstr string, vals ...interface{}) {
 	}
 }
 
-func (this *InputHelper) DispatchMouseMove() {
-	if this.MouseGrabber != nil {
-		if moveable, ok := this.MouseGrabber.(sg.Moveable); ok {
-			mouseMoveDebug("Pointer moved over %+v at %s", this.MouseGrabber, this.MousePos)
-			moveable.PointerMoved(sg.TouchPoint{this.MousePos.X, this.MousePos.Y})
-		}
-	}
-}
-
 func (this *InputHelper) ResetFrameState() {
 	this.oldHoveredNodes = this.hoveredNodes
 	this.hoveredNodes = make(map[sg.Node]bool)
@@ -70,18 +61,28 @@ func (this *InputHelper) ProcessPointerEvents(originX, originY, childWidth, chil
 	//     Sidebar PointerEnter() { return true; /* block */ }
 	//         Button Hoverable // to highlight as need be
 	//     UI page
+	tp := sg.TouchPoint{X: this.MousePos.X - originX, Y: this.MousePos.Y - originY}
 	if hoverable, ok := item.(sg.Hoverable); ok {
 		if pointInside(originX, originY, childWidth, childHeight, this.MousePos) {
 			this.hoveredNodes[item] = true
 			if _, ok = this.oldHoveredNodes[item]; !ok {
 				mouseDebug("Pointer entering: %+v at %s", hoverable, this.MousePos)
-				hoverable.PointerEnter(sg.TouchPoint{this.MousePos.X, this.MousePos.Y})
+				hoverable.PointerEnter(tp)
 			}
 		} else if _, ok = this.oldHoveredNodes[item]; ok {
 			mouseDebug("Pointer leaving: %+v at %s", hoverable, this.MousePos)
-			hoverable.PointerLeave(sg.TouchPoint{this.MousePos.X, this.MousePos.Y})
+			hoverable.PointerLeave(tp)
 		}
 	}
+
+	// BUG: we should only deliver this if the tp is not the same as the last PointerMoved, I think.
+	if this.MouseGrabber != nil {
+		if moveable, ok := this.MouseGrabber.(sg.Moveable); ok {
+			mouseMoveDebug("Pointer moved over %+v at %s", this.MouseGrabber, this.MousePos)
+			moveable.PointerMoved(tp)
+		}
+	}
+
 	if this.ButtonDown || this.ButtonUp {
 		if pressable, ok := item.(sg.Pressable); ok {
 			if this.ButtonDown {
@@ -89,13 +90,13 @@ func (this *InputHelper) ProcessPointerEvents(originX, originY, childWidth, chil
 					if pointInside(originX, originY, childWidth, childHeight, this.MousePos) {
 						this.MouseGrabber = item
 						mouseDebug("Pointer pressed (and grabbed): %+v at %s", pressable, this.MousePos)
-						pressable.PointerPressed(sg.TouchPoint{this.MousePos.X, this.MousePos.Y})
+						pressable.PointerPressed(tp)
 					}
 				}
 			} else if this.ButtonUp {
 				if this.MouseGrabber == item {
 					mouseDebug("Pointer released (ungrabbed): %+v at %s", pressable, this.MousePos)
-					pressable.PointerReleased(sg.TouchPoint{this.MousePos.X, this.MousePos.Y})
+					pressable.PointerReleased(tp)
 				}
 			}
 		}
@@ -110,7 +111,7 @@ func (this *InputHelper) ProcessPointerEvents(originX, originY, childWidth, chil
 				if this.MouseGrabber == item {
 					if pointInside(originX, originY, childWidth, childHeight, this.MousePos) {
 						mouseDebug("Tappable released (ungrabbed): %+v at %s", tappable, this.MousePos)
-						tappable.PointerTapped(sg.TouchPoint{this.MousePos.X, this.MousePos.Y})
+						tappable.PointerTapped(tp)
 					}
 				}
 			}

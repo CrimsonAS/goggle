@@ -6,40 +6,30 @@ type Rectangle struct {
 	X, Y          float32
 	Width, Height float32
 	Color         Color
-	Scale         float32
-	Rotation      float32
 }
 
-func (rect *Rectangle) GetChildren() []Node {
-	return rect.Children
+func (this *Rectangle) GetChildren() []Node {
+	return this.Children
 }
 
-func (rect *Rectangle) Geometry() (x, y, w, h float32) {
-	return rect.X, rect.Y, rect.Width, rect.Height
+func (this *Rectangle) Position() (x, y float32) {
+	return this.X, this.Y
 }
 
-func (rect *Rectangle) SetGeometry(x, y, w, h float32) {
-	rect.X, rect.Y, rect.Width, rect.Height = x, y, w, h
+func (this *Rectangle) SetPosition(x, y float32) {
+	this.X, this.Y = x, y
 }
 
-func (rect *Rectangle) CopyDrawable() Drawable {
-	re := *rect
+func (this *Rectangle) Size() (w, h float32) {
+	return this.Width, this.Height
+}
+
+func (this *Rectangle) SetSize(w, h float32) {
+	this.Width, this.Height = w, h
+}
+
+func (this *Rectangle) CopyDrawable() Drawable {
+	re := *this
 	re.Children = nil
 	return &re
-}
-
-func (this *Rectangle) GetScale() float32 {
-	return this.Scale
-}
-
-func (this *Rectangle) SetScale(r float32) {
-	this.Scale = r
-}
-
-func (this *Rectangle) GetRotation() float32 {
-	return this.Rotation
-}
-
-func (this *Rectangle) SetRotation(r float32) {
-	this.Rotation = r
 }

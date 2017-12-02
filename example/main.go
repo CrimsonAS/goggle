@@ -17,12 +17,10 @@ type OtherButton struct{}
 
 func (this *OtherButton) Render() sg.Node {
 	return &sg.Image{
-		X:        10,
-		Y:        10,
-		Width:    180,
-		Height:   180,
-		Scale:    1.0,
-		Rotation: 1.0,
+		X:      10,
+		Y:      10,
+		Width:  180,
+		Height: 180,
 		Texture: &sg.FileTexture{
 			Source: "solid.png",
 		},
@@ -104,11 +102,9 @@ func (this *Button) Render() sg.Node {
 	width, height := this.Size()
 
 	return &sg.Rectangle{
-		Color:    this.color,
-		Width:    width,
-		Height:   height,
-		Scale:    1.0,
-		Rotation: 1.0,
+		Color:  this.color,
+		Width:  width,
+		Height: height,
 		Children: []sg.Node{
 			&OtherButton{},
 			&sdlsoftware.DrawNode{
@@ -116,14 +112,17 @@ func (this *Button) Render() sg.Node {
 					// custom drawing here
 				},
 			},
-			&sg.Rectangle{
-				X:        float32(this.rectAnimation.Get()),
-				Y:        height / 2,
-				Width:    50,
-				Height:   50,
-				Color:    sg.Color{0.5, 1.0, 0, 0},
-				Scale:    this.scaleAnimation.Get(),
-				Rotation: 1.0,
+			&sg.ScaleNode{
+				Scale: this.scaleAnimation.Get(),
+				Children: []sg.Node{
+					&sg.Rectangle{
+						X:      float32(this.rectAnimation.Get()),
+						Y:      height / 2,
+						Width:  50,
+						Height: 50,
+						Color:  sg.Color{0.5, 1.0, 0, 0},
+					},
+				},
 			},
 			&sg.Text{
 				X:          float32(width - this.rectAnimation.Get()),
@@ -133,8 +132,6 @@ func (this *Button) Render() sg.Node {
 				Color:      sg.Color{rand.Float32(), rand.Float32(), rand.Float32(), rand.Float32()},
 				PixelSize:  42,
 				FontFamily: "Barlow/Barlow-Regular.ttf",
-				Scale:      1.0,
-				Rotation:   1.0,
 			},
 		},
 	}

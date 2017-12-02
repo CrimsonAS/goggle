@@ -18,43 +18,34 @@ func (this *FileTexture) GetSource() string {
 
 // An Image is a node that renders a texture.
 type Image struct {
-	Children        []Node
-	X, Y            float32
-	Width, Height   float32
-	Texture         Texture
-	Scale, Rotation float32
+	Children      []Node
+	X, Y          float32
+	Width, Height float32
+	Texture       Texture
 }
 
 func (this *Image) GetChildren() []Node {
 	return this.Children
 }
 
-func (this *Image) Geometry() (x, y, w, h float32) {
-	return this.X, this.Y, this.Width, this.Height
+func (this *Image) Position() (x, y float32) {
+	return this.X, this.Y
 }
 
-func (this *Image) SetGeometry(x, y, w, h float32) {
-	this.X, this.Y, this.Width, this.Height = x, y, w, h
+func (this *Image) SetPosition(x, y float32) {
+	this.X, this.Y = x, y
+}
+
+func (this *Image) Size() (w, h float32) {
+	return this.Width, this.Height
+}
+
+func (this *Image) SetSize(w, h float32) {
+	this.Width, this.Height = w, h
 }
 
 func (this *Image) CopyDrawable() Drawable {
 	re := *this
 	re.Children = nil
 	return &re
-}
-
-func (this *Image) GetScale() float32 {
-	return this.Scale
-}
-
-func (this *Image) SetScale(r float32) {
-	this.Scale = r
-}
-
-func (this *Image) GetRotation() float32 {
-	return this.Rotation
-}
-
-func (this *Image) SetRotation(r float32) {
-	this.Rotation = r
 }

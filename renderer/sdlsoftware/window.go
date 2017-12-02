@@ -287,13 +287,15 @@ func (this *Window) renderItem(item sg.Node, originX, originY, scale, rotation f
 			positionable.SetPosition(x, y)
 		}
 
-		if scaleable, ok := draw.(sg.Scaleable); ok {
-			childScale := scaleable.GetScale()
-			childScale *= scale
-			scaleable.SetScale(childScale)
+		if sizeable, ok := draw.(sg.Sizeable); ok {
+			w, h := sizeable.Size()
+			w *= scale
+			h *= scale
+			sizeable.SetSize(w, h)
 		}
 
 		if rotateable, ok := draw.(sg.Rotateable); ok {
+			// ### wrong wrong wrong?
 			childRotation := rotateable.GetRotation()
 			childRotation *= rotation
 			rotateable.SetRotation(childRotation)

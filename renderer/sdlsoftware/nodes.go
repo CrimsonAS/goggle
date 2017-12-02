@@ -16,12 +16,20 @@ func (node *DrawNode) GetChildren() []sg.Node {
 	return node.Children
 }
 
-func (node *DrawNode) Geometry() (x, y, w, h float32) {
-	return node.X, node.Y, node.Width, node.Height
+func (node *DrawNode) Size() sg.Vec2 {
+	return sg.Vec2{node.Width, node.Height}
 }
 
-func (node *DrawNode) SetGeometry(x, y, w, h float32) {
-	node.X, node.Y, node.Width, node.Height = x, y, w, h
+func (node *DrawNode) SetSize(sz sg.Vec2) {
+	node.Width, node.Height = sz.X, sz.Y
+}
+
+func (node *DrawNode) Position() sg.Vec2 {
+	return sg.Vec2{node.X, node.Y}
+}
+
+func (node *DrawNode) SetPosition(sz sg.Vec2) {
+	node.X, node.Y = sz.X, sz.Y
 }
 
 func (node *DrawNode) CopyDrawable() sg.Drawable {

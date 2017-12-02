@@ -44,23 +44,6 @@ func (this *Button) PointerLeave(tp sg.Vec2) {
 	this.containsPointer = false
 }
 
-// tapable
-func (this *Button) PointerTapped(tp sg.Vec2) {
-	this.active = !this.active
-}
-
-// touchable
-func (this *Button) PointerPressed(tp sg.Vec2) {
-}
-
-// touchable
-func (this *Button) PointerReleased(tp sg.Vec2) {
-}
-
-// moveable
-func (this *Button) PointerMoved(tp sg.Vec2) {
-}
-
 func (this *Button) Render(w sg.Windowable) sg.Node {
 	this.windowable = w
 	if this.rectAnimation == nil {

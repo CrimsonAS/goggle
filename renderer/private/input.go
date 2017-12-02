@@ -55,6 +55,16 @@ func (this *InputHelper) ResetFrameState() {
 	this.ButtonUp = false
 }
 
+func pointInside(x, y, w, h float32, tp sg.TouchPoint) bool {
+	if tp.X >= x &&
+		tp.Y >= y &&
+		tp.X <= x+w &&
+		tp.Y <= y+w {
+		return true
+	}
+	return false
+}
+
 // Process pointer events for an item.
 // ### should scale/rotate affect input events? i'd say yes, personally.
 func (this *InputHelper) ProcessPointerEvents(originX, originY, childWidth, childHeight float32, item sg.Node) {
@@ -67,10 +77,7 @@ func (this *InputHelper) ProcessPointerEvents(originX, originY, childWidth, chil
 	//         Button Hoverable // to highlight as need be
 	//     UI page
 	if hoverable, ok := item.(sg.Hoverable); ok {
-		if this.MousePos.X >= originX &&
-			this.MousePos.Y >= originY &&
-			this.MousePos.X <= originX+childWidth &&
-			this.MousePos.Y <= originY+childHeight {
+		if pointInside(originX, originY, childWidth, childHeight, this.MousePos) {
 			this.hoveredNodes[item] = true
 			if _, ok = this.oldHoveredNodes[item]; !ok {
 				mouseDebug("Pointer entering: %+v at %s", hoverable, this.MousePos)
@@ -85,9 +92,11 @@ func (this *InputHelper) ProcessPointerEvents(originX, originY, childWidth, chil
 		if pressable, ok := item.(sg.Pressable); ok {
 			if this.ButtonDown {
 				if this.MouseGrabber == nil {
-					this.MouseGrabber = item
-					mouseDebug("Pointer pressed (and grabbed): %+v at %s", pressable, this.MousePos)
-					pressable.PointerPressed(sg.TouchPoint{this.MousePos.X, this.MousePos.Y})
+					if pointInside(originX, originY, childWidth, childHeight, this.MousePos) {
+						this.MouseGrabber = item
+						mouseDebug("Pointer pressed (and grabbed): %+v at %s", pressable, this.MousePos)
+						pressable.PointerPressed(sg.TouchPoint{this.MousePos.X, this.MousePos.Y})
+					}
 				}
 			} else if this.ButtonUp {
 				if this.MouseGrabber == item {
@@ -104,11 +113,11 @@ func (this *InputHelper) ProcessPointerEvents(originX, originY, childWidth, chil
 					this.MouseGrabber = item
 				}
 			} else if this.ButtonUp {
-				// BUG: right now, PointerTapped is called regardless of whether or not the
-				// release happens inside the item boundary.
 				if this.MouseGrabber == item {
-					mouseDebug("Tappable released (ungrabbed): %+v at %s", tappable, this.MousePos)
-					tappable.PointerTapped(sg.TouchPoint{this.MousePos.X, this.MousePos.Y})
+					if pointInside(originX, originY, childWidth, childHeight, this.MousePos) {
+						mouseDebug("Tappable released (ungrabbed): %+v at %s", tappable, this.MousePos)
+						tappable.PointerTapped(sg.TouchPoint{this.MousePos.X, this.MousePos.Y})
+					}
 				}
 			}
 		}

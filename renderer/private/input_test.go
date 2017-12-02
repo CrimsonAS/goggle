@@ -289,7 +289,24 @@ func touchTestHelper(t *testing.T, testData *touchDeliveryTest) {
 			t.Fatalf("Got unexpected move count: %d, wanted %d", len(hn.Moves), len(expectedMoves))
 		}
 
+		for idx, _ := range hn.Enters {
+			if hn.Enters[idx] != expectedEnters[idx] {
+				t.Fatalf("Expected enter %s at index %d, got %s instead", expectedEnters[idx], idx, hn.Enters[idx])
+			}
+		}
+		for idx, _ := range hn.Leaves {
+			if hn.Leaves[idx] != expectedLeaves[idx] {
+				t.Fatalf("Expected leave %s at index %d, got %s instead", expectedLeaves[idx], idx, hn.Leaves[idx])
+			}
+		}
+		for idx, _ := range hn.Moves {
+			if hn.Moves[idx] != expectedMoves[idx] {
+				t.Fatalf("Expected move %s at index %d, got %s instead", expectedMoves[idx], idx, hn.Moves[idx])
+			}
+		}
+
 		hn.Enters = []sg.TouchPoint{}
 		hn.Leaves = []sg.TouchPoint{}
+		hn.Moves = []sg.TouchPoint{}
 	}
 }

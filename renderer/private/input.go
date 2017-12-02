@@ -56,13 +56,7 @@ func (this *InputHelper) ResetFrameState() {
 }
 
 func pointInside(x, y, w, h float32, tp sg.TouchPoint) bool {
-	if tp.X >= x &&
-		tp.Y >= y &&
-		tp.X <= x+w &&
-		tp.Y <= y+w {
-		return true
-	}
-	return false
+	return (tp.X >= x && tp.X <= x+w) && (tp.Y >= y && tp.Y <= y+h)
 }
 
 // Process pointer events for an item.

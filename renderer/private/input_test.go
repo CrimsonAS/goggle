@@ -253,6 +253,62 @@ func TestLeaveWhenItemSizeChanges(t *testing.T) {
 	touchTestHelper(t, &testData)
 }
 
+// Make sure that item dimensions don't affect point contains testing
+// Wider than taller rectangle geometry.
+func TestWiderThanTaller(t *testing.T) {
+	testData := enterLeaveDeliveryTest{
+		touchPositions: []sg.TouchPoint{
+			sg.TouchPoint{X: 25, Y: 1},
+			sg.TouchPoint{X: 15, Y: 1},
+		},
+		itemGeometry: [][4]float32{
+			[4]float32{0, 0, 20, 10},
+			[4]float32{0, 0, 20, 10},
+		},
+		enterPoints: [][]sg.TouchPoint{
+			[]sg.TouchPoint{},                           // start outside
+			[]sg.TouchPoint{sg.TouchPoint{X: 15, Y: 1}}, // move inside
+		},
+		movePoints: [][]sg.TouchPoint{
+			[]sg.TouchPoint{},
+			[]sg.TouchPoint{},
+		},
+		leavePoints: [][]sg.TouchPoint{
+			[]sg.TouchPoint{},
+			[]sg.TouchPoint{},
+		},
+	}
+	touchTestHelper(t, &testData)
+}
+
+// Make sure that item dimensions don't affect point contains testing
+// Taller than wider rectangle geometry.
+func TestTallerThanWider(t *testing.T) {
+	testData := enterLeaveDeliveryTest{
+		touchPositions: []sg.TouchPoint{
+			sg.TouchPoint{X: 1, Y: 25},
+			sg.TouchPoint{X: 1, Y: 15},
+		},
+		itemGeometry: [][4]float32{
+			[4]float32{0, 0, 10, 20},
+			[4]float32{0, 0, 10, 20},
+		},
+		enterPoints: [][]sg.TouchPoint{
+			[]sg.TouchPoint{},                           // start outside
+			[]sg.TouchPoint{sg.TouchPoint{X: 1, Y: 15}}, // move inside
+		},
+		movePoints: [][]sg.TouchPoint{
+			[]sg.TouchPoint{},
+			[]sg.TouchPoint{},
+		},
+		leavePoints: [][]sg.TouchPoint{
+			[]sg.TouchPoint{},
+			[]sg.TouchPoint{},
+		},
+	}
+	touchTestHelper(t, &testData)
+}
+
 func touchTestHelper(t *testing.T, testData *enterLeaveDeliveryTest) {
 	hn := &TouchTestNode{}
 	ih := NewInputHelper()

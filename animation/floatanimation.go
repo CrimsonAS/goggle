@@ -23,7 +23,7 @@ func (this *FloatAnimation) Get() float32 {
 
 	if !this.initialized {
 		this.initialized = true
-		this.remainingDuration = this.Duration
+		this.Restart()
 		return this.From
 	}
 
@@ -43,4 +43,9 @@ func (this *FloatAnimation) Get() float32 {
 
 	percentage := 1.0 - float32(this.remainingDuration)/float32(this.Duration)
 	return (this.To - this.From) * percentage
+}
+
+func (this *FloatAnimation) Restart() {
+	this.remainingDuration = this.Duration
+	this.lastTick = time.Now()
 }

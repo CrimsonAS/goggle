@@ -23,6 +23,7 @@ func (this *OtherButton) SetSize(w, h float32) {
 
 // hoverable
 func (this *OtherButton) PointerEnter(tp sg.TouchPoint) {
+	this.scaleAnimation.Restart()
 	this.containsPointer = true
 }
 

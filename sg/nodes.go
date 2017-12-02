@@ -49,8 +49,8 @@ type Drawable interface {
 // translate the coordinate space of any rendered or child nodes.
 type Positionable interface {
 	Node
-	Position() (x, y float32)
-	SetPosition(x, y float32)
+	Position() Vec2
+	SetPosition(Vec2)
 }
 
 // Sizeable is a node with a size in the scene.

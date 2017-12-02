@@ -28,12 +28,12 @@ func (this *ImageNode) GetChildren() []Node {
 	return this.Children
 }
 
-func (this *ImageNode) Position() (x, y float32) {
-	return this.X, this.Y
+func (this *ImageNode) Position() Vec2 {
+	return Vec2{this.X, this.Y}
 }
 
-func (this *ImageNode) SetPosition(x, y float32) {
-	this.X, this.Y = x, y
+func (this *ImageNode) SetPosition(pos Vec2) {
+	this.X, this.Y = pos.X, pos.Y
 }
 
 func (this *ImageNode) Size() (w, h float32) {

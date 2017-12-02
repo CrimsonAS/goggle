@@ -22,12 +22,12 @@ func (this *TextNode) GetChildren() []Node {
 	return this.Children
 }
 
-func (this *TextNode) Position() (x, y float32) {
-	return this.X, this.Y
+func (this *TextNode) Position() Vec2 {
+	return Vec2{this.X, this.Y}
 }
 
-func (this *TextNode) SetPosition(x, y float32) {
-	this.X, this.Y = x, y
+func (this *TextNode) SetPosition(pos Vec2) {
+	this.X, this.Y = pos.X, pos.Y
 }
 
 func (this *TextNode) Size() (w, h float32) {

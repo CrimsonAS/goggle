@@ -13,18 +13,6 @@ type TouchTestNode struct {
 	Moves      []sg.TouchPoint
 }
 
-func (this *TouchTestNode) Position() (x, y float32) {
-	return this.X, this.Y
-}
-func (this *TouchTestNode) SetPosition(x, y float32) {
-	this.X, this.Y = x, y
-}
-func (this *TouchTestNode) Size() (w, h float32) {
-	return this.W, this.H
-}
-func (this *TouchTestNode) SetSize(w, h float32) {
-	this.W, this.H = w, h
-}
 func (this *TouchTestNode) PointerEnter(tp sg.TouchPoint) {
 	this.Enters = append(this.Enters, tp)
 }
@@ -289,7 +277,7 @@ func touchTestHelper(t *testing.T, testData *touchDeliveryTest) {
 		ih.ButtonUp = testData.touchStates[idx].buttonUp
 
 		geo := testData.itemGeometry[idx]
-		ih.ProcessPointerEvents(geo[0], geo[1], geo[2], geo[3], hn)
+		ih.ProcessPointerEvents(sg.Vec2{geo[0], geo[1]}, geo[2], geo[3], hn)
 		ih.ResetFrameState()
 
 		expectedEnters := []sg.TouchPoint{}

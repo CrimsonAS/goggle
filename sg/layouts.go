@@ -42,9 +42,10 @@ func (row *Row) PositionChildren(nodes []Geometryable) {
 		if node == nil {
 			continue
 		}
-		oldX, y := node.Position()
-		if x != oldX {
-			node.SetPosition(x, y)
+		childPos := node.Position()
+		if x != childPos.X {
+			childPos.X = x
+			node.SetPosition(childPos)
 		}
 		w, _ := node.Size()
 		x += w + row.Padding

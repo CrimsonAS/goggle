@@ -58,7 +58,7 @@ func (this *Window) Render(scene sg.Node) {
 	// drawable primitives; then, iterate drawables and draw
 	// them into the window. These could be split up further
 	// in the future, and potentially happen across goroutines.
-	drawables := this.renderItem(scene, nil, 0, 0, 1.0, 1.0)
+	drawables := this.renderItem(scene, nil, sg.Vec2{X: 0, Y: 0}, 1.0, 1.0)
 
 	debugOut("scene rendered to %d drawables\n", len(drawables))
 	for _, node := range drawables {
@@ -95,15 +95,15 @@ func (this *Window) Render(scene sg.Node) {
 }
 
 // renderItem walks a tree of nodes and reduces them to a list of drawable nodes.
-// originX and originY translate the item's coordinates, such that originX + item.X
+// origin translate the item's coordinates, such that origin.X + item.X
 // is the left side of the item in window coordinates.
-func (this *Window) renderItem(item, itemRendered sg.Node, originX, originY, scale, rotation float32) []sg.Node {
+func (this *Window) renderItem(item, itemRendered sg.Node, origin sg.Vec2, scale, rotation float32) []sg.Node {
 	var drawables []sg.Node
 
-	debugOut("rendering node %s (%s) to origin (%g,%g): %+v\n",
+	debugOut("rendering node %s (%s) to origin (%s): %+v\n",
 		sg.NodeName(item),
 		strings.Join(sg.NodeInterfaces(item), " "),
-		originX, originY,
+		origin,
 		item)
 
 	// Drawable stacks lowest for a node (below Render and any children)
@@ -112,11 +112,10 @@ func (this *Window) renderItem(item, itemRendered sg.Node, originX, originY, sca
 		draw = draw.CopyDrawable()
 
 		if positionable, ok := draw.(sg.Positionable); ok {
-			// Offset position with originX/originY
-			x, y := positionable.Position()
-			x += originX
-			y += originY
-			positionable.SetPosition(x, y)
+			// Offset position with origin
+			pos := positionable.Position()
+			pos = pos.Add(origin)
+			positionable.SetPosition(pos)
 		}
 
 		if sizeable, ok := draw.(sg.Sizeable); ok {
@@ -136,12 +135,11 @@ func (this *Window) renderItem(item, itemRendered sg.Node, originX, originY, sca
 		drawables = append(drawables, draw)
 	}
 
-	// If node is a Positionable, adjust originX/originY for relative
+	// If node is a Positionable, adjust origin for relative
 	// coordinates in the rendered tree and in children
 	if geo, ok := item.(sg.Positionable); ok {
-		childX, childY := geo.Position()
-		originX += childX
-		originY += childY
+		cpos := geo.Position()
+		origin = origin.Add(cpos)
 	}
 
 	if scaleable, ok := item.(sg.Scaleable); ok {
@@ -158,7 +156,7 @@ func (this *Window) renderItem(item, itemRendered sg.Node, originX, originY, sca
 		// renderables twice: once to deliver input events (and this must be
 		// done in paint order, so deepest children first), recursing up to
 		// parents.
-		this.inputHelper.ProcessPointerEvents(originX, originY, childWidth, childHeight, item)
+		this.inputHelper.ProcessPointerEvents(origin, childWidth, childHeight, item)
 	}
 
 	// Render stacks next, below children
@@ -166,7 +164,7 @@ func (this *Window) renderItem(item, itemRendered sg.Node, originX, originY, sca
 		if itemRendered == nil {
 			itemRendered = renderableNode.Render(this)
 		}
-		drawables = append(drawables, this.renderItem(itemRendered, nil, originX, originY, scale, rotation)...)
+		drawables = append(drawables, this.renderItem(itemRendered, nil, origin, scale, rotation)...)
 	}
 
 	// If this item is a positioner, iterate children to process geometry. For some
@@ -191,12 +189,12 @@ func (this *Window) renderItem(item, itemRendered sg.Node, originX, originY, sca
 		positioner.PositionChildren(geoNodes)
 
 		for i, cNode := range children {
-			drawables = append(drawables, this.renderItem(cNode, renderNodes[i], originX, originY, scale, rotation)...)
+			drawables = append(drawables, this.renderItem(cNode, renderNodes[i], origin, scale, rotation)...)
 		}
 	} else if parentNode, ok := item.(sg.Parentable); ok {
 		// Children stack in listed order from bottom to top
 		for _, cNode := range parentNode.GetChildren() {
-			drawables = append(drawables, this.renderItem(cNode, nil, originX, originY, scale, rotation)...)
+			drawables = append(drawables, this.renderItem(cNode, nil, origin, scale, rotation)...)
 		}
 	}
 

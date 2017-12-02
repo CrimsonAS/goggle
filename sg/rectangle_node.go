@@ -12,12 +12,12 @@ func (this *RectangleNode) GetChildren() []Node {
 	return this.Children
 }
 
-func (this *RectangleNode) Position() (x, y float32) {
-	return this.X, this.Y
+func (this *RectangleNode) Position() Vec2 {
+	return Vec2{this.X, this.Y}
 }
 
-func (this *RectangleNode) SetPosition(x, y float32) {
-	this.X, this.Y = x, y
+func (this *RectangleNode) SetPosition(pos Vec2) {
+	this.X, this.Y = pos.X, pos.Y
 }
 
 func (this *RectangleNode) Size() (w, h float32) {

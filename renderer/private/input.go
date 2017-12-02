@@ -52,7 +52,7 @@ func pointInside(x, y, w, h float32, tp sg.TouchPoint) bool {
 
 // Process pointer events for an item.
 // ### should scale/rotate affect input events? i'd say yes, personally.
-func (this *InputHelper) ProcessPointerEvents(originX, originY, childWidth, childHeight float32, item sg.Node) {
+func (this *InputHelper) ProcessPointerEvents(origin sg.Vec2, childWidth, childHeight float32, item sg.Node) {
 	// BUG: ### unsolved problems: we should also probably block propagation of hover.
 	// We could have a return code to block hover propagating further down the tree,
 	// letting someone write code like:
@@ -61,9 +61,9 @@ func (this *InputHelper) ProcessPointerEvents(originX, originY, childWidth, chil
 	//     Sidebar PointerEnter() { return true; /* block */ }
 	//         Button Hoverable // to highlight as need be
 	//     UI page
-	tp := sg.TouchPoint{X: this.MousePos.X - originX, Y: this.MousePos.Y - originY}
+	tp := sg.TouchPoint{X: this.MousePos.X - origin.X, Y: this.MousePos.Y - origin.Y}
 	if hoverable, ok := item.(sg.Hoverable); ok {
-		if pointInside(originX, originY, childWidth, childHeight, this.MousePos) {
+		if pointInside(origin.X, origin.Y, childWidth, childHeight, this.MousePos) {
 			this.hoveredNodes[item] = true
 			if _, ok = this.oldHoveredNodes[item]; !ok {
 				mouseDebug("Pointer entering: %+v at %s", hoverable, this.MousePos)
@@ -87,7 +87,7 @@ func (this *InputHelper) ProcessPointerEvents(originX, originY, childWidth, chil
 		if pressable, ok := item.(sg.Pressable); ok {
 			if this.ButtonDown {
 				if this.MouseGrabber == nil {
-					if pointInside(originX, originY, childWidth, childHeight, this.MousePos) {
+					if pointInside(origin.X, origin.Y, childWidth, childHeight, this.MousePos) {
 						this.MouseGrabber = item
 						mouseDebug("Pointer pressed (and grabbed): %+v at %s", pressable, this.MousePos)
 						pressable.PointerPressed(tp)
@@ -109,7 +109,7 @@ func (this *InputHelper) ProcessPointerEvents(originX, originY, childWidth, chil
 				}
 			} else if this.ButtonUp {
 				if this.MouseGrabber == item {
-					if pointInside(originX, originY, childWidth, childHeight, this.MousePos) {
+					if pointInside(origin.X, origin.Y, childWidth, childHeight, this.MousePos) {
 						mouseDebug("Tappable released (ungrabbed): %+v at %s", tappable, this.MousePos)
 						tappable.PointerTapped(tp)
 					}

@@ -1,5 +1,7 @@
 package sg
 
+import "fmt"
+
 type Vec4 struct {
 	X float32
 	Y float32
@@ -38,4 +40,7 @@ func (this Vec4) Div(other Vec4) Vec4 {
 		Z: this.Z / other.Z,
 		W: this.W / other.W,
 	}
+}
+func (this Vec4) String() string {
+	return fmt.Sprintf("%gx%gx%gx%g", this.X, this.Y, this.Z, this.W)
 }

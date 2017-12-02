@@ -1,5 +1,7 @@
 package sg
 
+import "fmt"
+
 type Mat4Type int
 
 const (
@@ -282,4 +284,11 @@ func (this Mat4) Inverted(invertible *bool) Mat4 {
 	}
 
 	return inv
+}
+func (this Mat4) String() string {
+	return fmt.Sprintf("%g %g %g %g\n%g %g %g %g\n%g %g %g %g\n%g %g %g %g",
+		this.M[0], this.M[1], this.M[2], this.M[3],
+		this.M[4], this.M[5], this.M[6], this.M[7],
+		this.M[8], this.M[9], this.M[10], this.M[11],
+		this.M[12], this.M[13], this.M[14], this.M[15])
 }

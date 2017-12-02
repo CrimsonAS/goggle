@@ -30,16 +30,19 @@ func (this *Button) Size() (w, h float32) {
 			To:       150,
 			Duration: 1000 * time.Millisecond,
 		}
+		this.rectAnimation.Restart()
 		this.bgAnimation = &animation.FloatAnimation{
 			From:     200,
 			To:       1000,
 			Duration: 2000 * time.Millisecond,
 		}
+		this.bgAnimation.Restart()
 		this.scaleAnimation = &animation.FloatAnimation{
 			From:     0.0,
 			To:       10.0,
 			Duration: 5000 * time.Millisecond,
 		}
+		this.scaleAnimation.Restart()
 		this.otherButton = &OtherButton{w: 100, h: 100}
 	}
 	return 200, this.bgAnimation.Get()
@@ -76,7 +79,11 @@ func (this *Button) PointerReleased(tp sg.TouchPoint) {
 func (this *Button) PointerMoved(tp sg.TouchPoint) {
 }
 
-func (this *Button) Render() sg.Node {
+func (this *Button) Render(w sg.Windowable) sg.Node {
+	this.rectAnimation.Advance(w.FrameTime())
+	this.scaleAnimation.Advance(w.FrameTime())
+	this.bgAnimation.Advance(w.FrameTime())
+
 	if this.active {
 		this.color = sg.Color{1, 0, 0, 1}
 	} else {

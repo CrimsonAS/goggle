@@ -14,27 +14,24 @@ type FloatAnimation struct {
 	initialized       bool // initialized?
 	goingDown         bool
 	remainingDuration time.Duration // remaining Duration left before swap
-	lastTick          time.Time     // when was Get last called
+	currentValue      float32
 }
 
-func (this *FloatAnimation) Get() float32 {
-	tickTime := time.Since(this.lastTick)
-	this.lastTick = time.Now()
-
+func (this *FloatAnimation) Advance(frameTime time.Duration) {
 	if !this.initialized {
 		this.initialized = true
 		this.Restart()
-		return this.From
+		return
 	}
 
 	if this.goingDown {
-		this.remainingDuration -= tickTime
+		this.remainingDuration -= frameTime
 		if this.remainingDuration <= 0 { // ### handle underflow gracefully
 			this.remainingDuration = 0
 			this.goingDown = false
 		}
 	} else {
-		this.remainingDuration += tickTime
+		this.remainingDuration += frameTime
 		if this.remainingDuration >= this.Duration {
 			this.remainingDuration = this.Duration
 			this.goingDown = true
@@ -42,10 +39,14 @@ func (this *FloatAnimation) Get() float32 {
 	}
 
 	percentage := 1.0 - float32(this.remainingDuration)/float32(this.Duration)
-	return (this.To - this.From) * percentage
+	this.currentValue = (this.To - this.From) * percentage
+}
+
+func (this *FloatAnimation) Get() float32 {
+	return this.currentValue
 }
 
 func (this *FloatAnimation) Restart() {
 	this.remainingDuration = this.Duration
-	this.lastTick = time.Now()
+	this.currentValue = this.From
 }

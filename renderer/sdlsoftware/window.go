@@ -18,6 +18,14 @@ type Window struct {
 	sdlRenderer *sdl.Renderer
 	ourRenderer *Renderer
 	inputHelper private.InputHelper
+
+	endLastFrame  time.Time
+	frameDuration time.Duration
+}
+
+// Returns the time between frames. Used to advance animations.
+func (this *Window) FrameTime() time.Duration {
+	return this.frameDuration
 }
 
 // Destroy a window
@@ -33,6 +41,8 @@ func (this *Window) Destroy() {
 // Render a scene onto the window
 func (this *Window) Render(scene sg.Node) {
 	debugOut("Rendering\n")
+
+	this.frameDuration = time.Since(this.endLastFrame)
 
 	// ### a 'clear color' on the Window might make sense
 	this.sdlRenderer.SetDrawColor(0, 0, 0, 0)
@@ -72,6 +82,8 @@ func (this *Window) Render(scene sg.Node) {
 		}
 		fmt.Printf("Done rendering in %s @ %d FPS, sleeping %s\n", time.Since(this.ourRenderer.start), 1000/div, sleepyTime)
 	}
+
+	this.endLastFrame = time.Now()
 
 	time.Sleep(sleepyTime) // cap rendering
 	this.inputHelper.ResetFrameState()
@@ -146,7 +158,7 @@ func (this *Window) renderItem(item sg.Node, originX, originY, scale, rotation f
 
 	// Render stacks next, below children
 	if renderableNode, ok := item.(sg.Renderable); ok {
-		rendered := renderableNode.Render()
+		rendered := renderableNode.Render(this)
 		drawables = append(drawables, this.renderItem(rendered, originX, originY, scale, rotation)...)
 	}
 

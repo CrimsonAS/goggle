@@ -25,6 +25,7 @@ func BenchmarkGet(b *testing.B) {
 		Duration: 1000 * time.Millisecond,
 	}
 	for i := 0; i < b.N; i++ {
+		anim.Advance(16 * time.Millisecond)
 		floatBench = anim.Get()
 	}
 }

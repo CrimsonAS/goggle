@@ -32,14 +32,17 @@ func (this *OtherButton) PointerLeave(tp sg.TouchPoint) {
 	this.containsPointer = false
 }
 
-func (this *OtherButton) Render() sg.Node {
+func (this *OtherButton) Render(w sg.Windowable) sg.Node {
 	if this.scaleAnimation == nil {
 		this.scaleAnimation = &animation.FloatAnimation{
 			From:     1.0,
 			To:       5.0,
 			Duration: 1000 * time.Millisecond,
 		}
+		this.scaleAnimation.Restart()
 	}
+	this.scaleAnimation.Advance(w.FrameTime())
+
 	scale := float32(1.0)
 	if this.containsPointer {
 		scale = this.scaleAnimation.Get()

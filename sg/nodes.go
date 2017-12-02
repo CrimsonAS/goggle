@@ -2,6 +2,7 @@ package sg
 
 import (
 	"fmt"
+	"time"
 )
 
 // Node is the basic element in a node tree
@@ -15,13 +16,20 @@ type Parentable interface {
 	GetChildren() []Node
 }
 
+// A Windowable is the surface a renderer paints the node tree onto.
+type Windowable interface {
+	// Return the time since the last frame. This should be used for advancing
+	// animations, to ensure that all animations advance in synchronisation.
+	FrameTime() time.Duration
+}
+
 // Renderable is a node that can be rendered by the engine,
 // returning a tree of nodes to draw.
 type Renderable interface {
 	Node
 	// Render is expected to return a tree of nodes representing the
 	// current graphical state of this node.
-	Render() Node
+	Render(w Windowable) Node
 }
 
 // Drawable is a node that the rendering backend implements

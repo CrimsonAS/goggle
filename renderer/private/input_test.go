@@ -247,6 +247,31 @@ func TestTallerThanWider(t *testing.T) {
 	touchTestHelper(t, &testData)
 }
 
+// Items not at the origin should get points delivered in item coordinates, not
+// scene coordinates.
+func TestItemNotAtOrigin(t *testing.T) {
+	testData := touchDeliveryTest{
+		touchStates: []touchState{
+			{touchPoint: sg.TouchPoint{X: 15, Y: 25}},
+			{touchPoint: sg.TouchPoint{X: 25, Y: 35}},
+		},
+		itemGeometry: [][4]float32{
+			[4]float32{5, 5, 20, 20},
+			[4]float32{5, 5, 20, 20},
+		},
+		enterPoints: [][]sg.TouchPoint{
+			[]sg.TouchPoint{sg.TouchPoint{X: 10, Y: 20}},
+			[]sg.TouchPoint{},
+		},
+		movePoints: [][]sg.TouchPoint{},
+		leavePoints: [][]sg.TouchPoint{
+			[]sg.TouchPoint{},
+			[]sg.TouchPoint{sg.TouchPoint{X: 20, Y: 30}},
+		},
+	}
+	touchTestHelper(t, &testData)
+}
+
 func touchTestHelper(t *testing.T, testData *touchDeliveryTest) {
 	hn := &TouchTestNode{}
 	ih := NewInputHelper()

@@ -255,7 +255,7 @@ func (this *Window) drawText(node *sg.TextNode, scale, rotation float32) {
 	sdlColor := sdl.Color{uint8(255.0 * node.Color.Y), uint8(255.0 * node.Color.Z), uint8(255.0 * node.Color.W), uint8(255.0 * node.Color.X)}
 
 	var renderedText *sdl.Surface
-	if renderedText, err = font.RenderUTF8Blended("Hello, World!", sdlColor); err != nil {
+	if renderedText, err = font.RenderUTF8Blended(node.Text, sdlColor); err != nil {
 		fmt.Fprint(os.Stderr, "Failed to render text: %s\n", err)
 		return
 	}

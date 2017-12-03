@@ -106,7 +106,7 @@ func (this *Button) Render(w sg.Windowable) sg.Node {
 				Text:       "Hello, world",
 				Color:      sg.Color{rand.Float32(), rand.Float32(), rand.Float32(), rand.Float32()},
 				PixelSize:  42,
-				FontFamily: "Barlow/Barlow-Regular.ttf",
+				FontFamily: "../shared/Barlow/Barlow-Regular.ttf",
 			},
 			&sg.RectangleNode{
 				X:      10,

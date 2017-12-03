@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"math"
 	"math/rand"
 	"time"
@@ -23,29 +24,41 @@ func (this *MainWindow) SetSize(sz sg.Vec2) {
 	// can't alter; we are top level
 }
 
-const method1 = false
+const method1 = true
 
 func (this *MainWindow) Render(w sg.Windowable) sg.Node {
 	this.sz = w.GetSize()
 
 	const childSize = 200
+	const maxNodes = 10000
+	const minNodes = 5000
+	const nodeDebug = false
+
 	addChance := rand.Intn(99)
 
-	if addChance > 20 && len(this.manyRectChildren) < 10000 {
+	if addChance > 20 && len(this.manyRectChildren) < maxNodes {
+		addNodes := int(float64(maxNodes-len(this.manyRectChildren)) * 0.05)
+		if nodeDebug {
+			log.Printf("Adding %d nodes", addNodes)
+		}
 		if method1 {
-			for i := 0; i < 10; i++ {
+			for i := 0; i < addNodes; i++ {
 				this.manyRectChildren = append(this.manyRectChildren, &sg.RectangleNode{X: 0, Y: 0, Width: childSize, Height: childSize, Color: sg.Color{1, 1, 1, 0}})
 			}
 		} else {
-			this.howManyRectChildren += 10
+			this.howManyRectChildren += addNodes
 		}
 	}
 	remChance := rand.Intn(99)
-	if remChance > 90 && len(this.manyRectChildren) > 500 {
+	if remChance > 90 && len(this.manyRectChildren) > minNodes {
+		delNodes := int(float64(minNodes * 0.05))
+		if nodeDebug {
+			log.Printf("Removing %d nodes", delNodes)
+		}
 		if method1 {
-			this.manyRectChildren = this.manyRectChildren[1:]
+			this.manyRectChildren = this.manyRectChildren[delNodes:]
 		} else {
-			this.howManyRectChildren -= 1
+			this.howManyRectChildren -= delNodes
 		}
 	}
 

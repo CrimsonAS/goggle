@@ -26,6 +26,8 @@ func (this *MainWindow) SetSize(sz sg.Vec2) {
 
 const method1 = true
 
+var localRand *rand.Rand = rand.New(rand.NewSource(1234))
+
 func (this *MainWindow) Render(w sg.Windowable) sg.Node {
 	this.sz = w.GetSize()
 
@@ -34,7 +36,7 @@ func (this *MainWindow) Render(w sg.Windowable) sg.Node {
 	const minNodes = 5000
 	const nodeDebug = false
 
-	addChance := rand.Intn(99)
+	addChance := localRand.Intn(99)
 
 	if addChance > 20 && len(this.manyRectChildren) < maxNodes {
 		addNodes := int(float64(maxNodes-len(this.manyRectChildren)) * 0.05)
@@ -49,7 +51,7 @@ func (this *MainWindow) Render(w sg.Windowable) sg.Node {
 			this.howManyRectChildren += addNodes
 		}
 	}
-	remChance := rand.Intn(99)
+	remChance := localRand.Intn(99)
 	if remChance > 90 && len(this.manyRectChildren) > minNodes {
 		delNodes := int(float64(minNodes * 0.05))
 		if nodeDebug {
@@ -72,16 +74,16 @@ func (this *MainWindow) Render(w sg.Windowable) sg.Node {
 
 	for _, child := range this.manyRectChildren {
 		rchild := child.(*sg.RectangleNode)
-		rchild.X = rand.Float32() * (this.sz.X - childSize)
-		rchild.Y = rand.Float32() * (this.sz.Y - childSize)
+		rchild.X = localRand.Float32() * (this.sz.X - childSize)
+		rchild.Y = localRand.Float32() * (this.sz.Y - childSize)
 
 		const blend = false
 		if blend {
-			rchild.Color.X = rand.Float32()
+			rchild.Color.X = localRand.Float32()
 		}
-		rchild.Color.Y = rand.Float32()
-		rchild.Color.Z = rand.Float32()
-		rchild.Color.W = rand.Float32()
+		rchild.Color.Y = localRand.Float32()
+		rchild.Color.Z = localRand.Float32()
+		rchild.Color.W = localRand.Float32()
 	}
 
 	div := w.FrameTime() / time.Millisecond

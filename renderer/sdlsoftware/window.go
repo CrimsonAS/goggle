@@ -22,6 +22,7 @@ type Window struct {
 
 	endLastFrame  time.Time
 	frameDuration time.Duration
+	blendMode     sdl.BlendMode
 }
 
 func (this *Window) GetSize() sg.Vec2 {
@@ -219,9 +220,9 @@ func (this *Window) drawRectangle(node *sg.RectangleNode, scale, rotation float3
 	// argb -> rgba
 	this.sdlRenderer.SetDrawColor(uint8(255.0*node.Color.Y), uint8(255.0*node.Color.Z), uint8(255.0*node.Color.W), uint8(255.0*node.Color.X))
 	if node.Color.X == 1 {
-		this.sdlRenderer.SetDrawBlendMode(sdl.BLENDMODE_NONE)
+		this.setBlendMode(sdl.BLENDMODE_NONE)
 	} else {
-		this.sdlRenderer.SetDrawBlendMode(sdl.BLENDMODE_BLEND)
+		this.setBlendMode(sdl.BLENDMODE_BLEND)
 	}
 	this.sdlRenderer.FillRect(&rect)
 }
@@ -278,13 +279,20 @@ func (this *Window) drawText(node *sg.TextNode, scale, rotation float32) {
 		// ###? defer texture.Free()
 		rect := sdl.Rect{int32(node.X), int32(node.Y), int32(w), int32(h)}
 		if node.Color.X == 1 {
-			this.sdlRenderer.SetDrawBlendMode(sdl.BLENDMODE_NONE)
+			this.setBlendMode(sdl.BLENDMODE_NONE)
 		} else {
-			this.sdlRenderer.SetDrawBlendMode(sdl.BLENDMODE_BLEND)
+			this.setBlendMode(sdl.BLENDMODE_BLEND)
 		}
 		this.sdlRenderer.Copy(texture, nil, &rect)
 	}
+}
 
+func (this *Window) setBlendMode(bm sdl.BlendMode) {
+	// this is cheaper than hitting cgo
+	if this.blendMode != bm {
+		this.sdlRenderer.SetDrawBlendMode(bm)
+		this.blendMode = bm
+	}
 }
 
 func (this *Window) drawNode(baseNode sg.Node, scale, rotation float32) {

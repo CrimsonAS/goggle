@@ -19,6 +19,7 @@ type Button struct {
 	active          bool
 	rectAnimation   *animation.FloatAnimation
 	scaleAnimation  *animation.FloatAnimation
+	colorAnimation  *animation.ColorAnimation
 	otherButton     *OtherButton
 	windowable      sg.Windowable
 }
@@ -59,10 +60,17 @@ func (this *Button) Render(w sg.Windowable) sg.Node {
 			Duration: 5000 * time.Millisecond,
 		}
 		this.scaleAnimation.Restart()
+		this.colorAnimation = &animation.ColorAnimation{
+			From:     sg.Color{1, 1, 0, 0},
+			To:       sg.Color{1, 0, 1, 0},
+			Duration: 5000 * time.Millisecond,
+		}
+		this.colorAnimation.Restart()
 		this.otherButton = &OtherButton{w: 100, h: 100}
 	}
 	this.rectAnimation.Advance(w.FrameTime())
 	this.scaleAnimation.Advance(w.FrameTime())
+	this.colorAnimation.Advance(w.FrameTime())
 
 	if this.active {
 		this.color = sg.Color{1, 0, 0, 1}
@@ -70,7 +78,8 @@ func (this *Button) Render(w sg.Windowable) sg.Node {
 		if this.containsPointer {
 			this.color = sg.Color{1, 0, 1, 0}
 		} else {
-			this.color = sg.Color{rand.Float32(), rand.Float32(), rand.Float32(), rand.Float32()}
+			this.color = this.colorAnimation.Get()
+			log.Printf("Got color %s", this.color)
 		}
 	}
 

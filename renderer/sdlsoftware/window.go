@@ -99,11 +99,14 @@ func (this *Window) Render(scene sg.Node) {
 func (this *Window) renderItem(item, itemRendered sg.Node, origin sg.Vec2, scale, rotation float32) []sg.Node {
 	var drawables []sg.Node
 
-	debugOut("rendering node %s (%s) to origin (%s): %+v\n",
-		sg.NodeName(item),
-		strings.Join(sg.NodeInterfaces(item), " "),
-		origin,
-		item)
+	const renderDebug = false // this is expensive..
+	if renderDebug {
+		debugOut("rendering node %s (%s) to origin (%s): %+v\n",
+			sg.NodeName(item),
+			strings.Join(sg.NodeInterfaces(item), " "),
+			origin,
+			item)
+	}
 
 	// Drawable stacks lowest for a node (below Render and any children)
 	if draw, ok := item.(sg.Drawable); ok {

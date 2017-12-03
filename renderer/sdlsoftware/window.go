@@ -48,6 +48,7 @@ func (this *Window) Render(scene sg.Node) {
 	debugOut("Rendering\n")
 
 	this.frameDuration = time.Since(this.endLastFrame)
+	this.endLastFrame = time.Now()
 
 	// ### a 'clear color' on the Window might make sense
 	this.sdlRenderer.SetDrawColor(0, 0, 0, 0)
@@ -87,8 +88,6 @@ func (this *Window) Render(scene sg.Node) {
 		}
 		fmt.Printf("Done rendering in %s @ %d FPS, sleeping %s\n", time.Since(this.ourRenderer.start), 1000/div, sleepyTime)
 	}
-
-	this.endLastFrame = time.Now()
 
 	time.Sleep(sleepyTime) // cap rendering
 	this.inputHelper.ResetFrameState()

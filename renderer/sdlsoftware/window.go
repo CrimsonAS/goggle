@@ -208,8 +208,8 @@ func (this *Window) drawRectangle(node *sg.RectangleNode, scale, rotation float3
 	debugOut("Filling rect xy %gx%g wh %gx%g with color %v\n", node.X, node.Y, w, h, node.Color)
 
 	// argb -> rgba
-	this.sdlRenderer.SetDrawColor(uint8(255.0*node.Color[1]), uint8(255.0*node.Color[2]), uint8(255.0*node.Color[3]), uint8(255.0*node.Color[0]))
-	if node.Color[0] == 1 {
+	this.sdlRenderer.SetDrawColor(uint8(255.0*node.Color.Y), uint8(255.0*node.Color.Z), uint8(255.0*node.Color.W), uint8(255.0*node.Color.X))
+	if node.Color.X == 1 {
 		this.sdlRenderer.SetDrawBlendMode(sdl.BLENDMODE_NONE)
 	} else {
 		this.sdlRenderer.SetDrawBlendMode(sdl.BLENDMODE_BLEND)
@@ -253,7 +253,7 @@ func (this *Window) drawText(node *sg.TextNode, scale, rotation float32) {
 	}
 	defer font.Close()
 
-	sdlColor := sdl.Color{uint8(255.0 * node.Color[1]), uint8(255.0 * node.Color[2]), uint8(255.0 * node.Color[3]), uint8(255.0 * node.Color[0])}
+	sdlColor := sdl.Color{uint8(255.0 * node.Color.Y), uint8(255.0 * node.Color.Z), uint8(255.0 * node.Color.W), uint8(255.0 * node.Color.X)}
 
 	var renderedText *sdl.Surface
 	if renderedText, err = font.RenderUTF8Blended("Hello, World!", sdlColor); err != nil {
@@ -268,7 +268,7 @@ func (this *Window) drawText(node *sg.TextNode, scale, rotation float32) {
 	} else {
 		// ###? defer texture.Free()
 		rect := sdl.Rect{int32(node.X), int32(node.Y), int32(w), int32(h)}
-		if node.Color[0] == 1 {
+		if node.Color.X == 1 {
 			this.sdlRenderer.SetDrawBlendMode(sdl.BLENDMODE_NONE)
 		} else {
 			this.sdlRenderer.SetDrawBlendMode(sdl.BLENDMODE_BLEND)

@@ -61,7 +61,11 @@ func (this *MainWindow) Render(w sg.Windowable) sg.Node {
 		rchild := child.(*sg.RectangleNode)
 		rchild.X = rand.Float32() * (this.sz.X - childSize)
 		rchild.Y = rand.Float32() * (this.sz.Y - childSize)
-		rchild.Color.X = rand.Float32()
+
+		const blend = false
+		if blend {
+			rchild.Color.X = rand.Float32()
+		}
 		rchild.Color.Y = rand.Float32()
 		rchild.Color.Z = rand.Float32()
 		rchild.Color.W = rand.Float32()

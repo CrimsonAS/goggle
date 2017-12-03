@@ -79,6 +79,8 @@ func (this *Renderer) CreateWindow() (*Window, error) {
 	}
 	var err error
 	w.window, w.sdlRenderer, err = sdl.CreateWindowAndRenderer(800, 600, sdl.WINDOW_SHOWN|sdl.WINDOW_RESIZABLE)
+	// ### a 'clear color' on the Window might make sense
+	w.sdlRenderer.SetDrawColor(0, 0, 0, 0)
 	id, err := w.window.GetID()
 	if err != nil {
 		return nil, err

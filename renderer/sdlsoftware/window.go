@@ -2,6 +2,7 @@ package sdlsoftware
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"strings"
 	"time"
@@ -43,15 +44,17 @@ func (this *Window) Destroy() {
 	this.window.Destroy()
 }
 
+const renderDebug = false // this is expensive..
+
 // Render a scene onto the window
 func (this *Window) Render(scene sg.Node) {
-	debugOut("Rendering\n")
+	if renderDebug {
+		log.Printf("Rendering")
+	}
 
 	this.frameDuration = time.Since(this.endLastFrame)
 	this.endLastFrame = time.Now()
 
-	// ### a 'clear color' on the Window might make sense
-	this.sdlRenderer.SetDrawColor(0, 0, 0, 0)
 	this.sdlRenderer.Clear()
 
 	// The strategy here is to render in two stages:
@@ -61,9 +64,13 @@ func (this *Window) Render(scene sg.Node) {
 	// in the future, and potentially happen across goroutines.
 	drawables := this.renderItem(scene, nil, sg.Vec2{X: 0, Y: 0}, 1.0, 1.0)
 
-	debugOut("scene rendered to %d drawables\n", len(drawables))
+	if renderDebug {
+		log.Printf("scene rendered to %d drawables", len(drawables))
+	}
 	for _, node := range drawables {
-		debugOut("drawing node %s: %+v\n", sg.NodeName(node), node)
+		if renderDebug {
+			log.Printf("drawing node %s: %+v", sg.NodeName(node), node)
+		}
 		scale := float32(1.0)
 		rotation := float32(1.0)
 		switch node := node.(type) {
@@ -86,7 +93,7 @@ func (this *Window) Render(scene sg.Node) {
 		if div == 0 {
 			div = 1
 		}
-		fmt.Printf("Done rendering in %s @ %d FPS, sleeping %s\n", time.Since(this.ourRenderer.start), 1000/div, sleepyTime)
+		log.Printf("Done rendering in %s @ %d FPS, sleeping %s", time.Since(this.ourRenderer.start), 1000/div, sleepyTime)
 	}
 
 	time.Sleep(sleepyTime) // cap rendering
@@ -99,9 +106,8 @@ func (this *Window) Render(scene sg.Node) {
 func (this *Window) renderItem(item, itemRendered sg.Node, origin sg.Vec2, scale, rotation float32) []sg.Node {
 	var drawables []sg.Node
 
-	const renderDebug = false // this is expensive..
 	if renderDebug {
-		debugOut("rendering node %s (%s) to origin (%s): %+v\n",
+		log.Printf("rendering node %s (%s) to origin (%s): %+v",
 			sg.NodeName(item),
 			strings.Join(sg.NodeInterfaces(item), " "),
 			origin,
@@ -207,8 +213,9 @@ func (this *Window) drawRectangle(node *sg.RectangleNode, scale, rotation float3
 	w := node.Width * scale
 	h := node.Height * scale
 	rect := sdl.Rect{int32(node.X), int32(node.Y), int32(w), int32(h)}
-	debugOut("Filling rect xy %gx%g wh %gx%g with color %v\n", node.X, node.Y, w, h, node.Color)
-
+	if renderDebug {
+		log.Printf("Filling rect xy %gx%g wh %gx%g with color %v", node.X, node.Y, w, h, node.Color)
+	}
 	// argb -> rgba
 	this.sdlRenderer.SetDrawColor(uint8(255.0*node.Color.Y), uint8(255.0*node.Color.Z), uint8(255.0*node.Color.W), uint8(255.0*node.Color.X))
 	if node.Color.X == 1 {
@@ -289,7 +296,9 @@ func (this *Window) drawNode(baseNode sg.Node, scale, rotation float32) {
 	case *sg.TextNode:
 		this.drawText(node, scale, rotation)
 	case *DrawNode:
-		debugOut("Calling custom draw function %+v\n", node.Draw)
+		if renderDebug {
+			log.Printf("Calling custom draw function %+v", node.Draw)
+		}
 		node.Draw(this.sdlRenderer, node)
 
 	default:

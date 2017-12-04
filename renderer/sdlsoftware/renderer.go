@@ -74,8 +74,9 @@ func (this *Renderer) ProcessEvents() {
 // ### params needed
 func (this *Renderer) CreateWindow() (*Window, error) {
 	w := &Window{
-		ourRenderer: this,
-		inputHelper: private.NewInputHelper(),
+		ourRenderer:  this,
+		inputHelper:  private.NewInputHelper(),
+		endLastFrame: time.Now(),
 	}
 	var err error
 	w.window, w.sdlRenderer, err = sdl.CreateWindowAndRenderer(800, 600, sdl.WINDOW_SHOWN|sdl.WINDOW_RESIZABLE)

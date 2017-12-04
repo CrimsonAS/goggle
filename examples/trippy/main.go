@@ -17,7 +17,6 @@ type Button struct {
 	color           sg.Color
 	containsPointer bool
 	active          bool
-	rectAnimation   *animation.FloatAnimation
 	scaleAnimation  *animation.FloatAnimation
 	colorAnimation  *animation.ColorAnimation
 	otherButton     *OtherButton
@@ -47,17 +46,11 @@ func (this *Button) PointerLeave(tp sg.Vec2) {
 
 func (this *Button) Render(w sg.Windowable) sg.Node {
 	this.windowable = w
-	if this.rectAnimation == nil {
-		this.rectAnimation = &animation.FloatAnimation{
-			From:     0,
-			To:       150,
-			Duration: 1000 * time.Millisecond,
-		}
-		this.rectAnimation.Restart()
+	if this.scaleAnimation == nil {
 		this.scaleAnimation = &animation.FloatAnimation{
 			From:     0.0,
-			To:       10.0,
-			Duration: 5000 * time.Millisecond,
+			To:       2.0,
+			Duration: 3000 * time.Millisecond,
 		}
 		this.scaleAnimation.Restart()
 		this.colorAnimation = &animation.ColorAnimation{
@@ -68,7 +61,6 @@ func (this *Button) Render(w sg.Windowable) sg.Node {
 		this.colorAnimation.Restart()
 		this.otherButton = &OtherButton{w: 100, h: 100}
 	}
-	this.rectAnimation.Advance(w.FrameTime())
 	this.scaleAnimation.Advance(w.FrameTime())
 	this.colorAnimation.Advance(w.FrameTime())
 
@@ -99,16 +91,16 @@ func (this *Button) Render(w sg.Windowable) sg.Node {
 				Scale: this.scaleAnimation.Get(),
 				Children: []sg.Node{
 					&sg.RectangleNode{
-						X:      float32(this.rectAnimation.Get()) / 2,
+						X:      100,
 						Y:      sz.Y / 2,
-						Width:  this.rectAnimation.Get(),
-						Height: this.rectAnimation.Get(),
+						Width:  400,
+						Height: 400,
 						Color:  sg.Color{0.5, 1.0, 0, 0},
 					},
 				},
 			},
 			&sg.TextNode{
-				X:          float32(sz.X/2 - this.rectAnimation.Get()),
+				X:          float32(sz.X / 2 * this.scaleAnimation.Get()),
 				Width:      300,
 				Height:     42,
 				Text:       "Hello, world",
@@ -118,7 +110,7 @@ func (this *Button) Render(w sg.Windowable) sg.Node {
 			},
 			&sg.RectangleNode{
 				X:      10,
-				Y:      300,
+				Y:      200,
 				Width:  200,
 				Height: 50,
 				Color:  sg.Color{0, 0, 0, 0},
@@ -126,13 +118,13 @@ func (this *Button) Render(w sg.Windowable) sg.Node {
 					&sg.Row{
 						Children: []sg.Node{
 							&sg.RectangleNode{
-								Width:  50,
-								Height: 50,
+								Width:  50 * this.scaleAnimation.Get(),
+								Height: 50 * this.scaleAnimation.Get(),
 								Color:  sg.Color{1, 1, 1, 1},
 							},
 							&sg.RectangleNode{
-								Width:  50,
-								Height: 50,
+								Width:  50 * this.scaleAnimation.Get(),
+								Height: 50 * this.scaleAnimation.Get() / 2,
 								Color:  sg.Color{0.5, 0.5, 0.5, 1},
 							},
 						},

@@ -50,9 +50,26 @@ func pointInside(x, y, w, h float32, tp sg.Vec2) bool {
 	return (tp.X >= x && tp.X <= x+w) && (tp.Y >= y && tp.Y <= y+h)
 }
 
+func NodeAcceptsInputEvents(node sg.Node) bool {
+	switch node.(type) {
+	case sg.Hoverable:
+		return true
+	case sg.Moveable:
+		return true
+	case sg.Pressable:
+		return true
+	case sg.Tappable:
+		return true
+	default:
+		return false
+	}
+}
+
 // Process pointer events for an item.
 // ### should scale/rotate affect input events? i'd say yes, personally.
-func (this *InputHelper) ProcessPointerEvents(origin sg.Vec2, childWidth, childHeight float32, item sg.Node) {
+func (this *InputHelper) ProcessPointerEvents(origin sg.Vec2, childWidth, childHeight float32, item sg.Node) bool {
+	handledEvents := false
+
 	// BUG: ### unsolved problems: we should also probably block propagation of hover.
 	// We could have a return code to block hover propagating further down the tree,
 	// letting someone write code like:
@@ -68,10 +85,12 @@ func (this *InputHelper) ProcessPointerEvents(origin sg.Vec2, childWidth, childH
 			if _, ok = this.oldHoveredNodes[item]; !ok {
 				mouseDebug("Pointer entering: %+v at %s %s", hoverable, this.MousePos, tp)
 				hoverable.PointerEnter(tp)
+				handledEvents = true
 			}
 		} else if _, ok = this.oldHoveredNodes[item]; ok {
 			mouseDebug("Pointer leaving: %+v at %s %s", hoverable, this.MousePos, tp)
 			hoverable.PointerLeave(tp)
+			handledEvents = true
 		}
 	}
 
@@ -80,6 +99,7 @@ func (this *InputHelper) ProcessPointerEvents(origin sg.Vec2, childWidth, childH
 		if moveable, ok := this.MouseGrabber.(sg.Moveable); ok {
 			mouseMoveDebug("Pointer moved over %+v at %s %s", this.MouseGrabber, this.MousePos, tp)
 			moveable.PointerMoved(tp)
+			handledEvents = true
 		}
 	}
 
@@ -91,12 +111,14 @@ func (this *InputHelper) ProcessPointerEvents(origin sg.Vec2, childWidth, childH
 						this.MouseGrabber = item
 						mouseDebug("Pointer pressed (and grabbed): %+v at %s %s", pressable, this.MousePos, tp)
 						pressable.PointerPressed(tp)
+						handledEvents = true
 					}
 				}
 			} else if this.ButtonUp {
 				if this.MouseGrabber == item {
 					mouseDebug("Pointer released (ungrabbed): %+v at %s %s", pressable, this.MousePos, tp)
 					pressable.PointerReleased(tp)
+					handledEvents = true
 				}
 			}
 		}
@@ -112,6 +134,7 @@ func (this *InputHelper) ProcessPointerEvents(origin sg.Vec2, childWidth, childH
 					if pointInside(origin.X, origin.Y, childWidth, childHeight, this.MousePos) {
 						mouseDebug("Tappable released (ungrabbed): %+v at %s", tappable, this.MousePos)
 						tappable.PointerTapped(tp)
+						handledEvents = true
 					}
 				}
 			}
@@ -120,4 +143,6 @@ func (this *InputHelper) ProcessPointerEvents(origin sg.Vec2, childWidth, childH
 			this.MouseGrabber = nil
 		}
 	}
+
+	return handledEvents
 }

@@ -68,14 +68,20 @@ type Geometryable interface {
 	Sizeable
 }
 
-// Positioner is a node that can reposition its children during rendering.
-// A node implementing Positioner will have a call to PositionChildren
-// during rendering, during which it can call SetPosition on these nodes.
-type Positioner interface {
+// Layouter is a node that can reposition or resize its children during rendering.
+// LayoutChildren will be called during rendering with a set of Geometryable nodes
+// corresponding to the Layouter's children, and it may change properties on those
+// nodes before rendering proceeds.
+//
+// A Layouter may not make any changes to nodes in the graph that are not included in
+// or descendants of the provided nodes. Notably, this can include child nodes of
+// the Layouter which are Renderable but not Geometryable.
+type Layouter interface {
 	Parentable
 
-	// PositionChildren is called during rendering, before moving down the tree
-	// to any child nodes. The Positioner may call SetPosition on these nodes.
+	// LayoutChildren is called during rendering, before moving down the tree
+	// to any child nodes. The Layouter may change the geometry or other properties
+	// of these nodes.
 	//
 	// The nodes array is equal in size and corresponds in index to GetChildren().
 	// For each child, the array will contain:
@@ -84,10 +90,9 @@ type Positioner interface {
 	//     the child's Render() will not have been called yet.
 	//   - If the child node is Renderable and the Render() function returned a
 	//     Geometryable node, the rendered node. Render() will not be called again
-	//     on the child after positioning.
-	//   - nil, indicating that this child is not applicable to the positioner.
-	//
-	PositionChildren(nodes []Geometryable)
+	//     on the child for this render pass.
+	//   - nil, indicating that this child is not relevant
+	LayoutChildren(nodes []Geometryable)
 }
 
 // ParentNode is a node that acts as a container for child nodes,

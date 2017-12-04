@@ -9,7 +9,7 @@ import (
 var floatAnimationBench *FloatAnimation
 var floatBench float32
 
-func BenchmarkConstruct(b *testing.B) {
+func BenchmarkFloatAnimationConstruct(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		floatAnimationBench = &FloatAnimation{
 			From:     0,
@@ -19,7 +19,7 @@ func BenchmarkConstruct(b *testing.B) {
 	}
 }
 
-func BenchmarkGet(b *testing.B) {
+func BenchmarkFloatAnimationGet(b *testing.B) {
 	anim := FloatAnimation{
 		From:     0,
 		To:       1000,
@@ -31,41 +31,41 @@ func BenchmarkGet(b *testing.B) {
 	}
 }
 
-type expectedValue struct {
+type floatAnimationTestStep struct {
 	advanceTime   time.Duration
 	expectedValue float32
 }
 
-type testData struct {
-	fromValue      float32
-	toValue        float32
-	duration       time.Duration
-	expectedValues []expectedValue
+type floatAnimationTestData struct {
+	fromValue float32
+	toValue   float32
+	duration  time.Duration
+	testSteps []floatAnimationTestStep
 }
 
 // We don't test the case of calling Get() on an un-advanced animation. We
 // probably should do that.
-func TestGet(t *testing.T) {
-	data := testData{
+func TestFloatAnimationGet(t *testing.T) {
+	data := floatAnimationTestData{
 		fromValue: 0,
 		toValue:   1000,
 		duration:  1000 * time.Millisecond,
-		expectedValues: []expectedValue{
-			expectedValue{advanceTime: 0 * time.Millisecond, expectedValue: 0.0},
-			expectedValue{advanceTime: 100 * time.Millisecond, expectedValue: 100.0},
-			expectedValue{advanceTime: 100 * time.Millisecond, expectedValue: 200.0},
-			expectedValue{advanceTime: 50 * time.Millisecond, expectedValue: 250.0},
-			expectedValue{advanceTime: 50 * time.Millisecond, expectedValue: 300.0},
-			expectedValue{advanceTime: 300 * time.Millisecond, expectedValue: 600.0},
-			expectedValue{advanceTime: 400 * time.Millisecond, expectedValue: 1000.0},
+		testSteps: []floatAnimationTestStep{
+			floatAnimationTestStep{advanceTime: 0 * time.Millisecond, expectedValue: 0.0},
+			floatAnimationTestStep{advanceTime: 100 * time.Millisecond, expectedValue: 100.0},
+			floatAnimationTestStep{advanceTime: 100 * time.Millisecond, expectedValue: 200.0},
+			floatAnimationTestStep{advanceTime: 50 * time.Millisecond, expectedValue: 250.0},
+			floatAnimationTestStep{advanceTime: 50 * time.Millisecond, expectedValue: 300.0},
+			floatAnimationTestStep{advanceTime: 300 * time.Millisecond, expectedValue: 600.0},
+			floatAnimationTestStep{advanceTime: 400 * time.Millisecond, expectedValue: 1000.0},
 
 			// back down
-			expectedValue{advanceTime: 400 * time.Millisecond, expectedValue: 600.0},
-			expectedValue{advanceTime: 300 * time.Millisecond, expectedValue: 300.0},
-			expectedValue{advanceTime: 50 * time.Millisecond, expectedValue: 250.0},
-			expectedValue{advanceTime: 50 * time.Millisecond, expectedValue: 200.0},
-			expectedValue{advanceTime: 100 * time.Millisecond, expectedValue: 100.0},
-			expectedValue{advanceTime: 0 * time.Millisecond, expectedValue: 100.0},
+			floatAnimationTestStep{advanceTime: 400 * time.Millisecond, expectedValue: 600.0},
+			floatAnimationTestStep{advanceTime: 300 * time.Millisecond, expectedValue: 300.0},
+			floatAnimationTestStep{advanceTime: 50 * time.Millisecond, expectedValue: 250.0},
+			floatAnimationTestStep{advanceTime: 50 * time.Millisecond, expectedValue: 200.0},
+			floatAnimationTestStep{advanceTime: 100 * time.Millisecond, expectedValue: 100.0},
+			floatAnimationTestStep{advanceTime: 0 * time.Millisecond, expectedValue: 100.0},
 		},
 	}
 	testFloatAnimation(t, data)
@@ -80,14 +80,14 @@ func equalEnough(one, two float32) bool {
 	}
 }
 
-func testFloatAnimation(t *testing.T, data testData) {
+func testFloatAnimation(t *testing.T, data floatAnimationTestData) {
 	anim := FloatAnimation{
 		From:     data.fromValue,
 		To:       data.toValue,
 		Duration: data.duration,
 	}
 
-	for idx, val := range data.expectedValues {
+	for idx, val := range data.testSteps {
 		anim.Advance(val.advanceTime)
 		f := anim.Get()
 		if !equalEnough(f, val.expectedValue) {

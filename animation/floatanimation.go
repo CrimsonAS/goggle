@@ -21,7 +21,6 @@ func (this *FloatAnimation) Advance(frameTime time.Duration) {
 	if !this.initialized {
 		this.initialized = true
 		this.Restart()
-		return
 	}
 
 	if this.goingDown {
@@ -38,8 +37,8 @@ func (this *FloatAnimation) Advance(frameTime time.Duration) {
 		}
 	}
 
-	percentage := 1.0 - float32(this.remainingDuration)/float32(this.Duration)
-	this.currentValue = (this.To - this.From) * percentage
+	percentage := float32(this.remainingDuration) / float32(this.Duration)
+	this.currentValue = (this.To * (1.0 - percentage)) + (this.From * percentage)
 }
 
 func (this *FloatAnimation) Get() float32 {

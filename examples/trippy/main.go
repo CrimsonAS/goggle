@@ -79,7 +79,6 @@ func (this *Button) Render(w sg.Windowable) sg.Node {
 			this.color = sg.Color{1, 0, 1, 0}
 		} else {
 			this.color = this.colorAnimation.Get()
-			log.Printf("Got color %s", this.color)
 		}
 	}
 

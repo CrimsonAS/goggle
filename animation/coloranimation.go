@@ -1,7 +1,6 @@
 package animation
 
 import (
-	"log"
 	"time"
 
 	"github.com/CrimsonAS/goggle/sg"
@@ -23,7 +22,6 @@ type ColorAnimation struct {
 }
 
 func (this *ColorAnimation) Advance(frameTime time.Duration) {
-	log.Printf("Advancing %+v", this)
 	if !this.initialized {
 		this.initialized = true
 		this.aAnim.From = this.From.X

@@ -37,7 +37,7 @@ func (this *FloatAnimation) Advance(frameTime time.Duration) {
 		}
 	}
 
-	percentage := float32(this.remainingDuration) / float32(this.Duration)
+	percentage := float32(float64(this.remainingDuration) / float64(this.Duration))
 	this.currentValue = (this.To * (1.0 - percentage)) + (this.From * percentage)
 }
 

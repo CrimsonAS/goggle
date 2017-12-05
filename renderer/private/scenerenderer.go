@@ -138,8 +138,6 @@ func (r *SceneRenderer) resolveTree(shadow *shadowNode) {
 		shadow.DrawableList = append(shadow.DrawableList, shadow)
 	}
 
-	var subtreeWg sync.WaitGroup
-
 	// If renderable, render and recurse
 	if rnode, ok := node.(sg.Renderable); ok {
 		if shadow.Rendered == nil {
@@ -148,24 +146,17 @@ func (r *SceneRenderer) resolveTree(shadow *shadowNode) {
 		shadow.Rendered.Transform = shadow.Transform
 
 		// Node may be cached if prerendered by parent
-		if r.DisableParallel {
-			if shadow.Rendered.Node == nil {
-				shadow.Rendered.Node = rnode.Render(r.Window)
-			}
-			r.resolveTree(shadow.Rendered)
-		} else {
-			subtreeWg.Add(1)
-			go func() {
-				defer subtreeWg.Done()
-				if shadow.Rendered.Node == nil {
-					shadow.Rendered.Node = rnode.Render(r.Window)
-				}
-				r.resolveTree(shadow.Rendered)
-			}()
+		if shadow.Rendered.Node == nil {
+			shadow.Rendered.Node = rnode.Render(r.Window)
 		}
+		// Resolving the render tree is not parallelized with
+		// resolving child trees because the rendered tree can
+		// change this parent node (the transform).
+		r.resolveTree(shadow.Rendered)
 
 		// The rendered node's transform is inherited back to this
-		// node; this is important for input events.
+		// node. This is important for input events, and applies to
+		// the children of this node as well.
 		shadow.Transform = shadow.Rendered.Transform
 	}
 
@@ -196,6 +187,7 @@ func (r *SceneRenderer) resolveTree(shadow *shadowNode) {
 			lnode.LayoutChildren(geo)
 		}
 
+		var subtreeWg sync.WaitGroup
 		for index, child := range children {
 			if shadow.Children[index] == nil {
 				shadow.Children[index] = new(shadowNode)
@@ -214,11 +206,10 @@ func (r *SceneRenderer) resolveTree(shadow *shadowNode) {
 				}(childShadow)
 			}
 		}
-	}
-
-	// Wait for subtrees to resolve
-	if !r.DisableParallel {
-		subtreeWg.Wait()
+		// Wait for subtrees to resolve
+		if !r.DisableParallel {
+			subtreeWg.Wait()
+		}
 	}
 
 	// Append drawable and input lists from render and children

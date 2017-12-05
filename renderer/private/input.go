@@ -78,7 +78,7 @@ func (this *InputHelper) ProcessPointerEvents(origin sg.Vec2, childWidth, childH
 	//     Sidebar PointerEnter() { return true; /* block */ }
 	//         Button Hoverable // to highlight as need be
 	//     UI page
-	tp := sg.Vec2{X: this.MousePos.X /*- origin.X*/, Y: this.MousePos.Y /*- origin.Y*/}
+	tp := sg.Vec2{X: this.MousePos.X - origin.X, Y: this.MousePos.Y - origin.Y}
 	if hoverable, ok := item.(sg.Hoverable); ok {
 		if pointInside(origin.X, origin.Y, childWidth, childHeight, this.MousePos) {
 			this.hoveredNodes[item] = true

@@ -132,14 +132,19 @@ func (this *Button) Render(w sg.Windowable) sg.Node {
 			&sg.Row{
 				Children: []sg.Node{
 					&sg.Repeater{
-						Model: 100,
+						Model: 1000,
 						New: func(index int) sg.Node {
+							findex := float32(index)
 							return &sg.RectangleNode{
-								X:      float32(index) * this.scaleAnimation.Get(),
-								Y:      float32(index) * this.scaleAnimation.Get(),
-								Width:  float32(index) * this.scaleAnimation.Get(),
-								Height: float32(index) * this.scaleAnimation.Get(),
-								Color:  this.color,
+								X:      findex * this.scaleAnimation.Get(),
+								Y:      findex * this.scaleAnimation.Get(),
+								Width:  findex * this.scaleAnimation.Get(),
+								Height: findex * this.scaleAnimation.Get(),
+								Color: sg.Color{this.color.A(),
+									findex * this.color.R() * this.scaleAnimation.Get(),
+									findex * this.color.G() * this.scaleAnimation.Get(),
+									findex * this.color.B() * this.scaleAnimation.Get(),
+								},
 							}
 						},
 					},

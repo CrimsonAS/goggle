@@ -14,6 +14,8 @@ type MainWindow struct {
 	manyRectChildren    []sg.Node // method 1
 	howManyRectChildren int       // method 2
 	sz                  sg.Vec2
+	fpsLastUpdated      time.Duration
+	fpsLabel            string
 }
 
 func (this *MainWindow) Size() sg.Vec2 {
@@ -86,11 +88,20 @@ func (this *MainWindow) Render(w sg.Windowable) sg.Node {
 		rchild.Color.W = localRand.Float32()
 	}
 
-	div := w.FrameTime() / time.Millisecond
-	if div == 0 {
-		div = 1
+	this.fpsLastUpdated += w.FrameTime()
+	if this.fpsLabel == "" || this.fpsLastUpdated > 1*time.Second {
+		this.fpsLastUpdated = 0
+		div := w.FrameTime() / time.Millisecond
+		if div == 0 {
+			div = 1
+		}
+		fps := math.Ceil(float64(1000 / div))
+		this.fpsLabel = fmt.Sprintf("%d children rendered, %g FPS", len(this.manyRectChildren), fps)
+		const fpsDebug = true
+		if fpsDebug {
+			log.Printf(this.fpsLabel)
+		}
 	}
-	fps := math.Ceil(float64(1000 / div))
 	ret := &sg.RectangleNode{
 		Color:  sg.Color{1, 0, 1, 0},
 		Width:  this.sz.X,
@@ -112,7 +123,7 @@ func (this *MainWindow) Render(w sg.Windowable) sg.Node {
 						Width:      400,
 						Height:     42,
 						PixelSize:  42,
-						Text:       fmt.Sprintf("%d children rendered, %g FPS", len(this.manyRectChildren), fps),
+						Text:       this.fpsLabel,
 						FontFamily: "../shared/Barlow/Barlow-Regular.ttf",
 						Color:      sg.Color{1, 1, 1, 1},
 					},

@@ -168,6 +168,28 @@ func (r *SceneRenderer) resolveTree(shadow *shadowNode) {
 		children := pnode.GetChildren()
 		shadow.Children = make([]*shadowNode, len(children))
 
+		// If this node is a layout, call LayoutChildren
+		if lnode, ok := node.(sg.Layouter); ok {
+			geo := make([]sg.Geometryable, len(children))
+
+			for i, child := range children {
+				switch n := child.(type) {
+				case sg.Geometryable:
+					geo[i] = n
+				case sg.Renderable:
+					rendered := n.Render(r.Window)
+					// Cache rendered node in the child's shadowNode
+					shadow.Children[i] = &shadowNode{Rendered: &shadowNode{Node: rendered}}
+					if gn, ok := rendered.(sg.Geometryable); ok {
+						geo[i] = gn
+					}
+				default:
+				}
+			}
+
+			lnode.LayoutChildren(geo)
+		}
+
 		for index, child := range children {
 			if shadow.Children[index] == nil {
 				shadow.Children[index] = new(shadowNode)

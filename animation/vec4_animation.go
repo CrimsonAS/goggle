@@ -6,22 +6,20 @@ import (
 	"github.com/CrimsonAS/goggle/sg"
 )
 
-// Animate From a value To another value over a given Duration, and reverse
-// direction after that Duration.
-type ColorAnimation struct {
-	From     sg.Color
-	To       sg.Color
+type Vec4Animation struct {
+	From     sg.Vec4
+	To       sg.Vec4
 	Duration time.Duration // how long transition takes
 
-	initialized  bool // initialized?
-	aAnim        FloatAnimation
-	rAnim        FloatAnimation
-	gAnim        FloatAnimation
-	bAnim        FloatAnimation
-	currentColor sg.Color
+	initialized bool // initialized?
+	aAnim       FloatAnimation
+	rAnim       FloatAnimation
+	gAnim       FloatAnimation
+	bAnim       FloatAnimation
+	currentVec  sg.Vec4
 }
 
-func (this *ColorAnimation) Advance(frameTime time.Duration) {
+func (this *Vec4Animation) Advance(frameTime time.Duration) {
 	if !this.initialized {
 		this.initialized = true
 		this.Restart()
@@ -31,14 +29,14 @@ func (this *ColorAnimation) Advance(frameTime time.Duration) {
 	this.rAnim.Advance(frameTime)
 	this.gAnim.Advance(frameTime)
 	this.bAnim.Advance(frameTime)
-	this.currentColor = sg.Color{this.aAnim.Get(), this.rAnim.Get(), this.gAnim.Get(), this.bAnim.Get()}
+	this.currentVec = sg.Vec4{this.aAnim.Get(), this.rAnim.Get(), this.gAnim.Get(), this.bAnim.Get()}
 }
 
-func (this *ColorAnimation) Get() sg.Color {
-	return this.currentColor
+func (this *Vec4Animation) Get() sg.Vec4 {
+	return this.currentVec
 }
 
-func (this *ColorAnimation) Restart() {
+func (this *Vec4Animation) Restart() {
 	this.aAnim.From = this.From.X
 	this.rAnim.From = this.From.Y
 	this.gAnim.From = this.From.Z
@@ -53,7 +51,7 @@ func (this *ColorAnimation) Restart() {
 	this.rAnim.Duration = this.Duration
 	this.gAnim.Duration = this.Duration
 	this.bAnim.Duration = this.Duration
-	this.currentColor = this.From
+	this.currentVec = this.From
 
 	this.aAnim.Restart()
 	this.rAnim.Restart()

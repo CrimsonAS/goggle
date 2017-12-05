@@ -7,6 +7,9 @@ type Row struct {
 	Padding  float32
 }
 
+// interface assertions
+var _ Layouter = (*Row)(nil)
+
 // ### Crazy idea: could there be a Row that is actually a []Node with
 // functions, so it's possible to construct as just &Row{item, item}?
 

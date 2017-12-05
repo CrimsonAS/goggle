@@ -8,12 +8,20 @@ import (
 // A R G B
 type Color Vec4
 
-func (this Color) String() string {
-	if this.X == 0 {
-		return fmt.Sprintf("#%s%s%s", strconv.FormatInt(int64(this.Rint()), 16), strconv.FormatInt(int64(this.Gint()), 16), strconv.FormatInt(int64(this.Bint()), 16))
+func twoDigitHex(n int) string {
+	if n < 10 {
+		return fmt.Sprintf("0%s", strconv.FormatInt(int64(n), 16))
 	} else {
-		return fmt.Sprintf("#%s%s%s%s", strconv.FormatInt(int64(this.Aint()), 16), strconv.FormatInt(int64(this.Rint()), 16), strconv.FormatInt(int64(this.Gint()), 16), strconv.FormatInt(int64(this.Bint()), 16))
+		return fmt.Sprintf("%s", strconv.FormatInt(int64(n), 16))
 	}
+}
+
+func (this Color) String() string {
+	return fmt.Sprintf("#%s%s%s%s",
+		twoDigitHex(this.Aint()),
+		twoDigitHex(this.Rint()),
+		twoDigitHex(this.Gint()),
+		twoDigitHex(this.Bint()))
 }
 
 func (this Color) A() float32 {

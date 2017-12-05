@@ -44,7 +44,8 @@ func (this *Window) Destroy() {
 	this.window.Destroy()
 }
 
-const renderDebug = false // this is expensive..
+const renderDebug = false       // this is expensive..
+const headlessRendering = false // turn off all rendering (for use in benchmarking algorithms w/o SDL intereference)
 
 // Render a scene onto the window
 func (this *Window) Render(scene sg.Node) {
@@ -89,12 +90,17 @@ func (this *Window) Render(scene sg.Node) {
 		log.Printf("Done rendering in %s @ %d FPS, sleeping %s", time.Since(this.ourRenderer.start), 1000/div, sleepyTime)
 	}
 
-	time.Sleep(sleepyTime) // cap rendering
+	if !headlessRendering {
+		time.Sleep(sleepyTime) // cap rendering
+	}
 	this.inputHelper.ResetFrameState()
 }
 
 func (this *Window) drawRectangle(node *sg.RectangleNode, transform sg.Transform) {
 	geo := transform.Geometry(sg.Vec4{0, 0, node.Width, node.Height})
+	if headlessRendering {
+		return
+	}
 	rect := sdl.Rect{int32(geo.X), int32(geo.Y), int32(geo.Z), int32(geo.W)}
 	if renderDebug {
 		log.Printf("Filling rect xy %gx%g wh %gx%g with color %v", geo.X, geo.Y, geo.Z, geo.W, node.Color)
@@ -119,6 +125,10 @@ func (this *Window) drawImage(node *sg.ImageNode, transform sg.Transform) {
 		panic("unknown texture")
 	}
 
+	if headlessRendering {
+		return
+	}
+
 	// ### file caching
 	image, err := img.LoadTexture(this.sdlRenderer, fileTexture.Source)
 	if err != nil {
@@ -133,6 +143,11 @@ func (this *Window) drawImage(node *sg.ImageNode, transform sg.Transform) {
 
 func (this *Window) drawText(node *sg.TextNode, transform sg.Transform) {
 	geo := transform.Geometry(sg.Vec4{0, 0, node.Width, node.Height})
+
+	if headlessRendering {
+		return
+	}
+
 	// ### font caching (and database)
 	var font *ttf.Font
 	var err error

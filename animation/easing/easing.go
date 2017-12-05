@@ -40,7 +40,7 @@ const pi2 = math.Pi / 2
  * @param t		Current time (in frames or seconds).
  * @return		The correct value.
  */
-//func EaseNone(t float64) float64
+//func None(t float64) float64
 //{
 //    return t;
 //}
@@ -51,7 +51,7 @@ const pi2 = math.Pi / 2
  * @param t		Current time (in frames or seconds).
  * @return		The correct value.
  */
-func EaseInQuad(t float64) float64 {
+func InQuad(t float64) float64 {
 	return t * t
 }
 
@@ -61,7 +61,7 @@ func EaseInQuad(t float64) float64 {
 * @param t		Current time (in frames or seconds).
 * @return		The correct value.
  */
-func EaseOutQuad(t float64) float64 {
+func OutQuad(t float64) float64 {
 	return -t * (t - 2)
 }
 
@@ -71,7 +71,7 @@ func EaseOutQuad(t float64) float64 {
  * @param t		Current time (in frames or seconds).
  * @return		The correct value.
  */
-func EaseInOutQuad(t float64) float64 {
+func InOutQuad(t float64) float64 {
 	t *= 2.0
 	if t < 1 {
 		return t * t / 2
@@ -87,11 +87,11 @@ func EaseInOutQuad(t float64) float64 {
  * @param t		Current time (in frames or seconds).
  * @return		The correct value.
  */
-func EaseOutInQuad(t float64) float64 {
+func OutInQuad(t float64) float64 {
 	if t < 0.5 {
-		return EaseOutQuad(t*2) / 2
+		return OutQuad(t*2) / 2
 	}
-	return EaseInQuad((2*t)-1)/2 + 0.5
+	return InQuad((2*t)-1)/2 + 0.5
 }
 
 /**
@@ -100,7 +100,7 @@ func EaseOutInQuad(t float64) float64 {
  * @param t		Current time (in frames or seconds).
  * @return		The correct value.
  */
-func EaseInCubic(t float64) float64 {
+func InCubic(t float64) float64 {
 	return t * t * t
 }
 
@@ -110,7 +110,7 @@ func EaseInCubic(t float64) float64 {
  * @param t		Current time (in frames or seconds).
  * @return		The correct value.
  */
-func EaseOutCubic(t float64) float64 {
+func OutCubic(t float64) float64 {
 	t -= 1.0
 	return t*t*t + 1
 }
@@ -121,7 +121,7 @@ func EaseOutCubic(t float64) float64 {
  * @param t		Current time (in frames or seconds).
  * @return		The correct value.
  */
-func EaseInOutCubic(t float64) float64 {
+func InOutCubic(t float64) float64 {
 	t *= 2.0
 	if t < 1 {
 		return 0.5 * t * t * t
@@ -137,11 +137,11 @@ func EaseInOutCubic(t float64) float64 {
  * @param t		Current time (in frames or seconds).
  * @return		The correct value.
  */
-func EaseOutInCubic(t float64) float64 {
+func OutInCubic(t float64) float64 {
 	if t < 0.5 {
-		return EaseOutCubic(2*t) / 2
+		return OutCubic(2*t) / 2
 	}
-	return EaseInCubic(2*t-1)/2 + 0.5
+	return InCubic(2*t-1)/2 + 0.5
 }
 
 /**
@@ -150,7 +150,7 @@ func EaseOutInCubic(t float64) float64 {
  * @param t		Current time (in frames or seconds).
  * @return		The correct value.
  */
-func EaseInQuart(t float64) float64 {
+func InQuart(t float64) float64 {
 	return t * t * t * t
 }
 
@@ -160,7 +160,7 @@ func EaseInQuart(t float64) float64 {
  * @param t		Current time (in frames or seconds).
  * @return		The correct value.
  */
-func EaseOutQuart(t float64) float64 {
+func OutQuart(t float64) float64 {
 	t -= 1.0
 	return -(t*t*t*t - 1)
 }
@@ -171,7 +171,7 @@ func EaseOutQuart(t float64) float64 {
  * @param t		Current time (in frames or seconds).
  * @return		The correct value.
  */
-func EaseInOutQuart(t float64) float64 {
+func InOutQuart(t float64) float64 {
 	t *= 2
 	if t < 1 {
 		return 0.5 * t * t * t * t
@@ -187,11 +187,11 @@ func EaseInOutQuart(t float64) float64 {
  * @param t		Current time (in frames or seconds).
  * @return		The correct value.
  */
-func EaseOutInQuart(t float64) float64 {
+func OutInQuart(t float64) float64 {
 	if t < 0.5 {
-		return EaseOutQuart(2*t) / 2
+		return OutQuart(2*t) / 2
 	}
-	return EaseInQuart(2*t-1)/2 + 0.5
+	return InQuart(2*t-1)/2 + 0.5
 }
 
 /**
@@ -200,7 +200,7 @@ func EaseOutInQuart(t float64) float64 {
  * @param t		Current time (in frames or seconds).
  * @return		The correct value.
  */
-func EaseInQuint(t float64) float64 {
+func InQuint(t float64) float64 {
 	return t * t * t * t * t
 }
 
@@ -210,7 +210,7 @@ func EaseInQuint(t float64) float64 {
  * @param t		Current time (in frames or seconds).
  * @return		The correct value.
  */
-func EaseOutQuint(t float64) float64 {
+func OutQuint(t float64) float64 {
 	t -= 1.0
 	return t*t*t*t*t + 1
 }
@@ -221,7 +221,7 @@ func EaseOutQuint(t float64) float64 {
  * @param t		Current time (in frames or seconds).
  * @return		The correct value.
  */
-func EaseInOutQuint(t float64) float64 {
+func InOutQuint(t float64) float64 {
 	t *= 2.0
 	if t < 1 {
 		return 0.5 * t * t * t * t * t
@@ -237,11 +237,11 @@ func EaseInOutQuint(t float64) float64 {
  * @param t		Current time (in frames or seconds).
  * @return		The correct value.
  */
-func EaseOutInQuint(t float64) float64 {
+func OutInQuint(t float64) float64 {
 	if t < 0.5 {
-		return EaseOutQuint(2*t) / 2
+		return OutQuint(2*t) / 2
 	}
-	return EaseInQuint(2*t-1)/2 + 0.5
+	return InQuint(2*t-1)/2 + 0.5
 }
 
 /**
@@ -250,7 +250,7 @@ func EaseOutInQuint(t float64) float64 {
  * @param t		Current time (in frames or seconds).
  * @return		The correct value.
  */
-func EaseInSine(t float64) float64 {
+func InSine(t float64) float64 {
 	if t == 1.0 {
 		return 1.0
 	}
@@ -263,7 +263,7 @@ func EaseInSine(t float64) float64 {
  * @param t		Current time (in frames or seconds).
  * @return		The correct value.
  */
-func EaseOutSine(t float64) float64 {
+func OutSine(t float64) float64 {
 	return math.Sin(t * pi2)
 }
 
@@ -273,7 +273,7 @@ func EaseOutSine(t float64) float64 {
  * @param t		Current time (in frames or seconds).
  * @return		The correct value.
  */
-func EaseInOutSine(t float64) float64 {
+func InOutSine(t float64) float64 {
 	return -0.5 * (math.Cos(math.Pi*t) - 1)
 }
 
@@ -283,11 +283,11 @@ func EaseInOutSine(t float64) float64 {
  * @param t		Current time (in frames or seconds).
  * @return		The correct value.
  */
-func EaseOutInSine(t float64) float64 {
+func OutInSine(t float64) float64 {
 	if t < 0.5 {
-		return EaseOutSine(2*t) / 2
+		return OutSine(2*t) / 2
 	}
-	return EaseInSine(2*t-1)/2 + 0.5
+	return InSine(2*t-1)/2 + 0.5
 }
 
 /**
@@ -296,7 +296,7 @@ func EaseOutInSine(t float64) float64 {
  * @param t		Current time (in frames or seconds).
  * @return		The correct value.
  */
-func EaseInExpo(t float64) float64 {
+func InExpo(t float64) float64 {
 	if t == 0 || t == 1.0 {
 		return t
 	}
@@ -309,7 +309,7 @@ func EaseInExpo(t float64) float64 {
  * @param t		Current time (in frames or seconds).
  * @return		The correct value.
  */
-func EaseOutExpo(t float64) float64 {
+func OutExpo(t float64) float64 {
 	if t == 1.0 {
 		return 1.0
 	}
@@ -322,7 +322,7 @@ func EaseOutExpo(t float64) float64 {
  * @param t		Current time (in frames or seconds).
  * @return		The correct value.
  */
-func EaseInOutExpo(t float64) float64 {
+func InOutExpo(t float64) float64 {
 	if t == 0.0 {
 		return 0.0
 	}
@@ -342,11 +342,11 @@ func EaseInOutExpo(t float64) float64 {
  * @param t		Current time (in frames or seconds).
  * @return		The correct value.
  */
-func EaseOutInExpo(t float64) float64 {
+func OutInExpo(t float64) float64 {
 	if t < 0.5 {
-		return EaseOutExpo(2*t) / 2
+		return OutExpo(2*t) / 2
 	}
-	return EaseInExpo(2*t-1)/2 + 0.5
+	return InExpo(2*t-1)/2 + 0.5
 }
 
 /**
@@ -355,7 +355,7 @@ func EaseOutInExpo(t float64) float64 {
  * @param t		Current time (in frames or seconds).
  * @return		The correct value.
  */
-func EaseInCirc(t float64) float64 {
+func InCirc(t float64) float64 {
 	return -(math.Sqrt(1-t*t) - 1)
 }
 
@@ -365,7 +365,7 @@ func EaseInCirc(t float64) float64 {
  * @param t		Current time (in frames or seconds).
  * @return		The correct value.
  */
-func EaseOutCirc(t float64) float64 {
+func OutCirc(t float64) float64 {
 	t -= 1.0
 	return math.Sqrt(1 - t*t)
 }
@@ -376,7 +376,7 @@ func EaseOutCirc(t float64) float64 {
  * @param t		Current time (in frames or seconds).
  * @return		The correct value.
  */
-func EaseInOutCirc(t float64) float64 {
+func InOutCirc(t float64) float64 {
 	t *= 2.0
 	if t < 1 {
 		return -0.5 * (math.Sqrt(1-t*t) - 1)
@@ -392,11 +392,11 @@ func EaseInOutCirc(t float64) float64 {
  * @param t		Current time (in frames or seconds).
  * @return		The correct value.
  */
-func EaseOutInCirc(t float64) float64 {
+func OutInCirc(t float64) float64 {
 	if t < 0.5 {
-		return EaseOutCirc(2*t) / 2
+		return OutCirc(2*t) / 2
 	}
-	return EaseInCirc(2*t-1)/2 + 0.5
+	return InCirc(2*t-1)/2 + 0.5
 }
 
 func easeInElastic_helper(t, b, c, d, a, p float64) float64 {
@@ -428,7 +428,7 @@ func easeInElastic_helper(t, b, c, d, a, p float64) float64 {
  * @param p		Period.
  * @return		The correct value.
  */
-func EaseInElastic(t, a, p float64) float64 {
+func InElastic(t, a, p float64) float64 {
 	return easeInElastic_helper(t, 0, 1, 1, a, p)
 }
 
@@ -459,7 +459,7 @@ func easeOutElastic_helper(t, _ /*b*/, c, _ /*d*/, a, p float64) float64 {
  * @param p		Period.
  * @return		The correct value.
  */
-func EaseOutElastic(t, a, p float64) float64 {
+func OutElastic(t, a, p float64) float64 {
 	return easeOutElastic_helper(t, 0, 1, 1, a, p)
 }
 
@@ -471,7 +471,7 @@ func EaseOutElastic(t, a, p float64) float64 {
  * @param p		Period.
  * @return		The correct value.
  */
-func EaseInOutElastic(t, a, p float64) float64 {
+func InOutElastic(t, a, p float64) float64 {
 	if t == 0 {
 		return 0.0
 	}
@@ -502,7 +502,7 @@ func EaseInOutElastic(t, a, p float64) float64 {
  * @param p		Period.
  * @return		The correct value.
  */
-func EaseOutInElastic(t, a, p float64) float64 {
+func OutInElastic(t, a, p float64) float64 {
 	if t < 0.5 {
 		return easeOutElastic_helper(t*2, 0, 0.5, 1.0, a, p)
 	}
@@ -516,7 +516,7 @@ func EaseOutInElastic(t, a, p float64) float64 {
  * @param s		Overshoot ammount: higher s means greater overshoot (0 produces cubic easing with no overshoot, and the default value of 1.70158 produces an overshoot of 10 percent).
  * @return		The correct value.
  */
-func EaseInBack(t, s float64) float64 {
+func InBack(t, s float64) float64 {
 	return t * t * ((s+1)*t - s)
 }
 
@@ -527,7 +527,7 @@ func EaseInBack(t, s float64) float64 {
  * @param s		Overshoot ammount: higher s means greater overshoot (0 produces cubic easing with no overshoot, and the default value of 1.70158 produces an overshoot of 10 percent).
  * @return		The correct value.
  */
-func EaseOutBack(t, s float64) float64 {
+func OutBack(t, s float64) float64 {
 	t -= 1.0
 	return t*t*((s+1)*t+s) + 1
 }
@@ -539,7 +539,7 @@ func EaseOutBack(t, s float64) float64 {
  * @param s		Overshoot ammount: higher s means greater overshoot (0 produces cubic easing with no overshoot, and the default value of 1.70158 produces an overshoot of 10 percent).
  * @return		The correct value.
  */
-func EaseInOutBack(t, s float64) float64 {
+func InOutBack(t, s float64) float64 {
 	t *= 2.0
 	if t < 1 {
 		s *= 1.525
@@ -558,11 +558,11 @@ func EaseInOutBack(t, s float64) float64 {
  * @param s		Overshoot ammount: higher s means greater overshoot (0 produces cubic easing with no overshoot, and the default value of 1.70158 produces an overshoot of 10 percent).
  * @return		The correct value.
  */
-func EaseOutInBack(t, s float64) float64 {
+func OutInBack(t, s float64) float64 {
 	if t < 0.5 {
-		return EaseOutBack(2*t, s) / 2
+		return OutBack(2*t, s) / 2
 	}
-	return EaseInBack(2*t-1, s)/2 + 0.5
+	return InBack(2*t-1, s)/2 + 0.5
 }
 
 func easeOutBounce_helper(t, c, a float64) float64 {
@@ -589,7 +589,7 @@ func easeOutBounce_helper(t, c, a float64) float64 {
  * @param a		Amplitude.
  * @return		The correct value.
  */
-func EaseOutBounce(t, a float64) float64 {
+func OutBounce(t, a float64) float64 {
 	return easeOutBounce_helper(t, 1, a)
 }
 
@@ -600,7 +600,7 @@ func EaseOutBounce(t, a float64) float64 {
  * @param a		Amplitude.
  * @return		The correct value.
  */
-func EaseInBounce(t, a float64) float64 {
+func InBounce(t, a float64) float64 {
 	return 1.0 - easeOutBounce_helper(1.0-t, 1.0, a)
 }
 
@@ -611,13 +611,13 @@ func EaseInBounce(t, a float64) float64 {
  * @param a		Amplitude.
  * @return		The correct value.
  */
-func EaseInOutBounce(t, a float64) float64 {
+func InOutBounce(t, a float64) float64 {
 	if t < 0.5 {
-		return EaseInBounce(2*t, a) / 2
+		return InBounce(2*t, a) / 2
 	} else if t == 1.0 {
 		return 1.0
 	}
-	return EaseOutBounce(2*t-1, a)/2 + 0.5
+	return OutBounce(2*t-1, a)/2 + 0.5
 }
 
 /**
@@ -627,7 +627,7 @@ func EaseInOutBounce(t, a float64) float64 {
  * @param a		Amplitude.
  * @return		The correct value.
  */
-func EaseOutInBounce(t, a float64) float64 {
+func OutInBounce(t, a float64) float64 {
 	if t < 0.5 {
 		return easeOutBounce_helper(t*2, 0.5, a)
 	}
@@ -650,7 +650,7 @@ func smoothBeginEndMixFactor(value float64) float64 {
 /**
  * Easing function that starts growing slowly, then incrEases in speed. At the end of the curve the speed will be constant.
  */
-func EaseInCurve(t float64) float64 {
+func InCurve(t float64) float64 {
 	sinProgress := sinProgress(t)
 	mix := smoothBeginEndMixFactor(t)
 	return sinProgress*mix + t*(1-mix)
@@ -659,7 +659,7 @@ func EaseInCurve(t float64) float64 {
 /**
  * Easing function that starts growing steadily, then ends slowly. The speed will be constant at the beginning of the curve.
  */
-func EaseOutCurve(t float64) float64 {
+func OutCurve(t float64) float64 {
 	sinProgress := sinProgress(t)
 	mix := smoothBeginEndMixFactor(1 - t)
 	return sinProgress*mix + t*(1-mix)
@@ -668,7 +668,7 @@ func EaseOutCurve(t float64) float64 {
 /**
  * Easing function where the value grows sinusoidally. Note that the calculated  end value will be 0 rather than 1.
  */
-func EaseSineCurve(t float64) float64 {
+func SineCurve(t float64) float64 {
 	return (math.Sin((t*math.Pi*2)-pi2) + 1) / 2
 }
 
@@ -676,6 +676,6 @@ func EaseSineCurve(t float64) float64 {
  * Easing function where the value grows cosinusoidally. Note that the calculated start value will be 0.5 and the end value will be 0.5
  * contrary to the usual 0 to 1 easing curve.
  */
-func EaseCosineCurve(t float64) float64 {
+func CosineCurve(t float64) float64 {
 	return (math.Cos((t*math.Pi*2)-pi2) + 1) / 2
 }

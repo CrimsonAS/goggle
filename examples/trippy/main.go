@@ -53,7 +53,7 @@ func (this *Button) Render(w sg.Windowable) sg.Node {
 			From:     0.0,
 			To:       2.0,
 			Duration: 3000 * time.Millisecond,
-			Easing:   easing.EaseInOutCubic,
+			Easing:   easing.InOutCubic,
 		}
 		this.scaleAnimation.Restart()
 		this.colorAnimation = &animation.ColorAnimation{

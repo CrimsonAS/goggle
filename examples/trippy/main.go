@@ -62,7 +62,6 @@ func (this *Button) Render(w sg.Windowable) sg.Node {
 		this.otherButton = &OtherButton{w: 100, h: 100}
 	}
 	this.scaleAnimation.Advance(w.FrameTime())
-	this.colorAnimation.Advance(w.FrameTime())
 
 	if this.active {
 		this.color = sg.Color{1, 0, 0, 1}
@@ -70,6 +69,7 @@ func (this *Button) Render(w sg.Windowable) sg.Node {
 		if this.containsPointer {
 			this.color = sg.Color{1, 0, 1, 0}
 		} else {
+			this.colorAnimation.Advance(w.FrameTime())
 			this.color = this.colorAnimation.Get()
 		}
 	}

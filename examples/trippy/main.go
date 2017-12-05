@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/CrimsonAS/goggle/animation"
+	"github.com/CrimsonAS/goggle/animation/easing"
 	"github.com/CrimsonAS/goggle/renderer/sdlsoftware"
 	"github.com/CrimsonAS/goggle/sg"
 	"github.com/veandco/go-sdl2/sdl"
@@ -52,6 +53,7 @@ func (this *Button) Render(w sg.Windowable) sg.Node {
 			From:     0.0,
 			To:       2.0,
 			Duration: 3000 * time.Millisecond,
+			Easing:   easing.EaseInOutCubic,
 		}
 		this.scaleAnimation.Restart()
 		this.colorAnimation = &animation.ColorAnimation{

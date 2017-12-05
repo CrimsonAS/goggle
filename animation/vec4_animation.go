@@ -10,6 +10,7 @@ type Vec4Animation struct {
 	From     sg.Vec4
 	To       sg.Vec4
 	Duration time.Duration // how long transition takes
+	Easing   EasingFunc
 
 	initialized bool // initialized?
 	aAnim       FloatAnimation
@@ -51,6 +52,12 @@ func (this *Vec4Animation) Restart() {
 	this.rAnim.Duration = this.Duration
 	this.gAnim.Duration = this.Duration
 	this.bAnim.Duration = this.Duration
+
+	this.aAnim.Easing = this.Easing
+	this.rAnim.Easing = this.Easing
+	this.gAnim.Easing = this.Easing
+	this.bAnim.Easing = this.Easing
+
 	this.currentVec = this.From
 
 	this.aAnim.Restart()

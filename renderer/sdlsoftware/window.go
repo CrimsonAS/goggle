@@ -62,7 +62,7 @@ func (this *Window) Render(scene sg.Node) {
 	// delivery of input events. The result is a list of DrawableNode.
 	r := SceneRenderer{
 		Window:      this,
-		InputHelper: this.inputHelper,
+		InputHelper: &this.inputHelper,
 	}
 	drawables := r.Render(scene)
 

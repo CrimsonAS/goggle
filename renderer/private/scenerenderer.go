@@ -42,7 +42,7 @@ type shadowNode struct {
 
 type SceneRenderer struct {
 	Window          sg.Windowable
-	InputHelper     InputHelper
+	InputHelper     *InputHelper
 	DisableParallel bool
 	FullSecondPass  bool
 	resolveDrawable bool

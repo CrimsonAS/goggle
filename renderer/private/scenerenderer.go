@@ -148,18 +148,20 @@ func (r *SceneRenderer) resolveTree(shadow *shadowNode) {
 		shadow.Rendered.Transform = shadow.Transform
 
 		// Node may be cached if prerendered by parent
-		if shadow.Rendered.Node == nil {
-			if r.DisableParallel {
+		if r.DisableParallel {
+			if shadow.Rendered.Node == nil {
 				shadow.Rendered.Node = rnode.Render(r.Window)
-				r.resolveTree(shadow.Rendered)
-			} else {
-				subtreeWg.Add(1)
-				go func() {
-					defer subtreeWg.Done()
-					shadow.Rendered.Node = rnode.Render(r.Window)
-					r.resolveTree(shadow.Rendered)
-				}()
 			}
+			r.resolveTree(shadow.Rendered)
+		} else {
+			subtreeWg.Add(1)
+			go func() {
+				defer subtreeWg.Done()
+				if shadow.Rendered.Node == nil {
+					shadow.Rendered.Node = rnode.Render(r.Window)
+				}
+				r.resolveTree(shadow.Rendered)
+			}()
 		}
 	}
 

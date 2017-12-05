@@ -15,6 +15,7 @@ import (
 
 type Button struct {
 	color           sg.Color
+	inverseColor    sg.Color
 	containsPointer bool
 	active          bool
 	scaleAnimation  *animation.FloatAnimation
@@ -74,29 +75,19 @@ func (this *Button) Render(w sg.Windowable) sg.Node {
 		}
 	}
 
+	this.inverseColor = sg.Color{this.color.X, 1.0 - this.color.Y, 1.0 - this.color.Z, 1.0 - this.color.W}
+
 	sz := w.GetSize()
 
 	return &sg.RectangleNode{
-		Color:  this.color,
 		Width:  sz.X,
 		Height: sz.Y,
+		Color:  sg.Color{1, 0, 0, 0},
 		Children: []sg.Node{
 			this.otherButton,
 			&sdlsoftware.DrawNode{
 				Draw: func(renderer *sdl.Renderer, node *sdlsoftware.DrawNode, transform sg.Transform) {
 					// custom drawing here
-				},
-			},
-			&sg.ScaleNode{
-				Scale: this.scaleAnimation.Get(),
-				Children: []sg.Node{
-					&sg.RectangleNode{
-						X:      100,
-						Y:      sz.Y / 2,
-						Width:  400,
-						Height: 400,
-						Color:  sg.Color{0.5, 1.0, 0, 0},
-					},
 				},
 			},
 			&sg.TextNode{
@@ -115,17 +106,22 @@ func (this *Button) Render(w sg.Windowable) sg.Node {
 				Height: 50,
 				Color:  sg.Color{0, 0, 0, 0},
 				Children: []sg.Node{
-					&sg.Row{
+					&sg.ScaleNode{
+						Scale: this.scaleAnimation.Get(),
 						Children: []sg.Node{
-							&sg.RectangleNode{
-								Width:  50 * this.scaleAnimation.Get(),
-								Height: 50 * this.scaleAnimation.Get(),
-								Color:  sg.Color{1, 1, 1, 1},
-							},
-							&sg.RectangleNode{
-								Width:  50 * this.scaleAnimation.Get(),
-								Height: 50 * this.scaleAnimation.Get() / 2,
-								Color:  sg.Color{0.5, 0.5, 0.5, 1},
+							&sg.Row{
+								Children: []sg.Node{
+									&sg.RectangleNode{
+										Width:  50 * this.scaleAnimation.Get(),
+										Height: 50 * this.scaleAnimation.Get(),
+										Color:  this.color,
+									},
+									&sg.RectangleNode{
+										Width:  50 / 2 * this.scaleAnimation.Get() * this.scaleAnimation.Get(),
+										Height: 50 / 2 * this.scaleAnimation.Get() * this.scaleAnimation.Get(),
+										Color:  this.inverseColor,
+									},
+								},
 							},
 						},
 					},

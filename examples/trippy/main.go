@@ -129,6 +129,22 @@ func (this *Button) Render(w sg.Windowable) sg.Node {
 					},
 				},
 			},
+			&sg.Row{
+				Children: []sg.Node{
+					&sg.Repeater{
+						Model: 100,
+						New: func(index int) sg.Node {
+							return &sg.RectangleNode{
+								X:      float32(index) * this.scaleAnimation.Get(),
+								Y:      float32(index) * this.scaleAnimation.Get(),
+								Width:  float32(index) * this.scaleAnimation.Get(),
+								Height: float32(index) * this.scaleAnimation.Get(),
+								Color:  this.color,
+							}
+						},
+					},
+				},
+			},
 		},
 	}
 }

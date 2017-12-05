@@ -41,6 +41,12 @@ func (this Vec4) Div(other Vec4) Vec4 {
 		W: this.W / other.W,
 	}
 }
+func (this Vec4) XY() Vec2 {
+	return Vec2{this.X, this.Y}
+}
+func (this Vec4) ZW() Vec2 {
+	return Vec2{this.Z, this.W}
+}
 func (this Vec4) String() string {
 	return fmt.Sprintf("%gx%gx%gx%g", this.X, this.Y, this.Z, this.W)
 }

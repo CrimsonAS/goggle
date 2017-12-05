@@ -14,7 +14,7 @@ func (row *Row) GetChildren() []Node {
 	return row.Children
 }
 
-func (row *Row) PositionChildren(nodes []Geometryable) {
+func (row *Row) LayoutChildren(nodes []Geometryable) {
 	x := float32(0)
 	for _, node := range nodes {
 		if node == nil {

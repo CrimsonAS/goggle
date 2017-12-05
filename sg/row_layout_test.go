@@ -63,7 +63,7 @@ func runRowTest(t *testing.T, testData rowPositionerTest) {
 		Children: nodeChildren,
 	}
 
-	r.PositionChildren(geometryChildren)
+	r.LayoutChildren(geometryChildren)
 
 	for idx, expectedGeometry := range testData.expectedGeometries {
 		if expectedGeometry == nil {

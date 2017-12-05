@@ -9,7 +9,7 @@ type DrawNode struct {
 	Children      []sg.Node
 	X, Y          float32
 	Width, Height float32
-	Draw          func(renderer *sdl.Renderer, node *DrawNode)
+	Draw          func(renderer *sdl.Renderer, node *DrawNode, transform sg.Transform)
 }
 
 func (node *DrawNode) GetChildren() []sg.Node {

@@ -83,7 +83,7 @@ func (this *Button) Render(w sg.Windowable) sg.Node {
 		Children: []sg.Node{
 			this.otherButton,
 			&sdlsoftware.DrawNode{
-				Draw: func(renderer *sdl.Renderer, node *sdlsoftware.DrawNode) {
+				Draw: func(renderer *sdl.Renderer, node *sdlsoftware.DrawNode, transform sg.Transform) {
 					// custom drawing here
 				},
 			},

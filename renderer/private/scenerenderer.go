@@ -163,6 +163,10 @@ func (r *SceneRenderer) resolveTree(shadow *shadowNode) {
 				r.resolveTree(shadow.Rendered)
 			}()
 		}
+
+		// The rendered node's transform is inherited back to this
+		// node; this is important for input events.
+		shadow.Transform = shadow.Rendered.Transform
 	}
 
 	// Recurse to resolve children

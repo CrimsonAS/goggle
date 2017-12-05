@@ -8,6 +8,7 @@ type Draggable struct {
 	Child     sg.Geometryable
 	IsHovered bool
 	IsPressed bool
+	pos       sg.Vec2
 }
 
 // interface assertions
@@ -31,7 +32,7 @@ func (this *Draggable) PointerPressed(pos sg.Vec2) {
 }
 
 func (this *Draggable) PointerMoved(pos sg.Vec2) {
-	this.SetPosition(pos)
+	this.SetPosition(pos.Sub(this.Size().Mul(sg.Vec2{0.5, 0.5})))
 }
 
 func (this *Draggable) PointerReleased(pos sg.Vec2) {
@@ -39,11 +40,11 @@ func (this *Draggable) PointerReleased(pos sg.Vec2) {
 }
 
 func (this *Draggable) Position() sg.Vec2 {
-	return this.Child.Position()
+	return this.pos
 }
 
 func (this *Draggable) SetPosition(pos sg.Vec2) {
-	this.Child.SetPosition(pos)
+	this.pos = pos
 }
 
 func (this *Draggable) Size() sg.Vec2 {

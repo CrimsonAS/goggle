@@ -11,6 +11,7 @@ pipeline {
                 // Get this in the right place.
                 dir('src/github.com/CrimsonAS/goggle') {
                     checkout scm
+                    sh 'go get' // ### we should vendor, probably
                     dir('examples/trippy') {
                         sh 'go build'
                         archiveArtifacts artifacts: 'trippy'

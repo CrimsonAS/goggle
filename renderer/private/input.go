@@ -24,14 +24,14 @@ func NewInputHelper() InputHelper {
 }
 
 func mouseDebug(fstr string, vals ...interface{}) {
-	const debug = true
+	const debug = false
 
 	if debug {
 		log.Printf(fstr, vals...)
 	}
 }
 func mouseMoveDebug(fstr string, vals ...interface{}) {
-	const debug = true
+	const debug = false
 
 	if debug {
 		log.Printf(fstr, vals...)

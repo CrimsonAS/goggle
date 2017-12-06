@@ -136,7 +136,7 @@ func (this *Window) drawImage(node *sg.ImageNode, transform sg.Transform) {
 		return
 	}
 
-	// ###? defer image.Free()
+	defer image.Destroy()
 	rect := sdl.Rect{int32(geo.X), int32(geo.Y), int32(geo.Z), int32(geo.W)}
 	this.sdlRenderer.Copy(image, nil, &rect)
 }
@@ -171,7 +171,7 @@ func (this *Window) drawText(node *sg.TextNode, transform sg.Transform) {
 	if err != nil {
 		fmt.Fprint(os.Stderr, "Failed to get texture for text: %s\n", err)
 	} else {
-		// ###? defer texture.Free()
+		defer texture.Destroy()
 		rect := sdl.Rect{int32(geo.X), int32(geo.Y), int32(geo.Z), int32(geo.W)}
 		if node.Color.X == 1 {
 			this.setBlendMode(sdl.BLENDMODE_NONE)

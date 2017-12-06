@@ -32,7 +32,7 @@ func (this *Draggable) PointerPressed(pos sg.Vec2) {
 }
 
 func (this *Draggable) PointerMoved(pos sg.Vec2) {
-	this.SetPosition(pos.Sub(this.Size().Mul(sg.Vec2{0.5, 0.5})))
+	this.SetPosition(this.Position().Add(pos.Sub(this.Size().Mul(sg.Vec2{0.5, 0.5}))))
 }
 
 func (this *Draggable) PointerReleased(pos sg.Vec2) {

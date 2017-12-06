@@ -21,7 +21,6 @@ type Button struct {
 	active          bool
 	scaleAnimation  *animation.FloatAnimation
 	colorAnimation  *animation.ColorAnimation
-	otherButton     *OtherButton
 	windowable      sg.Windowable
 }
 
@@ -62,7 +61,6 @@ func (this *Button) Render(w sg.Windowable) sg.Node {
 			Duration: 5000 * time.Millisecond,
 		}
 		this.colorAnimation.Restart()
-		this.otherButton = &OtherButton{w: 100, h: 100}
 	}
 	this.scaleAnimation.Advance(w.FrameTime())
 
@@ -86,10 +84,21 @@ func (this *Button) Render(w sg.Windowable) sg.Node {
 		Height: sz.Y,
 		Color:  sg.Color{1, 0, 0, 0},
 		Children: []sg.Node{
-			this.otherButton,
 			&sdlsoftware.DrawNode{
 				Draw: func(renderer *sdl.Renderer, node *sdlsoftware.DrawNode, transform sg.Transform) {
 					// custom drawing here
+				},
+			},
+			&sg.ScaleNode{
+				Scale: this.scaleAnimation.Get(),
+				Children: []sg.Node{
+					&sg.ImageNode{
+						Width:  100,
+						Height: 100,
+						Texture: &sg.FileTexture{
+							Source: "solid.png",
+						},
+					},
 				},
 			},
 			&sg.TextNode{

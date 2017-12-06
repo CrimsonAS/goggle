@@ -2,6 +2,8 @@ pipeline {
     agent none
 
     stages {
+        // We can't actually build, because CentOS lacks SDL2..
+        /*
         stage('Build') {
             agent any
             environment {
@@ -29,6 +31,7 @@ pipeline {
                 }
             }
         }
+        */
         stage('Test') {
             agent any
             environment {

@@ -40,7 +40,9 @@ pipeline {
             steps {
                 // Get this in the right place.
                 dir('src/github.com/CrimsonAS/goggle') {
-                    sh "go test -v ./..."
+                    sh "go test -v ./animation"
+                    sh "go test -v ./renderer/private"
+                    sh "go test -v ./sg"
                 }
             }
         }

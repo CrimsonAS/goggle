@@ -9,7 +9,7 @@ pipeline {
             }
             steps {
                 // Get this in the right place.
-                dir('src/github.com/CrimsonAS') {
+                dir('src/github.com/CrimsonAS/goggle') {
                     checkout scm
                     dir('examples/trippy') {
                         sh 'go build'
@@ -33,7 +33,7 @@ pipeline {
             }
             steps {
                 // Get this in the right place.
-                dir('src/github.com/CrimsonAS') {
+                dir('src/github.com/CrimsonAS/goggle') {
                     sh "go test -v ./..."
                 }
             }

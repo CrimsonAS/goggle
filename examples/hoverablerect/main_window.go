@@ -1,53 +1,63 @@
 package main
 
 import "github.com/CrimsonAS/goggle/sg"
+import "github.com/CrimsonAS/goggle/sg2"
 
 type HoverableRectProps struct {
-	sg.GeometryProps
+	sg2.Geometry
 	color        sg.Color
 	hoveredColor sg.Color
 }
 
+func (this *HoverableRectProps) IsProppable() { // iface instead?
+
+}
+
 type HoverableRectState struct {
-	sg.HoverableState
+	sg2.HoverableState
 	isHovered bool
 }
 
-func HoverableRectRender(props sg.Proppable, state sg.Stateable, w sg.Windowable) sg.Node {
+func (this *HoverableRectState) IsStateable() { // iface instead?
+
+}
+
+func HoverableRectRender(props sg2.Proppable, state sg2.Stateable, w sg.Windowable) sg.Node {
 	if state == nil {
 		state = &HoverableRectState{}
-		state.OnEnter = func(state sg.Stateable) {
-			dstate := state.(HoverableRectState)
+		dstate := state.(*HoverableRectState)
+		dstate.OnEnter = func(state sg2.Stateable) {
+			dstate := state.(*HoverableRectState)
 			dstate.isHovered = true
 		}
-		state.OnLeave = func(state sg.Stateable) {
-			dstate := state.(HoverableRectState)
+		dstate.OnLeave = func(state sg2.Stateable) {
+			dstate := state.(*HoverableRectState)
 			dstate.isHovered = false
 		}
 	}
-	dstate := state.(HoverableRectState)
-	color := props.Color
+	dstate := state.(*HoverableRectState)
+	dprops := props.(*HoverableRectProps)
+	color := dprops.color
 	if dstate.isHovered {
 		color = sg.Color{1, 1, 0, 0}
 	}
 
-	return createElement(
-		&sg.RectangleNodeRender,
-		sg.RectangleProps{
-			props.Geometry(), /* ??? */
+	return sg2.CreateElement(
+		sg2.RectangleNodeRender,
+		sg2.RectangleProps{
+			dprops.Geometry,
 			color,
 		},
 	)
 }
 
-func MainWindowRender(props sg.Proppable, state sg.Stateable, w sg.Windowable) sg.Node {
-	return createElement(
-		&HoverableRectRender,
-		sg.HoverableRectProps{
-			sg.RectangleProps{
-				sg.GeometryProps{0, 0, 100, 100},
-				sg.Color{1, 1, 0, 0},
-			},
+func MainWindowRender(props sg2.Proppable, state sg2.Stateable, w sg.Windowable) sg.Node {
+	return sg2.CreateElement(
+		HoverableRectRender,
+		HoverableRectProps{
+			Geometry:     sg2.Geometry{0, 0, 100, 100},
+			color:        sg.Color{1, 1, 0, 0},
+			hoveredColor: sg.Color{1, 1, 0, 0},
 		},
 	)
 }

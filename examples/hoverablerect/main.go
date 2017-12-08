@@ -19,7 +19,7 @@ func main() {
 
 	for r.IsRunning() {
 		r.ProcessEvents()
-		w.Render(MainWindowRender(w))
+		w.Render(MainWindowRender(nil, nil, w))
 	}
 
 	r.Quit()

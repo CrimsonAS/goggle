@@ -6,16 +6,12 @@ import (
 
 type Geometry sg.Vec4
 
-type Proppable interface {
-	IsProppable()
-}
-type Stateable interface {
-	IsStateable()
-}
+type StateType interface{}
+type PropType interface{}
 
 type HoverableState struct {
-	OnEnter func(state Stateable)
-	OnLeave func(state Stateable)
+	OnEnter func(state StateType)
+	OnLeave func(state StateType)
 }
 
 func CreateElement(...interface{}) sg.Node {
@@ -27,6 +23,6 @@ type RectangleProps struct {
 	Color    sg.Color
 }
 
-func RectangleNodeRender(props Proppable, state Stateable, w sg.Windowable) sg.Node {
+func RectangleNodeRender(props PropType, state StateType, w sg.Windowable) sg.Node {
 	return nil
 }

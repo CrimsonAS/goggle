@@ -9,28 +9,20 @@ type HoverableRectProps struct {
 	hoveredColor sg.Color
 }
 
-func (this *HoverableRectProps) IsProppable() { // iface instead?
-
-}
-
 type HoverableRectState struct {
 	sg2.HoverableState
 	isHovered bool
 }
 
-func (this *HoverableRectState) IsStateable() { // iface instead?
-
-}
-
-func HoverableRectRender(props sg2.Proppable, state sg2.Stateable, w sg.Windowable) sg.Node {
+func HoverableRectRender(props sg2.PropType, state sg2.StateType, w sg.Windowable) sg.Node {
 	if state == nil {
 		state = &HoverableRectState{}
 		dstate := state.(*HoverableRectState)
-		dstate.OnEnter = func(state sg2.Stateable) {
+		dstate.OnEnter = func(state sg2.StateType) {
 			dstate := state.(*HoverableRectState)
 			dstate.isHovered = true
 		}
-		dstate.OnLeave = func(state sg2.Stateable) {
+		dstate.OnLeave = func(state sg2.StateType) {
 			dstate := state.(*HoverableRectState)
 			dstate.isHovered = false
 		}
@@ -51,7 +43,7 @@ func HoverableRectRender(props sg2.Proppable, state sg2.Stateable, w sg.Windowab
 	)
 }
 
-func MainWindowRender(props sg2.Proppable, state sg2.Stateable, w sg.Windowable) sg.Node {
+func MainWindowRender(props sg2.PropType, state sg2.StateType, w sg.Windowable) sg.Node {
 	return sg2.CreateElement(
 		HoverableRectRender,
 		HoverableRectProps{

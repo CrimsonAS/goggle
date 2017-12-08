@@ -28,7 +28,7 @@ func HoverableRectRender(props sg2.PropType, state sg2.StateType, w sg.Windowabl
 		}
 	}
 	dstate := state.(*HoverableRectState)
-	dprops := props.(*HoverableRectProps)
+	dprops := props.(HoverableRectProps)
 	color := dprops.color
 	if dstate.isHovered {
 		color = sg.Color{1, 1, 0, 0}

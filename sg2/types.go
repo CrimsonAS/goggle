@@ -14,20 +14,16 @@ type HoverableState struct {
 	OnLeave func(state StateType)
 }
 
-func CreateElement(vars ...interface{}) sg.Node {
-	var props PropType
-	var fptr (func(PropType, StateType, sg.Windowable) sg.Node)
-	for idx, avar := range vars {
-		if idx == 0 {
-			fptr = avar.(func(PropType, StateType, sg.Windowable) sg.Node)
-		} else if idx == 1 {
-			props = avar
-		}
-	}
+type RenderableNode struct {
+	Type     func(PropType, StateType, sg.Windowable) sg.Node
+	Props    PropType
+	Children []sg.Node
+}
 
-	// ### ehhhh this should really just be turned into an instruction and
-	// called by the renderer with state
-	return fptr(props, nil, nil)
+var _ sg.Parentable = (*RenderableNode)(nil)
+
+func (this *RenderableNode) GetChildren() []sg.Node {
+	return this.Children
 }
 
 type RectangleProps struct {
@@ -38,6 +34,12 @@ type RectangleProps struct {
 type TransformNode struct {
 	Matrix   sg.Mat4
 	Children []sg.Node
+}
+
+var _ sg.Parentable = (*TransformNode)(nil)
+
+func (this *TransformNode) GetChildren() []sg.Node {
+	return this.Children
 }
 
 type GeometryNode struct {

@@ -1,9 +1,7 @@
 package main
 
 import (
-	"log"
-
-	"github.com/CrimsonAS/goggle/renderer/sdlsoftware"
+	"github.com/CrimsonAS/goggle/renderer2/sdlsoftware"
 )
 
 func main() {
@@ -21,7 +19,6 @@ func main() {
 
 	for r.IsRunning() {
 		r.ProcessEvents()
-		log.Printf("%+v", MainWindowRender(nil, nil, w))
 		w.Render(MainWindowRender(nil, nil, w))
 	}
 

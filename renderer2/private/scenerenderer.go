@@ -50,7 +50,7 @@ type SceneRenderer struct {
 	shadowRoot *shadowNode
 }
 
-func (r *SceneRenderer) Render(root sg.Node) []DrawableNode {
+func (r *SceneRenderer) Render(root sg.Node) {
 	var tmStart, tmPass time.Time
 	var dResolve, dEvents, dCompile time.Duration
 
@@ -75,14 +75,26 @@ func (r *SceneRenderer) Render(root sg.Node) []DrawableNode {
 		dTotal := now.Sub(tmStart)
 		log.Printf("scene: resolved in %s (resolve/events/compile: %s/%s/%s)", dTotal, dResolve, dEvents, dCompile)
 	}
-	/*
-		drawables := make([]DrawableNode, len(newShadowRoot.DrawableList))
-		for i, node := range newShadowRoot.DrawableList {
-			drawables[i].Node = node.Node
-			drawables[i].Transform = node.Transform
+}
+
+// Draw walks the rendered shadow tree in draw order and calls the
+// nodeCallback function for each primitive node.
+func (r *SceneRenderer) Draw(nodeCallback func(sg.Node)) {
+	r.drawNode(r.shadowRoot, nodeCallback)
+}
+
+func (r *SceneRenderer) drawNode(shadow *shadowNode, nodeCallback func(sg.Node)) {
+	if shadow == nil {
+		return
+	} else if shadow.rendered != nil {
+		// Bypass this node for the callback, but move down the rendered tree
+		r.drawNode(shadow.rendered, nodeCallback)
+	} else {
+		nodeCallback(shadow.sceneNode)
+		for _, child := range shadow.shadowChildren {
+			r.drawNode(child, nodeCallback)
 		}
-	*/
-	return nil /* drawables */
+	}
 }
 
 // resolveTree populates a shadowNode by recursively resolving the sceneNode it

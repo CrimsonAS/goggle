@@ -59,18 +59,8 @@ func (this *Window) Render(scene sg.Node) {
 	this.endLastFrame = time.Now()
 
 	this.sdlRenderer.Clear()
-	drawables := this.sceneRenderer.Render(scene)
-
-	if renderDebug {
-		log.Printf("scene rendered to %d drawables", len(drawables))
-	}
-	for _, draw := range drawables {
-		if renderDebug {
-			log.Printf("drawing node %s: %+v", sg.NodeName(draw.Node), draw.Node)
-		}
-		this.drawNode(draw)
-	}
-
+	this.sceneRenderer.Render(scene)
+	this.sceneRenderer.Draw(this.drawNode)
 	this.sdlRenderer.Present()
 
 	elapsed := time.Since(this.ourRenderer.start) / time.Millisecond
@@ -185,7 +175,8 @@ func (this *Window) setBlendMode(bm sdl.BlendMode) {
 	}
 }
 
-func (this *Window) drawNode(draw DrawableNode) {
+func (this *Window) drawNode(node sg.Node) {
+	log.Printf("drawing node %s: %+v", sg.NodeName(node), node)
 	/*
 		switch node := draw.Node.(type) {
 		case *sg.RectangleNode:

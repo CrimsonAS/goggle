@@ -8,8 +8,10 @@ import (
 	"time"
 
 	"github.com/CrimsonAS/goggle/sg"
+	"github.com/CrimsonAS/goggle/sg2"
 )
 
+/*
 type MainWindow struct {
 	manyRectChildren    []sg.Node // method 1
 	howManyRectChildren int       // method 2
@@ -17,21 +19,22 @@ type MainWindow struct {
 	fpsLastUpdated      time.Duration
 	fpsLabel            string
 }
+*/
 
-func (this *MainWindow) Size() sg.Vec2 {
-	return this.sz
-}
-
-func (this *MainWindow) SetSize(sz sg.Vec2) {
-	// can't alter; we are top level
-}
+// these really belong in state perhaps
+var manyRectChildren []sg.Node // method 1
+var howManyRectChildren int    // method 2
+var fpsLastUpdated time.Duration
+var fpsLabel string
 
 const method1 = true
 
 var localRand *rand.Rand = rand.New(rand.NewSource(1234))
 
-func (this *MainWindow) Render(w sg.Windowable) sg.Node {
-	this.sz = w.GetSize()
+func ManyRectRender(props sg2.PropType, state *sg2.RenderState) sg.Node {
+	//func (this *MainWindow) Render(w sg.Windowable) sg.Node {
+	sz := state.Window.GetSize()
+	frameTime := state.Window.FrameTime()
 
 	const childSize = 200
 	const maxNodes = 10000
@@ -40,45 +43,56 @@ func (this *MainWindow) Render(w sg.Windowable) sg.Node {
 
 	addChance := localRand.Intn(99)
 
-	if addChance > 20 && len(this.manyRectChildren) < maxNodes {
-		addNodes := int(float64(maxNodes-len(this.manyRectChildren)) * 0.05)
+	if addChance > 20 && len(manyRectChildren) < maxNodes {
+		addNodes := int(float64(maxNodes-len(manyRectChildren)) * 0.05)
 		if nodeDebug {
 			log.Printf("Adding %d nodes", addNodes)
 		}
 		if method1 {
 			for i := 0; i < addNodes; i++ {
-				this.manyRectChildren = append(this.manyRectChildren, &sg.RectangleNode{X: 0, Y: 0, Width: childSize, Height: childSize, Color: sg.Color{1, 1, 1, 0}})
+				manyRectChildren = append(manyRectChildren, sg2.TransformNode{
+					Matrix: sg.Translate2D(0, 0),
+					Children: []sg.Node{
+						sg2.SimpleRectangleNode{Size: sg.Vec2{childSize, childSize}, Color: sg.Color{1, 1, 1, 0}},
+					},
+				})
 			}
 		} else {
-			this.howManyRectChildren += addNodes
+			howManyRectChildren += addNodes
 		}
 	}
 	remChance := localRand.Intn(99)
-	if remChance > 90 && len(this.manyRectChildren) > minNodes {
+	if remChance > 90 && len(manyRectChildren) > minNodes {
 		delNodes := int(float64(minNodes * 0.05))
 		if nodeDebug {
 			log.Printf("Removing %d nodes", delNodes)
 		}
 		if method1 {
-			this.manyRectChildren = this.manyRectChildren[delNodes:]
+			manyRectChildren = manyRectChildren[delNodes:]
 		} else {
-			this.howManyRectChildren -= delNodes
+			howManyRectChildren -= delNodes
 		}
 	}
 
 	if !method1 {
 		childs := []sg.Node{}
-		for i := 0; i < this.howManyRectChildren; i++ {
-			childs = append(childs, &sg.RectangleNode{X: 0, Y: 0, Width: childSize, Height: childSize, Color: sg.Color{1, 1, 1, 0}})
+		for i := 0; i < howManyRectChildren; i++ {
+			childs = append(manyRectChildren, sg2.TransformNode{
+				Matrix: sg.Translate2D(0, 0),
+				Children: []sg.Node{
+					sg2.SimpleRectangleNode{Size: sg.Vec2{childSize, childSize}, Color: sg.Color{1, 1, 1, 0}},
+				},
+			})
 		}
-		this.manyRectChildren = childs
+		manyRectChildren = childs
 	}
 
-	for _, child := range this.manyRectChildren {
-		rchild := child.(*sg.RectangleNode)
-		rchild.X = localRand.Float32() * (this.sz.X - childSize)
-		rchild.Y = localRand.Float32() * (this.sz.Y - childSize)
+	for idx, child := range manyRectChildren {
+		tchild := child.(sg2.TransformNode)
+		//tchild.Matrix = sg.Translate2D(float32(idx), float32(idx))
+		tchild.Matrix = sg.Translate2D(localRand.Float32()*(sz.X-childSize), localRand.Float32()*(sz.Y-childSize))
 
+		rchild := tchild.Children[0].(sg2.SimpleRectangleNode)
 		const blend = false
 		if blend {
 			rchild.Color.X = localRand.Float32()
@@ -86,30 +100,32 @@ func (this *MainWindow) Render(w sg.Windowable) sg.Node {
 		rchild.Color.Y = localRand.Float32()
 		rchild.Color.Z = localRand.Float32()
 		rchild.Color.W = localRand.Float32()
+		tchild.Children[0] = rchild
+		manyRectChildren[idx] = tchild
 	}
 
-	this.fpsLastUpdated += w.FrameTime()
-	if this.fpsLabel == "" || this.fpsLastUpdated > 1*time.Second {
-		this.fpsLastUpdated = 0
-		div := w.FrameTime() / time.Millisecond
+	fpsLastUpdated += frameTime
+	if fpsLabel == "" || fpsLastUpdated > 1*time.Second {
+		fpsLastUpdated = 0
+		div := frameTime / time.Millisecond
 		if div == 0 {
 			div = 1
 		}
 		fps := math.Ceil(float64(1000 / div))
-		this.fpsLabel = fmt.Sprintf("%d children rendered, %g FPS", len(this.manyRectChildren), fps)
+		fpsLabel = fmt.Sprintf("%d children rendered, %g FPS", len(manyRectChildren), fps)
 		const fpsDebug = true
 		if fpsDebug {
-			log.Printf(this.fpsLabel)
+			log.Printf(fpsLabel)
 		}
 	}
-	ret := &sg.RectangleNode{
-		Color:  sg.Color{1, 0, 1, 0},
-		Width:  this.sz.X,
-		Height: this.sz.Y,
-		Children: []sg.Node{
-			&sg.RectangleNode{ // just a way to get an extra child.. no actual scaling..
-				Children: this.manyRectChildren,
-			},
+	ret := sg2.SimpleRectangleNode{
+		Color:    sg.Color{1, 0, 1, 0},
+		Size:     sz,
+		Children: manyRectChildren,
+		/*[]sg.Node{
+		&sg.RectangleNode{ // just a way to get an extra child.. no actual scaling..
+			Children: manyRectChildren,
+		},
 			&sg.RectangleNode{
 				X:      0,
 				Y:      0,
@@ -123,13 +139,13 @@ func (this *MainWindow) Render(w sg.Windowable) sg.Node {
 						Width:      400,
 						Height:     42,
 						PixelSize:  42,
-						Text:       this.fpsLabel,
+						Text:       fpsLabel,
 						FontFamily: "../shared/Barlow/Barlow-Regular.ttf",
 						Color:      sg.Color{1, 1, 1, 1},
 					},
 				},
 			},
-		},
+		},*/
 	}
 	return ret
 }

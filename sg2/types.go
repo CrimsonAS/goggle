@@ -54,8 +54,13 @@ type GeometryNode struct {
 }
 
 type SimpleRectangleNode struct {
-	Size  sg.Vec2
-	Color sg.Color
+	Size     sg.Vec2
+	Color    sg.Color
+	Children []sg.Node
+}
+
+func (this SimpleRectangleNode) GetChildren() []sg.Node {
+	return this.Children
 }
 
 func RectangleNodeRender(props PropType, state *RenderState) sg.Node {

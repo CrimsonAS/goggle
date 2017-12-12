@@ -175,8 +175,8 @@ func (this *Window) setBlendMode(bm sdl.BlendMode) {
 	}
 }
 
-func (this *Window) drawNode(node sg.Node) {
-	log.Printf("drawing node %s: %+v", sg.NodeName(node), node)
+func (this *Window) drawNode(node sg.Node, transform sg.Mat4) {
+	log.Printf("drawing node %s: %+v transform:[%+v]", sg.NodeName(node), node, transform)
 	/*
 		switch node := draw.Node.(type) {
 		case *sg.RectangleNode:

@@ -37,6 +37,8 @@ type shadowNode struct {
 	shadowChildren []*shadowNode
 	// Persisted state for the node
 	state sg2.StateType
+	// Accumulated transform for this node
+	transform sg.Mat4
 }
 
 type SceneRenderer struct {
@@ -62,7 +64,7 @@ func (r *SceneRenderer) Render(root sg.Node) {
 		tmPass = tmStart
 		log.Printf("scene: (1/3) resolving tree")
 	}
-	newShadowRoot := &shadowNode{sceneNode: root}
+	newShadowRoot := &shadowNode{sceneNode: root, transform: sg.NewIdentity()}
 	log.Printf("PRE-RENDER, tree is: %+v", r.shadowRoot)
 	r.resolveTree(newShadowRoot, r.shadowRoot)
 	r.shadowRoot = newShadowRoot
@@ -79,18 +81,18 @@ func (r *SceneRenderer) Render(root sg.Node) {
 
 // Draw walks the rendered shadow tree in draw order and calls the
 // nodeCallback function for each primitive node.
-func (r *SceneRenderer) Draw(nodeCallback func(sg.Node)) {
+func (r *SceneRenderer) Draw(nodeCallback func(sg.Node, sg.Mat4)) {
 	r.drawNode(r.shadowRoot, nodeCallback)
 }
 
-func (r *SceneRenderer) drawNode(shadow *shadowNode, nodeCallback func(sg.Node)) {
+func (r *SceneRenderer) drawNode(shadow *shadowNode, nodeCallback func(sg.Node, sg.Mat4)) {
 	if shadow == nil {
 		return
 	} else if shadow.rendered != nil {
 		// Bypass this node for the callback, but move down the rendered tree
 		r.drawNode(shadow.rendered, nodeCallback)
 	} else {
-		nodeCallback(shadow.sceneNode)
+		nodeCallback(shadow.sceneNode, shadow.transform)
 		for _, child := range shadow.shadowChildren {
 			r.drawNode(child, nodeCallback)
 		}
@@ -124,7 +126,7 @@ func (r *SceneRenderer) resolveTree(shadow *shadowNode, oldShadow *shadowNode) {
 		// Render node
 		renderedNode := newRenderableNode.Type(newRenderableNode.Props, &shadow.state, r.Window)
 		if renderedNode != nil {
-			shadow.rendered = &shadowNode{sceneNode: renderedNode}
+			shadow.rendered = &shadowNode{sceneNode: renderedNode, transform: shadow.transform}
 			if oldShadow != nil {
 				r.resolveTree(shadow.rendered, oldShadow.rendered)
 			} else {
@@ -132,9 +134,9 @@ func (r *SceneRenderer) resolveTree(shadow *shadowNode, oldShadow *shadowNode) {
 			}
 		}
 	} else {
-		// ### unnecessary for this pass? or should transform/etc accumulate here?
-		switch node.(type) {
+		switch n := node.(type) {
 		case sg2.TransformNode:
+			shadow.transform = shadow.transform.MulM4(n.Matrix)
 		case sg2.GeometryNode:
 		default:
 			panic(fmt.Sprintf("unknown node %T %+v", node, node))
@@ -177,7 +179,7 @@ func (r *SceneRenderer) resolveTree(shadow *shadowNode, oldShadow *shadowNode) {
 				oldChildShadow = oldShadowChildren[index]
 			}
 
-			shadowChildren[index] = &shadowNode{sceneNode: child}
+			shadowChildren[index] = &shadowNode{sceneNode: child, transform: parentShadow.transform}
 
 			if r.DisableParallel {
 				r.resolveTree(shadowChildren[index], oldChildShadow)

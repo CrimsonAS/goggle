@@ -52,7 +52,7 @@ type ColorMaterial sg.Color
 func RectangleNodeRender(props PropType, state StateType, w sg.Windowable) sg.Node {
 	rp := props.(RectangleProps)
 	return TransformNode{
-		Matrix: sg.NewIdentity(), // ### calculate from rp props
+		Matrix: sg.Translate2D(rp.Geometry.X, rp.Geometry.Y),
 		Children: []sg.Node{
 			GeometryNode{
 				Material: ColorMaterial(rp.Color),

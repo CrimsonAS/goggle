@@ -190,7 +190,7 @@ func (this *Window) setBlendMode(bm sdl.BlendMode) {
 	}
 }
 
-func (this *Window) drawNode(draw DrawableNode) {
+func (this *Window) drawNode(draw DrawableNode, transform sg.Mat4) {
 	switch node := draw.Node.(type) {
 	case *sg.RectangleNode:
 		this.drawRectangle(node, draw.Transform)

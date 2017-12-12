@@ -19,32 +19,25 @@ type HoverableRectState struct {
 }
 
 func HoverableRectRender(props sg2.PropType, state *sg2.RenderState) sg.Node {
-	log.Printf("HoverableRectRender, Renderable for Rectangle is %+v", sg2.RectangleNodeRender)
-	/*
-		log.Printf("Entry state is %+v", state)
-		if *state == nil {
-			*state = &HoverableRectState{}
-			log.Printf("Created, state is %+v", state)
-			dstate := state.(*HoverableRectState)
-			dstate.OnEnter = func(state *sg2.StateType) {
-				dstate := *state.(*HoverableRectState)
-				dstate.isHovered = true
-			}
-			dstate.OnLeave = func(state *sg2.StateType) {
-				dstate := *state.(*HoverableRectState)
-				dstate.isHovered = false
-			}
-		} else {
-			log.Printf("No need to create state is %+v", state)
+	if state.NodeState == nil {
+		state.NodeState = HoverableRectState{}
+		log.Printf("No node state. Created new. State is %+v", state)
+		dstate := state.NodeState.(HoverableRectState)
+		dstate.OnEnter = func(state sg2.StateType) {
+			//dstate := *state.(*HoverableRectState)
+			//dstate.isHovered = true
 		}
-		log.Printf("Post creation state is %+v", state)
-		dstate := state.(*HoverableRectState)
-		color := dprops.color
-		if dstate.isHovered {
-			color = sg.Color{1, 1, 0, 0}
-		}*/
+		dstate.OnLeave = func(state sg2.StateType) {
+			//dstate := *state.(*HoverableRectState)
+			//dstate.isHovered = false
+		}
+	}
+	dstate := state.NodeState.(HoverableRectState)
 	dprops := props.(HoverableRectProps)
 	color := dprops.color
+	if dstate.isHovered {
+		color = sg.Color{1, 1, 0, 0}
+	}
 
 	return sg2.RenderableNode{
 		Type: sg2.RectangleNodeRender,
@@ -56,7 +49,6 @@ func HoverableRectRender(props sg2.PropType, state *sg2.RenderState) sg.Node {
 }
 
 func MainWindowRender(props sg2.PropType, state *sg2.RenderState) sg.Node {
-	log.Printf("MainWindowRender, Renderable for Hoverable is %+v", HoverableRectRender)
 	return sg2.RenderableNode{
 		Type: HoverableRectRender,
 		Props: HoverableRectProps{

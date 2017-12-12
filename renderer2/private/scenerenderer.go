@@ -136,21 +136,26 @@ func (r *SceneRenderer) resolveTree(shadow *shadowNode, oldShadow *shadowNode) {
 		var oldShadowChildren []*shadowNode
 
 		// If this is a RenderableNode, children of this node are actually under the
-		// rendered node in the shadow tree, appended to any children of that node.
+		// next non-renderable node in the shadow tree, appended to any children of that
+		// node.
 		//
 		// In this case, the oldShadow tree also needs to compare from the correct offset
 		// in the rendered node's shadowChildren.
-		if oldShadow != nil {
-			if shadow.rendered != nil && oldShadow.rendered != nil {
-				if reflect.TypeOf(oldShadow.rendered.sceneNode) == reflect.TypeOf(shadow.rendered.sceneNode) {
-					prefix := len(shadow.rendered.shadowChildren)
-					if prefix < len(oldShadow.rendered.shadowChildren) {
-						oldShadowChildren = oldShadow.rendered.shadowChildren[prefix:]
-					}
+		parentShadow, oldParentShadow := shadow, oldShadow
+		for parentShadow.rendered != nil {
+			parentShadow = parentShadow.rendered
+			if oldParentShadow != nil {
+				oldParentShadow = oldParentShadow.rendered
+				// If the rendered nodes are not the same type, discard old state
+				if oldParentShadow != nil && reflect.TypeOf(parentShadow.sceneNode) != reflect.TypeOf(oldParentShadow.sceneNode) {
+					oldParentShadow = nil
 				}
-			} else {
-				oldShadowChildren = oldShadow.shadowChildren
 			}
+		}
+
+		prefix := len(parentShadow.shadowChildren)
+		if oldParentShadow != nil && prefix < len(oldParentShadow.shadowChildren) {
+			oldShadowChildren = oldParentShadow.shadowChildren[prefix:]
 		}
 
 		var subtreeWg sync.WaitGroup
@@ -179,10 +184,6 @@ func (r *SceneRenderer) resolveTree(shadow *shadowNode, oldShadow *shadowNode) {
 		}
 
 		// Store list of shadowChildren
-		if shadow.rendered != nil {
-			shadow.rendered.shadowChildren = append(shadow.rendered.shadowChildren, shadowChildren...)
-		} else {
-			shadow.shadowChildren = shadowChildren
-		}
+		parentShadow.shadowChildren = append(parentShadow.shadowChildren, shadowChildren...)
 	}
 }

@@ -18,7 +18,7 @@ type HoverableRectState struct {
 	isHovered bool
 }
 
-func HoverableRectRender(props sg2.PropType, state sg2.StateType, w sg.Windowable) sg.Node {
+func HoverableRectRender(props sg2.PropType, state *sg2.RenderState) sg.Node {
 	log.Printf("HoverableRectRender, Renderable for Rectangle is %+v", sg2.RectangleNodeRender)
 	/*
 		log.Printf("Entry state is %+v", state)
@@ -55,7 +55,7 @@ func HoverableRectRender(props sg2.PropType, state sg2.StateType, w sg.Windowabl
 	}
 }
 
-func MainWindowRender(props sg2.PropType, state sg2.StateType, w sg.Windowable) sg.Node {
+func MainWindowRender(props sg2.PropType, state *sg2.RenderState) sg.Node {
 	log.Printf("MainWindowRender, Renderable for Hoverable is %+v", HoverableRectRender)
 	return sg2.RenderableNode{
 		Type: HoverableRectRender,

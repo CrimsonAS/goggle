@@ -124,7 +124,15 @@ func (r *SceneRenderer) resolveTree(shadow *shadowNode, oldShadow *shadowNode) {
 		}
 
 		// Render node
-		renderedNode := newRenderableNode.Type(newRenderableNode.Props, &shadow.state, r.Window)
+		state := sg2.RenderState{
+			Window:    r.Window,
+			NodeState: shadow.state,
+			Transform: shadow.transform,
+		}
+		renderedNode := newRenderableNode.Type(newRenderableNode.Props, &state)
+		shadow.state, shadow.transform = state.NodeState, state.Transform
+
+		// Recurse to resolve rendered tree
 		if renderedNode != nil {
 			shadow.rendered = &shadowNode{sceneNode: renderedNode, transform: shadow.transform}
 			if oldShadow != nil {

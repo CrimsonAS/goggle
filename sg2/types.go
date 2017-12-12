@@ -14,8 +14,14 @@ type HoverableState struct {
 	OnLeave func(state StateType)
 }
 
+type RenderState struct {
+	Window    sg.Windowable
+	NodeState StateType
+	Transform sg.Mat4
+}
+
 type RenderableNode struct {
-	Type     func(PropType, StateType, sg.Windowable) sg.Node
+	Type     func(PropType, *RenderState) sg.Node
 	Props    PropType
 	Children []sg.Node
 }
@@ -49,7 +55,7 @@ type GeometryNode struct {
 
 type ColorMaterial sg.Color
 
-func RectangleNodeRender(props PropType, state StateType, w sg.Windowable) sg.Node {
+func RectangleNodeRender(props PropType, state *RenderState) sg.Node {
 	rp := props.(RectangleProps)
 	return TransformNode{
 		Matrix: sg.Translate2D(rp.Geometry.X, rp.Geometry.Y),

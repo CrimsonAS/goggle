@@ -20,9 +20,9 @@ type RenderableNode struct {
 	Children []sg.Node
 }
 
-var _ sg.Parentable = (*RenderableNode)(nil)
+var _ sg.Parentable = RenderableNode{}
 
-func (this *RenderableNode) GetChildren() []sg.Node {
+func (this RenderableNode) GetChildren() []sg.Node {
 	return this.Children
 }
 
@@ -36,9 +36,9 @@ type TransformNode struct {
 	Children []sg.Node
 }
 
-var _ sg.Parentable = (*TransformNode)(nil)
+var _ sg.Parentable = TransformNode{}
 
-func (this *TransformNode) GetChildren() []sg.Node {
+func (this TransformNode) GetChildren() []sg.Node {
 	return this.Children
 }
 

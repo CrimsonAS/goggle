@@ -177,7 +177,9 @@ func (this *Window) setBlendMode(bm sdl.BlendMode) {
 }
 
 func (this *Window) drawNode(node sg.Node, transform sg.Mat4) {
-	log.Printf("drawing node %s: %+v transform:[%+v]", sg.NodeName(node), node, transform)
+	if renderDebug {
+		log.Printf("drawing node %s: %+v transform:[%+v]", sg.NodeName(node), node, transform)
+	}
 	switch cnode := node.(type) {
 	case sg2.SimpleRectangleNode:
 		this.drawRectangle(cnode, transform)

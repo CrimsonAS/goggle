@@ -11,7 +11,7 @@ import (
 	"github.com/CrimsonAS/goggle/sg2"
 )
 
-const sceneDebug = true
+const sceneDebug = false
 
 // DrawableNode contains a primitive node type that is directly drawable by a
 // backend, fully resolved and processed in the scenegraph.
@@ -65,11 +65,19 @@ func (r *SceneRenderer) Render(root sg.Node) {
 		log.Printf("scene: (1/3) resolving tree")
 	}
 	newShadowRoot := &shadowNode{sceneNode: root, transform: sg.NewIdentity()}
-	log.Printf("PRE-RENDER, tree is: %+v", r.shadowRoot)
+
+	const resolveDebug = false // extremely noisy
+
+	if resolveDebug {
+		log.Printf("PRE-RENDER, tree is: %+v", r.shadowRoot)
+	}
+
 	r.resolveTree(newShadowRoot, r.shadowRoot)
 	r.shadowRoot = newShadowRoot
 
-	log.Printf("POST-RENDER, tree is: %+v", r.shadowRoot)
+	if resolveDebug {
+		log.Printf("POST-RENDER, tree is: %+v", r.shadowRoot)
+	}
 
 	if sceneDebug {
 		now := time.Now()

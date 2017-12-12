@@ -53,15 +53,18 @@ type GeometryNode struct {
 	// ### mesh data...
 }
 
-type ColorMaterial sg.Color
+type SimpleRectangleNode struct {
+	Size  sg.Vec2
+	Color sg.Color
+}
 
 func RectangleNodeRender(props PropType, state *RenderState) sg.Node {
 	rp := props.(RectangleProps)
 	return TransformNode{
 		Matrix: sg.Translate2D(rp.Geometry.X, rp.Geometry.Y),
 		Children: []sg.Node{
-			GeometryNode{
-				Material: ColorMaterial(rp.Color),
+			SimpleRectangleNode{
+				Color: rp.Color,
 			},
 		},
 	}

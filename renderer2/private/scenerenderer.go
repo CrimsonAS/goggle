@@ -146,6 +146,7 @@ func (r *SceneRenderer) resolveTree(shadow *shadowNode, oldShadow *shadowNode) {
 		case sg2.TransformNode:
 			shadow.transform = shadow.transform.MulM4(n.Matrix)
 		case sg2.GeometryNode:
+		case sg2.SimpleRectangleNode:
 		default:
 			panic(fmt.Sprintf("unknown node %T %+v", node, node))
 		}

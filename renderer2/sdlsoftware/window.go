@@ -8,6 +8,7 @@ import (
 
 	. "github.com/CrimsonAS/goggle/renderer2/private"
 	"github.com/CrimsonAS/goggle/sg"
+	"github.com/CrimsonAS/goggle/sg2"
 	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/ttf"
@@ -81,8 +82,8 @@ func (this *Window) Render(scene sg.Node) {
 	this.inputHelper.ResetFrameState()
 }
 
-func (this *Window) drawRectangle(node *sg.RectangleNode, transform sg.Transform) {
-	geo := transform.Geometry(sg.Vec4{0, 0, node.Width, node.Height})
+func (this *Window) drawRectangle(node sg2.SimpleRectangleNode, transform sg.Mat4) {
+	geo := transform.MulV4(sg.Vec4{0, 0, node.Size.X, node.Size.Y})
 	if headlessRendering {
 		return
 	}
@@ -177,16 +178,16 @@ func (this *Window) setBlendMode(bm sdl.BlendMode) {
 
 func (this *Window) drawNode(node sg.Node, transform sg.Mat4) {
 	log.Printf("drawing node %s: %+v transform:[%+v]", sg.NodeName(node), node, transform)
-	/*
-		switch node := draw.Node.(type) {
-		case *sg.RectangleNode:
-			this.drawRectangle(node, draw.Transform)
-		case *sg.ImageNode:
-			this.drawImage(node, draw.Transform)
-		case *sg.TextNode:
-			this.drawText(node, draw.Transform)
+	switch cnode := node.(type) {
+	case sg2.SimpleRectangleNode:
+		this.drawRectangle(cnode, transform)
+	case sg2.TransformNode:
+	//case *sg.ImageNode:
+	//	this.drawImage(node, draw.Transform)
+	//case *sg.TextNode:
+	//	this.drawText(node, draw.Transform)
 
-		default:
-			panic("unknown drawable")
-		}*/
+	default:
+		panic(fmt.Sprintf("unknown drawable %T %+v", node, node))
+	}
 }

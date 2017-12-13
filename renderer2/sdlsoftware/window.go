@@ -83,7 +83,9 @@ func (this *Window) Render(scene sg.Node) {
 }
 
 func (this *Window) drawRectangle(node sg2.SimpleRectangleNode, transform sg.Mat4) {
-	geo := transform.MulV4(sg.Vec4{0, 0, node.Size.X, node.Size.Y})
+	xy := transform.MulV2(sg.Vec2{0, 0})
+	wh := transform.MulV2(node.Size)
+	geo := &sg.Vec4{xy.X, xy.Y, wh.X - xy.X, wh.Y - xy.Y}
 	if headlessRendering {
 		return
 	}

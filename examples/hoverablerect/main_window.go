@@ -43,6 +43,7 @@ func HoverableRectRender(props sg2.PropType, state *sg2.TouchRenderState) sg.Nod
 		color = dprops.hoveredColor
 	}
 
+	state.TouchGeometry = dprops.Geometry
 	return sg2.RenderableNode{
 		Type: sg2.RectangleNodeRender,
 		Props: sg2.RectangleProps{
@@ -58,7 +59,7 @@ func MainWindowRender(props sg2.PropType, state *sg2.RenderState) sg.Node {
 		Props: HoverableRectProps{
 			Geometry:     sg2.Geometry{0, 0, 100, 100},
 			color:        sg.Color{1, 1, 0, 0},
-			hoveredColor: sg.Color{1, 1, 0, 0},
+			hoveredColor: sg.Color{1, 1, 1, 0},
 		},
 		Children: []sg.Node{
 			sg2.RenderableNode{

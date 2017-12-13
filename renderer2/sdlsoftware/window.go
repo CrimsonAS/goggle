@@ -60,6 +60,7 @@ func (this *Window) Render(scene sg.Node) {
 	this.endLastFrame = time.Now()
 
 	this.sdlRenderer.Clear()
+	this.sceneRenderer.DeliverEvents()
 	this.sceneRenderer.Render(scene)
 	this.sceneRenderer.Draw(this.drawNode)
 	this.sdlRenderer.Present()

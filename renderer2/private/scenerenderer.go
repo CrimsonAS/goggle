@@ -87,6 +87,40 @@ func (r *SceneRenderer) Render(root sg.Node) {
 	}
 }
 
+// DeliverEvents walks the rendered shadow tree in input order and
+// invokes callbacks or updates state in the tree as appropriate.
+// DeliverEvents changes state but does not re-render the tree, so
+// the shadow tree is considered dirty after calling this function.
+func (r *SceneRenderer) DeliverEvents() {
+	r.deliverEventsToTree(r.shadowRoot)
+}
+
+func (r *SceneRenderer) deliverEventsToTree(shadow *shadowNode) {
+	if shadow == nil {
+		return
+	}
+
+	// Input order is the inverse of draw order, so deliver events
+	// to children first and in reverse.
+	for i := len(shadow.shadowChildren) - 1; i >= 0; i-- {
+		r.deliverEventsToTree(shadow.shadowChildren[i])
+	}
+
+	// If there's a rendered tree, go down it next
+	if shadow.rendered != nil {
+		r.deliverEventsToTree(shadow.rendered)
+	}
+
+	// Finally, try to deliver events to this node
+	if _, ok := shadow.sceneNode.(sg2.TouchNode); ok {
+		state, _ := shadow.state.(*sg2.TouchState)
+		if state == nil {
+			state = &sg2.TouchState{}
+		}
+		r.InputHelper.ProcessPointerEvents(shadow.transform, state)
+	}
+}
+
 // Draw walks the rendered shadow tree in draw order and calls the
 // nodeCallback function for each primitive node.
 func (r *SceneRenderer) Draw(nodeCallback func(sg.Node, sg.Mat4)) {

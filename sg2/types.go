@@ -94,6 +94,10 @@ type TouchNode struct {
 }
 
 type TouchState struct {
+	// Geometry is the rectangular area in which input events are
+	// accepted, specified in the coordinates of the TouchNode.
+	TouchGeometry Geometry
+
 	IsHovered bool
 
 	OnEnter func(state *TouchState)

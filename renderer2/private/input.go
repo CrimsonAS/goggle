@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/CrimsonAS/goggle/sg"
+	"github.com/CrimsonAS/goggle/sg2"
 )
 
 type InputHelper struct {
@@ -66,9 +67,12 @@ func NodeAcceptsInputEvents(node sg.Node) bool {
 }
 
 // Process pointer events for an item.
-// ### should scale/rotate affect input events? i'd say yes, personally.
-func (this *InputHelper) ProcessPointerEvents(origin sg.Vec2, childWidth, childHeight float32, item sg.Node) bool {
+func (this *InputHelper) ProcessPointerEvents(transform sg.Mat4, ts *sg2.TouchState) bool {
 	handledEvents := false
+
+	// Translate mouse position to node coordinates
+	tp := this.MousePos.Sub(transform.MulV2(sg.Vec2{0, 0}))
+	tg := ts.TouchGeometry
 
 	// BUG: ### unsolved problems: we should also probably block propagation of hover.
 	// We could have a return code to block hover propagating further down the tree,
@@ -78,71 +82,77 @@ func (this *InputHelper) ProcessPointerEvents(origin sg.Vec2, childWidth, childH
 	//     Sidebar PointerEnter() { return true; /* block */ }
 	//         Button Hoverable // to highlight as need be
 	//     UI page
-	tp := sg.Vec2{X: this.MousePos.X - origin.X, Y: this.MousePos.Y - origin.Y}
-	if hoverable, ok := item.(sg.Hoverable); ok {
-		if pointInside(origin.X, origin.Y, childWidth, childHeight, this.MousePos) {
-			this.hoveredNodes[item] = true
-			if _, ok = this.oldHoveredNodes[item]; !ok {
-				mouseDebug("Pointer entering: %+v at %s %s", hoverable, this.MousePos, tp)
-				hoverable.PointerEnter(tp)
+
+	if pointInside(tg.X, tg.Y, tg.Z, tg.W, tp) {
+		if !ts.IsHovered {
+			ts.IsHovered = true
+			mouseDebug("Pointer entering: %+v at %s %s", ts, this.MousePos, tp)
+			if ts.OnEnter != nil {
+				ts.OnEnter(ts)
+			}
+			handledEvents = true
+		}
+	} else {
+		if ts.IsHovered {
+			ts.IsHovered = false
+			mouseDebug("Pointer leaving: %+v at %s %s", ts, this.MousePos, tp)
+			if ts.OnLeave != nil {
+				ts.OnLeave(ts)
+			}
+			handledEvents = true
+		}
+	}
+
+	/*
+		// BUG: we should only deliver this if the tp is not the same as the last PointerMoved, I think.
+		if this.MouseGrabber != nil {
+			if moveable, ok := this.MouseGrabber.(sg.Moveable); ok {
+				mouseMoveDebug("Pointer moved over %+v at %s %s", this.MouseGrabber, this.MousePos, tp)
+				moveable.PointerMoved(tp)
 				handledEvents = true
 			}
-		} else if _, ok = this.oldHoveredNodes[item]; ok {
-			mouseDebug("Pointer leaving: %+v at %s %s", hoverable, this.MousePos, tp)
-			hoverable.PointerLeave(tp)
-			handledEvents = true
 		}
-	}
 
-	// BUG: we should only deliver this if the tp is not the same as the last PointerMoved, I think.
-	if this.MouseGrabber != nil {
-		if moveable, ok := this.MouseGrabber.(sg.Moveable); ok {
-			mouseMoveDebug("Pointer moved over %+v at %s %s", this.MouseGrabber, this.MousePos, tp)
-			moveable.PointerMoved(tp)
-			handledEvents = true
-		}
-	}
-
-	if this.ButtonDown || this.ButtonUp {
-		if pressable, ok := item.(sg.Pressable); ok {
-			if this.ButtonDown {
-				if this.MouseGrabber == nil {
-					if pointInside(origin.X, origin.Y, childWidth, childHeight, this.MousePos) {
+		if this.ButtonDown || this.ButtonUp {
+			if pressable, ok := item.(sg.Pressable); ok {
+				if this.ButtonDown {
+					if this.MouseGrabber == nil {
+						if pointInside(origin.X, origin.Y, childWidth, childHeight, this.MousePos) {
+							this.MouseGrabber = item
+							mouseDebug("Pointer pressed (and grabbed): %+v at %s %s", pressable, this.MousePos, tp)
+							pressable.PointerPressed(tp)
+							handledEvents = true
+						}
+					}
+				} else if this.ButtonUp {
+					if this.MouseGrabber == item {
+						mouseDebug("Pointer released (ungrabbed): %+v at %s %s", pressable, this.MousePos, tp)
+						pressable.PointerReleased(tp)
+						handledEvents = true
+					}
+				}
+			}
+			if tappable, ok := item.(sg.Tappable); ok {
+				if this.ButtonDown {
+					if this.MouseGrabber == nil {
+						// a Tappable takes an implicit grab
+						mouseDebug("Tappable pressed (grabbed): %+v at %s", tappable, this.MousePos)
 						this.MouseGrabber = item
-						mouseDebug("Pointer pressed (and grabbed): %+v at %s %s", pressable, this.MousePos, tp)
-						pressable.PointerPressed(tp)
-						handledEvents = true
 					}
-				}
-			} else if this.ButtonUp {
-				if this.MouseGrabber == item {
-					mouseDebug("Pointer released (ungrabbed): %+v at %s %s", pressable, this.MousePos, tp)
-					pressable.PointerReleased(tp)
-					handledEvents = true
-				}
-			}
-		}
-		if tappable, ok := item.(sg.Tappable); ok {
-			if this.ButtonDown {
-				if this.MouseGrabber == nil {
-					// a Tappable takes an implicit grab
-					mouseDebug("Tappable pressed (grabbed): %+v at %s", tappable, this.MousePos)
-					this.MouseGrabber = item
-				}
-			} else if this.ButtonUp {
-				if this.MouseGrabber == item {
-					if pointInside(origin.X, origin.Y, childWidth, childHeight, this.MousePos) {
-						mouseDebug("Tappable released (ungrabbed): %+v at %s", tappable, this.MousePos)
-						tappable.PointerTapped(tp)
-						handledEvents = true
+				} else if this.ButtonUp {
+					if this.MouseGrabber == item {
+						if pointInside(origin.X, origin.Y, childWidth, childHeight, this.MousePos) {
+							mouseDebug("Tappable released (ungrabbed): %+v at %s", tappable, this.MousePos)
+							tappable.PointerTapped(tp)
+							handledEvents = true
+						}
 					}
 				}
 			}
-		}
-		if this.ButtonUp && this.MouseGrabber == item {
-			this.MouseGrabber = nil
-		}
-	}
+			if this.ButtonUp && this.MouseGrabber == item {
+				this.MouseGrabber = nil
+			}
+		}*/
 
 	return handledEvents
 }

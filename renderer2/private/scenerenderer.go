@@ -125,7 +125,7 @@ func (r *SceneRenderer) resolveTree(shadow *shadowNode, oldShadow *shadowNode) {
 		oldShadow = nil
 	}
 
-	if newRenderableNode, ok := node.(sg2.RenderableNode); ok {
+	if newRenderableNode, ok := node.(sg2.RenderableType); ok {
 		// Copy state from the old shadow tree
 		if oldShadow != nil {
 			shadow.state = oldShadow.state
@@ -137,7 +137,7 @@ func (r *SceneRenderer) resolveTree(shadow *shadowNode, oldShadow *shadowNode) {
 			NodeState: shadow.state,
 			Transform: shadow.transform,
 		}
-		renderedNode := newRenderableNode.Type(newRenderableNode.Props, &state)
+		renderedNode := newRenderableNode.Render(&state)
 		shadow.state, shadow.transform = state.NodeState, state.Transform
 
 		// Recurse to resolve rendered tree

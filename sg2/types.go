@@ -9,6 +9,14 @@ type Geometry sg.Vec4
 type StateType interface{}
 type PropType interface{}
 
+// RenderableType is an internal definition for node types which
+// can dynamically render nodes, e.g. RenderableNode and TouchNode.
+//
+// It is not intended for user code to implement RenderableType.
+type RenderableType interface {
+	Render(state *RenderState) sg.Node
+}
+
 type HoverableState struct {
 	OnEnter func(state StateType)
 	OnLeave func(state StateType)
@@ -27,9 +35,14 @@ type RenderableNode struct {
 }
 
 var _ sg.Parentable = RenderableNode{}
+var _ RenderableType = RenderableNode{}
 
 func (this RenderableNode) GetChildren() []sg.Node {
 	return this.Children
+}
+
+func (node RenderableNode) Render(state *RenderState) sg.Node {
+	return node.Type(node.Props, state)
 }
 
 type RectangleProps struct {

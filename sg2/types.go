@@ -17,11 +17,6 @@ type RenderableType interface {
 	Render(state *RenderState) sg.Node
 }
 
-type HoverableState struct {
-	OnEnter func(state StateType)
-	OnLeave func(state StateType)
-}
-
 type RenderState struct {
 	Window    sg.Windowable
 	NodeState StateType
@@ -86,4 +81,60 @@ func RectangleNodeRender(props PropType, state *RenderState) sg.Node {
 			},
 		},
 	}
+}
+
+// TouchNode is equivalent to a RenderableNode, except that a TouchNode
+// also receives touch input events. The current touch state is passed
+// as part of the TouchRenderState, which also sets event callbacks.
+type TouchNode struct {
+	Type     func(PropType, *TouchRenderState) sg.Node
+	Props    PropType
+	Children []sg.Node
+}
+
+type TouchState struct {
+	IsHovered bool
+
+	OnEnter func(state *TouchState)
+	OnLeave func(state *TouchState)
+
+	userState StateType
+}
+
+type TouchRenderState struct {
+	*RenderState
+	*TouchState
+}
+
+var _ sg.Parentable = TouchNode{}
+var _ RenderableType = TouchNode{}
+
+func (node TouchNode) GetChildren() []sg.Node {
+	return node.Children
+}
+
+func (node TouchNode) Render(rs *RenderState) sg.Node {
+	// The NodeState is a TouchState. Pull that out alongside
+	// the RenderState in a TouchRenderState, then swap in the
+	// userState as the NodeState.
+	//
+	// This matches RenderableNode's API more closely, with the
+	// added TouchState data in TouchRenderState.
+	if rs.NodeState == nil {
+		rs.NodeState = &TouchState{}
+	}
+	state := TouchRenderState{
+		rs,
+		rs.NodeState.(*TouchState),
+	}
+	state.NodeState = state.userState
+
+	// Render with user function
+	rendered := node.Type(node.Props, &state)
+
+	// Reverse the above to keep the TouchState
+	state.userState = state.NodeState
+	rs.NodeState = state.TouchState
+
+	return rendered
 }

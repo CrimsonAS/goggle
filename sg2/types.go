@@ -77,6 +77,7 @@ func RectangleNodeRender(props PropType, state *RenderState) sg.Node {
 		Matrix: sg.Translate2D(rp.Geometry.X, rp.Geometry.Y),
 		Children: []sg.Node{
 			SimpleRectangleNode{
+				Size:  sg.Vec2{rp.Geometry.Z, rp.Geometry.W},
 				Color: rp.Color,
 			},
 		},

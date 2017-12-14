@@ -2,178 +2,181 @@ package main
 
 import (
 	"log"
-	"math/rand"
 	"os"
 	"runtime/trace"
 	"time"
 
 	"github.com/CrimsonAS/goggle/animation"
 	"github.com/CrimsonAS/goggle/animation/easing"
-	"github.com/CrimsonAS/goggle/renderer/sdlsoftware"
+	"github.com/CrimsonAS/goggle/renderer2/sdlsoftware"
 	"github.com/CrimsonAS/goggle/sg"
-	"github.com/veandco/go-sdl2/sdl"
+	"github.com/CrimsonAS/goggle/sg2"
 )
 
-type Button struct {
+type TrippyState struct {
 	color           sg.Color
 	inverseColor    sg.Color
 	containsPointer bool
 	active          bool
 	scaleAnimation  *animation.FloatAnimation
 	colorAnimation  *animation.ColorAnimation
-	windowable      sg.Windowable
 }
 
-func (this *Button) Size() sg.Vec2 {
-	if this.windowable != nil {
-		return this.windowable.GetSize()
-	}
-	return sg.Vec2{0, 0}
-}
-
-func (this *Button) SetSize(sz sg.Vec2) {
-
-}
-
-// hoverable
-func (this *Button) PointerEnter(tp sg.Vec2) {
-	this.containsPointer = true
-}
-
-// hoverable
-func (this *Button) PointerLeave(tp sg.Vec2) {
-	this.containsPointer = false
-}
-
-func (this *Button) Render(w sg.Windowable) sg.Node {
-	this.windowable = w
-	if this.scaleAnimation == nil {
-		this.scaleAnimation = &animation.FloatAnimation{
+func TrippyRender(props sg2.PropType, state *sg2.RenderState) sg.Node {
+	dstate, _ := state.NodeState.(*TrippyState)
+	if dstate == nil {
+		dstate = &TrippyState{}
+		state.NodeState = dstate
+		dstate.scaleAnimation = &animation.FloatAnimation{
 			From:     0.0,
 			To:       2.0,
 			Duration: 3000 * time.Millisecond,
 			Easing:   easing.InOutCubic,
 		}
-		this.scaleAnimation.Restart()
-		this.colorAnimation = &animation.ColorAnimation{
+		dstate.scaleAnimation.Restart()
+		dstate.colorAnimation = &animation.ColorAnimation{
 			From:     sg.Color{1, 1, 0, 0},
 			To:       sg.Color{1, 0, 1, 0},
 			Duration: 5000 * time.Millisecond,
 		}
-		this.colorAnimation.Restart()
+		dstate.colorAnimation.Restart()
+		log.Printf("Created %+v", dstate)
 	}
-	this.scaleAnimation.Advance(w.FrameTime())
+	dstate.scaleAnimation.Advance(state.Window.FrameTime())
 
-	if this.active {
-		this.color = sg.Color{1, 0, 0, 1}
+	if dstate.active {
+		dstate.color = sg.Color{1, 0, 0, 1}
 	} else {
-		if this.containsPointer {
-			this.color = sg.Color{1, 0, 1, 0}
+		if dstate.containsPointer {
+			dstate.color = sg.Color{1, 0, 1, 0}
 		} else {
-			this.colorAnimation.Advance(w.FrameTime())
-			this.color = this.colorAnimation.Get()
+			dstate.colorAnimation.Advance(state.Window.FrameTime())
+			dstate.color = dstate.colorAnimation.Get()
 		}
 	}
 
-	this.inverseColor = sg.Color{this.color.X, 1.0 - this.color.Y, 1.0 - this.color.Z, 1.0 - this.color.W}
+	dstate.inverseColor = sg.Color{dstate.color.X, 1.0 - dstate.color.Y, 1.0 - dstate.color.Z, 1.0 - dstate.color.W}
 
-	sz := w.GetSize()
+	sz := state.Window.GetSize()
 
-	return &sg.RectangleNode{
-		Width:  sz.X,
-		Height: sz.Y,
-		Color:  sg.Color{1, 0, 0, 0},
+	return sg2.SimpleRectangleNode{
+		Size:  sg.Vec2{sz.X, sz.Y},
+		Color: sg.Color{1, 0, 0, 0},
 		Children: []sg.Node{
-			&sdlsoftware.DrawNode{
-				Draw: func(renderer *sdl.Renderer, node *sdlsoftware.DrawNode, transform sg.Transform) {
-					// custom drawing here
+			sg2.InputNode{
+				Geometry: sg2.Geometry{0, 0, sz.X, sz.Y},
+				OnEnter: func(input sg2.InputState) {
+					log.Printf("hoverable rect OnEnter")
+					dstate.containsPointer = true
+				},
+				OnLeave: func(input sg2.InputState) {
+					log.Printf("hoverable rect OnLeave")
+					dstate.containsPointer = false
 				},
 			},
-			&sg.ScaleNode{
-				Scale: this.scaleAnimation.Get(),
+
+			sg2.TransformNode{
+				Matrix: sg.Scale2D(dstate.scaleAnimation.Get(), dstate.scaleAnimation.Get()),
 				Children: []sg.Node{
-					&sg.ImageNode{
-						Width:  100,
-						Height: 100,
-						Texture: &sg.FileTexture{
-							Source: "solid.png",
-						},
+					sg2.SimpleRectangleNode{
+						Size:  sg.Vec2{100, 100},
+						Color: sg.Color{1, 0, 1, 0},
 					},
 				},
 			},
-			&sg.TextNode{
-				X:          float32(sz.X / 2 * this.scaleAnimation.Get()),
-				Width:      300,
-				Height:     42,
-				Text:       "Hello, world",
-				Color:      sg.Color{rand.Float32(), rand.Float32(), rand.Float32(), rand.Float32()},
-				PixelSize:  42,
-				FontFamily: "../shared/Barlow/Barlow-Regular.ttf",
-			},
-			&sg.RectangleNode{
-				X:      10,
-				Y:      200,
-				Width:  200,
-				Height: 50,
-				Color:  sg.Color{0, 0, 0, 0},
-				Children: []sg.Node{
-					&sg.ScaleNode{
-						Scale: this.scaleAnimation.Get(),
+			/*
+					sg.ScaleNode{
+						Scale: dstate.scaleAnimation.Get(),
 						Children: []sg.Node{
-							&sg.Row{
-								Children: []sg.Node{
-									&sg.RectangleNode{
-										Width:  50 * this.scaleAnimation.Get(),
-										Height: 50 * this.scaleAnimation.Get(),
-										Color:  this.color,
-									},
-									&sg.RectangleNode{
-										Width:  50 / 2 * this.scaleAnimation.Get() * this.scaleAnimation.Get(),
-										Height: 50 / 2 * this.scaleAnimation.Get() * this.scaleAnimation.Get(),
-										Color:  this.inverseColor,
+							sg.ImageNode{
+								Width:  100,
+								Height: 100,
+								Texture: sg.FileTexture{
+									Source: "solid.png",
+								},
+							},
+						},
+					},
+					sg.TextNode{
+						X:          float32(sz.X / 2 * dstate.scaleAnimation.Get()),
+						Width:      300,
+						Height:     42,
+						Text:       "Hello, world",
+						Color:      sg.Color{rand.Float32(), rand.Float32(), rand.Float32(), rand.Float32()},
+						PixelSize:  42,
+						FontFamily: "../shared/Barlow/Barlow-Regular.ttf",
+					},
+				sg.RectangleNode{
+					X:      10,
+					Y:      200,
+					Width:  200,
+					Height: 50,
+					Color:  sg.Color{0, 0, 0, 0},
+					Children: []sg.Node{
+						sg.ScaleNode{
+							Scale: dstate.scaleAnimation.Get(),
+							Children: []sg.Node{
+								sg.Row{
+									Children: []sg.Node{
+										sg.RectangleNode{
+											Width:  50 * dstate.scaleAnimation.Get(),
+											Height: 50 * dstate.scaleAnimation.Get(),
+											Color:  dstate.color,
+										},
+										sg.RectangleNode{
+											Width:  50 / 2 * dstate.scaleAnimation.Get() * dstate.scaleAnimation.Get(),
+											Height: 50 / 2 * dstate.scaleAnimation.Get() * dstate.scaleAnimation.Get(),
+											Color:  dstate.inverseColor,
+										},
 									},
 								},
 							},
 						},
 					},
 				},
-			},
-			&sg.Repeater{
-				Model: 200,
-				New: func(index int) sg.Node {
-					findex := float32(index)
-					return &sg.RectangleNode{
-						X:      findex * this.scaleAnimation.Get(),
-						Y:      findex * this.scaleAnimation.Get(),
-						Width:  findex * this.scaleAnimation.Get(),
-						Height: findex * this.scaleAnimation.Get(),
-						Color: sg.Color{this.color.A(),
-							findex * this.color.R() * this.scaleAnimation.Get(),
-							findex * this.color.G() * this.scaleAnimation.Get(),
-							findex * this.color.B() * this.scaleAnimation.Get(),
-						},
-					}
+				sg.Repeater{
+					Model: 200,
+					New: func(index int) sg.Node {
+						findex := float32(index)
+						return sg.RectangleNode{
+							X:      findex * dstate.scaleAnimation.Get(),
+							Y:      findex * dstate.scaleAnimation.Get(),
+							Width:  findex * dstate.scaleAnimation.Get(),
+							Height: findex * dstate.scaleAnimation.Get(),
+							Color: sg.Color{dstate.color.A(),
+								findex * dstate.color.R() * dstate.scaleAnimation.Get(),
+								findex * dstate.color.G() * dstate.scaleAnimation.Get(),
+								findex * dstate.color.B() * dstate.scaleAnimation.Get(),
+							},
+						}
+					},
 				},
-			},
-			&sg.Repeater{
-				X:     sz.X,
-				Model: 200,
-				New: func(index int) sg.Node {
-					findex := float32(index)
-					return &sg.RectangleNode{
-						X:      -findex * this.scaleAnimation.Get(),
-						Y:      findex * this.scaleAnimation.Get(),
-						Width:  findex * this.scaleAnimation.Get(),
-						Height: findex * this.scaleAnimation.Get(),
-						Color: sg.Color{this.color.A(),
-							findex * this.color.R() * this.scaleAnimation.Get(),
-							findex * this.color.G() * this.scaleAnimation.Get(),
-							findex * this.color.B() * this.scaleAnimation.Get(),
-						},
-					}
+				sg.Repeater{
+					X:     sz.X,
+					Model: 200,
+					New: func(index int) sg.Node {
+						findex := float32(index)
+						return sg.RectangleNode{
+							X:      -findex * dstate.scaleAnimation.Get(),
+							Y:      findex * dstate.scaleAnimation.Get(),
+							Width:  findex * dstate.scaleAnimation.Get(),
+							Height: findex * dstate.scaleAnimation.Get(),
+							Color: sg.Color{dstate.color.A(),
+								findex * dstate.color.R() * dstate.scaleAnimation.Get(),
+								findex * dstate.color.G() * dstate.scaleAnimation.Get(),
+								findex * dstate.color.B() * dstate.scaleAnimation.Get(),
+							},
+						}
+					},
 				},
-			},
+			*/
 		},
+	}
+}
+
+func MainWindowRender(props sg2.PropType, state *sg2.RenderState) sg.Node {
+	return sg2.RenderableNode{
+		Type: TrippyRender,
 	}
 }
 
@@ -205,11 +208,10 @@ func main() {
 		panic(err)
 	}
 
-	thing := &Button{}
-
 	for r.IsRunning() {
 		r.ProcessEvents()
-		w.Render(thing)
+		// ### I do not like user code calling render functions at all. Avoid.
+		w.Render(MainWindowRender(nil, &sg2.RenderState{Window: w}))
 	}
 
 	r.Quit()

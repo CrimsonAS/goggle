@@ -167,7 +167,7 @@ func (r *SceneRenderer) resolveTree(shadow *shadowNode, oldShadow *shadowNode) {
 			NodeState: shadow.state,
 			Transform: shadow.transform,
 		}
-		renderedNode := newRenderableNode.Render(&state)
+		renderedNode := newRenderableNode.Type(newRenderableNode.Props, &state)
 		shadow.state, shadow.transform = state.NodeState, state.Transform
 
 		// Recurse to resolve rendered tree

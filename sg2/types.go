@@ -27,10 +27,6 @@ func (this RenderableNode) GetChildren() []sg.Node {
 	return this.Children
 }
 
-func (node RenderableNode) Render(state *RenderState) sg.Node {
-	return node.Type(node.Props, state)
-}
-
 type RectangleProps struct {
 	Geometry Geometry
 	Color    sg.Color

@@ -12,7 +12,9 @@ type InputHelper struct {
 	MousePos        sg.Vec2
 	ButtonUp        bool
 	ButtonDown      bool
-	MouseGrabber    sg.Node
+
+	grabNodeState *sg.InputState
+	grabNodeSeen  bool
 }
 
 func NewInputHelper() InputHelper {
@@ -50,25 +52,24 @@ func pointInside(x, y, w, h float32, tp sg.Vec2) bool {
 	return (tp.X >= x && tp.X <= x+w) && (tp.Y >= y && tp.Y <= y+h)
 }
 
-func NodeAcceptsInputEvents(node sg.Node) bool {
-	switch node.(type) {
-	case sg.Hoverable:
-		return true
-	case sg.Moveable:
-		return true
-	case sg.Pressable:
-		return true
-	case sg.Tappable:
-		return true
-	default:
-		return false
-	}
-}
-
 // Process pointer events for an item.
-// ### should scale/rotate affect input events? i'd say yes, personally.
-func (this *InputHelper) ProcessPointerEvents(origin sg.Vec2, childWidth, childHeight float32, item sg.Node) bool {
+func (this *InputHelper) ProcessPointerEvents(in *sg.InputNode, transform sg.Mat4, geom sg.Geometry, state *sg.InputState) bool {
 	handledEvents := false
+
+	// Copy previous state for comparison
+	oldState := *state
+
+	// Transform geometry (well, to a bounding rect). This results in a geometry
+	// in scene coordinates, directly comparable to MousePos.
+	geom = geom.TransformedBounds(transform)
+	containsMouse := geom.ContainsV2(this.MousePos)
+	// Calculate relative position and store in the InputState. Note that this is
+	// awkwardly relative to the _transform_, not to the InputNode Geometry (which
+	// can have an additional x/y translation).
+	// ### Oh boy this is not fast.. there must be a neater way, or maybe we'll just
+	// need some shortcuts for simpler transforms.
+	var garbage bool
+	state.MousePos = transform.Inverted(&garbage).MulV2(this.MousePos)
 
 	// BUG: ### unsolved problems: we should also probably block propagation of hover.
 	// We could have a return code to block hover propagating further down the tree,
@@ -78,71 +79,72 @@ func (this *InputHelper) ProcessPointerEvents(origin sg.Vec2, childWidth, childH
 	//     Sidebar PointerEnter() { return true; /* block */ }
 	//         Button Hoverable // to highlight as need be
 	//     UI page
-	tp := sg.Vec2{X: this.MousePos.X - origin.X, Y: this.MousePos.Y - origin.Y}
-	if hoverable, ok := item.(sg.Hoverable); ok {
-		if pointInside(origin.X, origin.Y, childWidth, childHeight, this.MousePos) {
-			this.hoveredNodes[item] = true
-			if _, ok = this.oldHoveredNodes[item]; !ok {
-				mouseDebug("Pointer entering: %+v at %s %s", hoverable, this.MousePos, tp)
-				hoverable.PointerEnter(tp)
+
+	if containsMouse {
+		if !state.IsHovered {
+			mouseDebug("Pointer entering: %+v at %s %s", in, this.MousePos, geom)
+			state.IsHovered = true
+			if in.OnEnter != nil {
+				in.OnEnter(*state)
 				handledEvents = true
 			}
-		} else if _, ok = this.oldHoveredNodes[item]; ok {
-			mouseDebug("Pointer leaving: %+v at %s %s", hoverable, this.MousePos, tp)
-			hoverable.PointerLeave(tp)
+		}
+	} else {
+		if state.IsHovered {
+			mouseDebug("Pointer leaving: %+v at %s %s", in, this.MousePos, geom)
+			state.IsHovered = false
+			if in.OnLeave != nil {
+				in.OnLeave(*state)
+				handledEvents = true
+			}
+		}
+	}
+
+	if state.IsGrabbed {
+		if in.OnMove != nil && state.MousePos != oldState.MousePos {
+			in.OnMove(*state)
 			handledEvents = true
 		}
 	}
 
-	// BUG: we should only deliver this if the tp is not the same as the last PointerMoved, I think.
-	if this.MouseGrabber != nil {
-		if moveable, ok := this.MouseGrabber.(sg.Moveable); ok {
-			mouseMoveDebug("Pointer moved over %+v at %s %s", this.MouseGrabber, this.MousePos, tp)
-			moveable.PointerMoved(tp)
+	if containsMouse && this.ButtonDown && this.grabNodeState == nil {
+		if in.OnPress != nil {
+			mouseDebug("Pointer pressed (and grabbed): %+v at %s %s", in, this.MousePos, geom)
+			this.grabNodeState = state
+			state.IsGrabbed, state.IsPressed = true, true
+			in.OnPress(*state)
+			handledEvents = true
+		}
+	} else if this.ButtonUp && state.IsPressed {
+		mouseDebug("Pointer released (ungrabbed): %+v at %s %s", in, this.MousePos, geom)
+		if state.IsGrabbed {
+			this.grabNodeState = nil
+		}
+		state.IsGrabbed, state.IsPressed = false, false
+		if in.OnRelease != nil {
+			in.OnRelease(*state)
 			handledEvents = true
 		}
 	}
 
-	if this.ButtonDown || this.ButtonUp {
-		if pressable, ok := item.(sg.Pressable); ok {
-			if this.ButtonDown {
-				if this.MouseGrabber == nil {
-					if pointInside(origin.X, origin.Y, childWidth, childHeight, this.MousePos) {
-						this.MouseGrabber = item
-						mouseDebug("Pointer pressed (and grabbed): %+v at %s %s", pressable, this.MousePos, tp)
-						pressable.PointerPressed(tp)
-						handledEvents = true
-					}
-				}
-			} else if this.ButtonUp {
-				if this.MouseGrabber == item {
-					mouseDebug("Pointer released (ungrabbed): %+v at %s %s", pressable, this.MousePos, tp)
-					pressable.PointerReleased(tp)
-					handledEvents = true
-				}
-			}
-		}
-		if tappable, ok := item.(sg.Tappable); ok {
-			if this.ButtonDown {
-				if this.MouseGrabber == nil {
-					// a Tappable takes an implicit grab
-					mouseDebug("Tappable pressed (grabbed): %+v at %s", tappable, this.MousePos)
-					this.MouseGrabber = item
-				}
-			} else if this.ButtonUp {
-				if this.MouseGrabber == item {
-					if pointInside(origin.X, origin.Y, childWidth, childHeight, this.MousePos) {
-						mouseDebug("Tappable released (ungrabbed): %+v at %s", tappable, this.MousePos)
-						tappable.PointerTapped(tp)
-						handledEvents = true
-					}
-				}
-			}
-		}
-		if this.ButtonUp && this.MouseGrabber == item {
-			this.MouseGrabber = nil
-		}
+	// Flag when the grabNode is seen during event processing so it won't be cleaned
+	// up during post-processing. Also, sync up the IsGrabbed flag here for paranoia.
+	if state == this.grabNodeState {
+		this.grabNodeSeen = true
+		state.IsGrabbed = true
+	} else {
+		state.IsGrabbed = false
 	}
 
 	return handledEvents
+}
+
+func (this *InputHelper) EndPointerEvents() {
+	if this.grabNodeState != nil && !this.grabNodeSeen {
+		mouseDebug("Grab node disappeared, ungrabbing: %+v", this.grabNodeState)
+		this.grabNodeState = nil
+		// ### Other cleanup, handling of ongoing events, ..?
+	}
+	// Reset for next pass
+	this.grabNodeSeen = false
 }

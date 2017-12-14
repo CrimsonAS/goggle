@@ -3,14 +3,11 @@ package sdlsoftware
 import (
 	"fmt"
 	"log"
-	"os"
 	"time"
 
 	. "github.com/CrimsonAS/goggle/renderer/private"
 	"github.com/CrimsonAS/goggle/sg"
-	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/sdl"
-	"github.com/veandco/go-sdl2/ttf"
 )
 
 type Window struct {
@@ -22,6 +19,8 @@ type Window struct {
 	endLastFrame  time.Time
 	frameDuration time.Duration
 	blendMode     sdl.BlendMode
+
+	sceneRenderer SceneRenderer
 }
 
 func (this *Window) GetSize() sg.Vec2 {
@@ -57,25 +56,9 @@ func (this *Window) Render(scene sg.Node) {
 	this.endLastFrame = time.Now()
 
 	this.sdlRenderer.Clear()
-
-	// Construct the scene renderer and resolve the scenegraph, including
-	// delivery of input events. The result is a list of DrawableNode.
-	r := SceneRenderer{
-		Window:      this,
-		InputHelper: &this.inputHelper,
-	}
-	drawables := r.Render(scene)
-
-	if renderDebug {
-		log.Printf("scene rendered to %d drawables", len(drawables))
-	}
-	for _, draw := range drawables {
-		if renderDebug {
-			log.Printf("drawing node %s: %+v", sg.NodeName(draw.Node), draw.Node)
-		}
-		this.drawNode(draw)
-	}
-
+	this.sceneRenderer.DeliverEvents()
+	this.sceneRenderer.Render(scene)
+	this.sceneRenderer.Draw(this.drawNode)
 	this.sdlRenderer.Present()
 
 	elapsed := time.Since(this.ourRenderer.start) / time.Millisecond
@@ -96,14 +79,16 @@ func (this *Window) Render(scene sg.Node) {
 	this.inputHelper.ResetFrameState()
 }
 
-func (this *Window) drawRectangle(node *sg.RectangleNode, transform sg.Transform) {
-	geo := transform.Geometry(sg.Vec4{0, 0, node.Width, node.Height})
+func (this *Window) drawRectangle(node sg.SimpleRectangleNode, transform sg.Mat4) {
+	// ### This is wrong for non-trivial transforms, but I don't want to mess with SDL
+	// enough to draw complex shapes for now.
+	geo := sg.Geometry{0, 0, node.Size.X, node.Size.Y}.TransformedBounds(transform)
 	if headlessRendering {
 		return
 	}
-	rect := sdl.Rect{int32(geo.X), int32(geo.Y), int32(geo.Z), int32(geo.W)}
+	rect := sdl.Rect{int32(geo.X), int32(geo.Y), int32(geo.Width), int32(geo.Height)}
 	if renderDebug {
-		log.Printf("Filling rect xy %gx%g wh %gx%g with color %v", geo.X, geo.Y, geo.Z, geo.W, node.Color)
+		log.Printf("Filling rect xy %gx%g wh %gx%g with color %v", geo.X, geo.Y, geo.Width, geo.Height, node.Color)
 	}
 	// argb -> rgba
 	this.sdlRenderer.SetDrawColor(uint8(255.0*node.Color.Y), uint8(255.0*node.Color.Z), uint8(255.0*node.Color.W), uint8(255.0*node.Color.X))
@@ -115,6 +100,7 @@ func (this *Window) drawRectangle(node *sg.RectangleNode, transform sg.Transform
 	this.sdlRenderer.FillRect(&rect)
 }
 
+/*
 func (this *Window) drawImage(node *sg.ImageNode, transform sg.Transform) {
 	geo := transform.Geometry(sg.Vec4{0, 0, node.Width, node.Height})
 	var fileTexture *sg.FileTexture
@@ -181,6 +167,7 @@ func (this *Window) drawText(node *sg.TextNode, transform sg.Transform) {
 		this.sdlRenderer.Copy(texture, nil, &rect)
 	}
 }
+*/
 
 func (this *Window) setBlendMode(bm sdl.BlendMode) {
 	// this is cheaper than hitting cgo
@@ -190,21 +177,21 @@ func (this *Window) setBlendMode(bm sdl.BlendMode) {
 	}
 }
 
-func (this *Window) drawNode(draw DrawableNode) {
-	switch node := draw.Node.(type) {
-	case *sg.RectangleNode:
-		this.drawRectangle(node, draw.Transform)
-	case *sg.ImageNode:
-		this.drawImage(node, draw.Transform)
-	case *sg.TextNode:
-		this.drawText(node, draw.Transform)
-	case *DrawNode:
-		if renderDebug {
-			log.Printf("Calling custom draw function %+v", node.Draw)
-		}
-		node.Draw(this.sdlRenderer, node, draw.Transform)
+func (this *Window) drawNode(node sg.Node, transform sg.Mat4) {
+	if renderDebug {
+		log.Printf("drawing node %s: %+v transform:[%+v]", sg.NodeName(node), node, transform)
+	}
+	switch cnode := node.(type) {
+	case sg.SimpleRectangleNode:
+		this.drawRectangle(cnode, transform)
+	case sg.TransformNode:
+	case sg.InputNode:
+	//case *sg.ImageNode:
+	//	this.drawImage(node, draw.Transform)
+	//case *sg.TextNode:
+	//	this.drawText(node, draw.Transform)
 
 	default:
-		panic("unknown drawable")
+		panic(fmt.Sprintf("unknown drawable %T %+v", node, node))
 	}
 }

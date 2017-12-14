@@ -78,6 +78,13 @@ func (this *Renderer) CreateWindow() (*Window, error) {
 		inputHelper:  private.NewInputHelper(),
 		endLastFrame: time.Now(),
 	}
+
+	// Construct the scene renderer and resolve the scenegraph, including
+	// delivery of input events. The result is a list of DrawableNode.
+	w.sceneRenderer = private.SceneRenderer{
+		Window:      w,
+		InputHelper: &w.inputHelper,
+	}
 	var err error
 	w.window, w.sdlRenderer, err = sdl.CreateWindowAndRenderer(800, 600, sdl.WINDOW_SHOWN|sdl.WINDOW_RESIZABLE)
 	// ### a 'clear color' on the Window might make sense

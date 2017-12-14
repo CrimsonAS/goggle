@@ -1,29 +1,27 @@
-package sg2
+package sg
 
 import (
 	"fmt"
-
-	"github.com/CrimsonAS/goggle/sg"
 )
 
 type Geometry struct {
 	X, Y, Width, Height float32
 }
 
-func (g Geometry) XYWH() sg.Vec4 {
-	return sg.Vec4{g.X, g.Y, g.Width, g.Height}
+func (g Geometry) XYWH() Vec4 {
+	return Vec4{g.X, g.Y, g.Width, g.Height}
 }
 
-func (g Geometry) XYXY() sg.Vec4 {
-	return sg.Vec4{g.X, g.Y, g.X + g.Width, g.X + g.Height}
+func (g Geometry) XYXY() Vec4 {
+	return Vec4{g.X, g.Y, g.X + g.Width, g.X + g.Height}
 }
 
-func (g Geometry) Pos() sg.Vec2 {
-	return sg.Vec2{g.X, g.Y}
+func (g Geometry) Pos() Vec2 {
+	return Vec2{g.X, g.Y}
 }
 
-func (g Geometry) Size() sg.Vec2 {
-	return sg.Vec2{g.Width, g.Height}
+func (g Geometry) Size() Vec2 {
+	return Vec2{g.Width, g.Height}
 }
 
 func (g Geometry) Translate(x, y float32) Geometry {
@@ -37,15 +35,15 @@ func (g Geometry) ZeroOrigin() Geometry {
 	return g
 }
 
-func (g Geometry) BottomRight() sg.Vec2 {
-	return sg.Vec2{g.X + g.Width, g.Y + g.Height}
+func (g Geometry) BottomRight() Vec2 {
+	return Vec2{g.X + g.Width, g.Y + g.Height}
 }
 
 func (g Geometry) Contains(x, y float32) bool {
 	return (x >= g.X && x <= g.X+g.Width) && (y >= g.Y && y <= g.Y+g.Height)
 }
 
-func (g Geometry) ContainsV2(point sg.Vec2) bool {
+func (g Geometry) ContainsV2(point Vec2) bool {
 	return g.Contains(point.X, point.Y)
 }
 
@@ -75,12 +73,12 @@ func (g Geometry) Union(g2 Geometry) Geometry {
 // It's not possible to represent non-rectangular transformations in a
 // Geometry. This function is a substitute for proper transformation only
 // with trivial (translate+scale) transforms.
-func (g Geometry) TransformedBounds(transform sg.Mat4) Geometry {
-	points := [4]sg.Vec2{
-		transform.MulV2(sg.Vec2{g.X, g.Y}),
-		transform.MulV2(sg.Vec2{g.X + g.Width, g.Y}),
-		transform.MulV2(sg.Vec2{g.X + g.Width, g.Y + g.Height}),
-		transform.MulV2(sg.Vec2{g.X, g.Y + g.Height}),
+func (g Geometry) TransformedBounds(transform Mat4) Geometry {
+	points := [4]Vec2{
+		transform.MulV2(Vec2{g.X, g.Y}),
+		transform.MulV2(Vec2{g.X + g.Width, g.Y}),
+		transform.MulV2(Vec2{g.X + g.Width, g.Y + g.Height}),
+		transform.MulV2(Vec2{g.X, g.Y + g.Height}),
 	}
 
 	tl, br := points[0], points[0]

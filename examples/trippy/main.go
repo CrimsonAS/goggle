@@ -8,9 +8,8 @@ import (
 
 	"github.com/CrimsonAS/goggle/animation"
 	"github.com/CrimsonAS/goggle/animation/easing"
-	"github.com/CrimsonAS/goggle/renderer2/sdlsoftware"
+	"github.com/CrimsonAS/goggle/renderer/sdlsoftware"
 	"github.com/CrimsonAS/goggle/sg"
-	"github.com/CrimsonAS/goggle/sg2"
 )
 
 type TrippyState struct {
@@ -22,7 +21,7 @@ type TrippyState struct {
 	colorAnimation  *animation.ColorAnimation
 }
 
-func TrippyRender(props sg2.PropType, state *sg2.RenderState) sg.Node {
+func TrippyRender(props sg.PropType, state *sg.RenderState) sg.Node {
 	dstate, _ := state.NodeState.(*TrippyState)
 	if dstate == nil {
 		dstate = &TrippyState{}
@@ -59,26 +58,26 @@ func TrippyRender(props sg2.PropType, state *sg2.RenderState) sg.Node {
 
 	sz := state.Window.GetSize()
 
-	return sg2.SimpleRectangleNode{
+	return sg.SimpleRectangleNode{
 		Size:  sg.Vec2{sz.X, sz.Y},
 		Color: sg.Color{1, 0, 0, 0},
 		Children: []sg.Node{
-			sg2.InputNode{
-				Geometry: sg2.Geometry{0, 0, sz.X, sz.Y},
-				OnEnter: func(input sg2.InputState) {
+			sg.InputNode{
+				Geometry: sg.Geometry{0, 0, sz.X, sz.Y},
+				OnEnter: func(input sg.InputState) {
 					log.Printf("hoverable rect OnEnter")
 					dstate.containsPointer = true
 				},
-				OnLeave: func(input sg2.InputState) {
+				OnLeave: func(input sg.InputState) {
 					log.Printf("hoverable rect OnLeave")
 					dstate.containsPointer = false
 				},
 			},
 
-			sg2.TransformNode{
+			sg.TransformNode{
 				Matrix: sg.Scale2D(dstate.scaleAnimation.Get(), dstate.scaleAnimation.Get()),
 				Children: []sg.Node{
-					sg2.SimpleRectangleNode{
+					sg.SimpleRectangleNode{
 						Size:  sg.Vec2{100, 100},
 						Color: sg.Color{1, 0, 1, 0},
 					},
@@ -174,8 +173,8 @@ func TrippyRender(props sg2.PropType, state *sg2.RenderState) sg.Node {
 	}
 }
 
-func MainWindowRender(props sg2.PropType, state *sg2.RenderState) sg.Node {
-	return sg2.RenderableNode{
+func MainWindowRender(props sg.PropType, state *sg.RenderState) sg.Node {
+	return sg.RenderableNode{
 		Type: TrippyRender,
 	}
 }
@@ -211,7 +210,7 @@ func main() {
 	for r.IsRunning() {
 		r.ProcessEvents()
 		// ### I do not like user code calling render functions at all. Avoid.
-		w.Render(MainWindowRender(nil, &sg2.RenderState{Window: w}))
+		w.Render(MainWindowRender(nil, &sg.RenderState{Window: w}))
 	}
 
 	r.Quit()

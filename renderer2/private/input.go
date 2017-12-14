@@ -70,10 +70,9 @@ func NodeAcceptsInputEvents(node sg.Node) bool {
 func (this *InputHelper) ProcessPointerEvents(in *sg2.InputNode, transform sg.Mat4, geom sg2.Geometry, state *sg2.InputState) bool {
 	handledEvents := false
 
-	// Translate mouse position to node coordinates
-	origin := transform.MulV2(sg.Vec2{geom.X, geom.Y})
-	tp := this.MousePos.Sub(origin)
-	sz := transform.MulV2(sg.Vec2{geom.X + geom.Z, geom.Y + geom.W}).Sub(origin)
+	// Transform geometry (well, to a bounding rect). This results in a geometry
+	// in scene coordinates, directly comparable to MousePos.
+	geom = geom.TransformedBounds(transform)
 
 	// BUG: ### unsolved problems: we should also probably block propagation of hover.
 	// We could have a return code to block hover propagating further down the tree,
@@ -84,9 +83,9 @@ func (this *InputHelper) ProcessPointerEvents(in *sg2.InputNode, transform sg.Ma
 	//         Button Hoverable // to highlight as need be
 	//     UI page
 
-	if pointInside(origin.X, origin.Y, sz.X, sz.Y, tp) {
+	if geom.ContainsV2(this.MousePos) {
 		if !state.IsHovered {
-			mouseDebug("Pointer entering: %+v at %s %s", in, this.MousePos, tp)
+			mouseDebug("Pointer entering: %+v at %s %s", in, this.MousePos, geom)
 			state.IsHovered = true
 			if in.OnEnter != nil {
 				in.OnEnter(*state)
@@ -95,7 +94,7 @@ func (this *InputHelper) ProcessPointerEvents(in *sg2.InputNode, transform sg.Ma
 		}
 	} else {
 		if state.IsHovered {
-			mouseDebug("Pointer leaving: %+v at %s %s", in, this.MousePos, tp)
+			mouseDebug("Pointer leaving: %+v at %s %s", in, this.MousePos, geom)
 			state.IsHovered = false
 			if in.OnLeave != nil {
 				in.OnLeave(*state)

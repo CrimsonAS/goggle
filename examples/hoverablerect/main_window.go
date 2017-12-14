@@ -39,7 +39,7 @@ func HoverableRectRender(props sg2.PropType, state *sg2.RenderState) sg.Node {
 		},
 		Children: []sg.Node{
 			sg2.InputNode{
-				Geometry: dprops.Geometry,
+				Geometry: dprops.Geometry.ZeroOrigin(),
 				OnEnter: func(input sg2.InputState) {
 					log.Printf("hoverable rect OnEnter")
 					dstate.IsHovered = true
@@ -57,7 +57,7 @@ func MainWindowRender(props sg2.PropType, state *sg2.RenderState) sg.Node {
 	return sg2.RenderableNode{
 		Type: HoverableRectRender,
 		Props: HoverableRectProps{
-			Geometry:     sg2.Geometry{0, 0, 100, 100},
+			Geometry:     sg2.Geometry{25, 25, 100, 100},
 			color:        sg.Color{1, 1, 0, 0},
 			hoveredColor: sg.Color{1, 1, 1, 0},
 		},

@@ -84,15 +84,15 @@ func (this *Window) Render(scene sg.Node) {
 }
 
 func (this *Window) drawRectangle(node sg2.SimpleRectangleNode, transform sg.Mat4) {
-	xy := transform.MulV2(sg.Vec2{0, 0})
-	wh := transform.MulV2(node.Size)
-	geo := &sg.Vec4{xy.X, xy.Y, wh.X - xy.X, wh.Y - xy.Y}
+	// ### This is wrong for non-trivial transforms, but I don't want to mess with SDL
+	// enough to draw complex shapes for now.
+	geo := sg2.Geometry{0, 0, node.Size.X, node.Size.Y}.TransformedBounds(transform)
 	if headlessRendering {
 		return
 	}
-	rect := sdl.Rect{int32(geo.X), int32(geo.Y), int32(geo.Z), int32(geo.W)}
+	rect := sdl.Rect{int32(geo.X), int32(geo.Y), int32(geo.Width), int32(geo.Height)}
 	if renderDebug {
-		log.Printf("Filling rect xy %gx%g wh %gx%g with color %v", geo.X, geo.Y, geo.Z, geo.W, node.Color)
+		log.Printf("Filling rect xy %gx%g wh %gx%g with color %v", geo.X, geo.Y, geo.Width, geo.Height, node.Color)
 	}
 	// argb -> rgba
 	this.sdlRenderer.SetDrawColor(uint8(255.0*node.Color.Y), uint8(255.0*node.Color.Z), uint8(255.0*node.Color.W), uint8(255.0*node.Color.X))

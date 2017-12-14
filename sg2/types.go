@@ -4,8 +4,6 @@ import (
 	"github.com/CrimsonAS/goggle/sg"
 )
 
-type Geometry sg.Vec4
-
 type StateType interface{}
 type PropType interface{}
 
@@ -64,7 +62,7 @@ func RectangleNodeRender(props PropType, state *RenderState) sg.Node {
 		Matrix: sg.Translate2D(rp.Geometry.X, rp.Geometry.Y),
 		Children: []sg.Node{
 			SimpleRectangleNode{
-				Size:  sg.Vec2{rp.Geometry.Z, rp.Geometry.W},
+				Size:  rp.Geometry.Size(),
 				Color: rp.Color,
 			},
 		},

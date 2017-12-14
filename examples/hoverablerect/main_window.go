@@ -18,13 +18,15 @@ type HoverableRectState struct {
 }
 
 func HoverableRectRender(props sg2.PropType, state *sg2.RenderState) sg.Node {
-	if state.NodeState == nil {
-		state.NodeState = HoverableRectState{}
-		log.Printf("No node state. Created new. State is %+v", state)
+	dstate, _ := state.NodeState.(*HoverableRectState)
+	if dstate == nil {
+		dstate = &HoverableRectState{}
+		state.NodeState = dstate
+		log.Printf("No node state. Created new. State is %+v", state.NodeState)
 	}
+
 	dprops := props.(HoverableRectProps)
 	color := dprops.color
-	dstate := state.NodeState.(HoverableRectState)
 	if dstate.IsHovered {
 		color = dprops.hoveredColor
 	}
@@ -40,13 +42,11 @@ func HoverableRectRender(props sg2.PropType, state *sg2.RenderState) sg.Node {
 				Geometry: dprops.Geometry,
 				OnEnter: func(state *sg2.StateType) {
 					log.Printf("hoverable rect OnEnter")
-					//dstate := state.(HoverableRectState)
-					//dstate.IsHovered = true
+					dstate.IsHovered = true
 				},
 				OnLeave: func(state *sg2.StateType) {
 					log.Printf("hoverable rect OnLeave")
-					//dstate := state.(HoverableRectState)
-					//dstate.IsHovered = true
+					dstate.IsHovered = false
 				},
 			},
 		},

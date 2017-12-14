@@ -67,12 +67,13 @@ func NodeAcceptsInputEvents(node sg.Node) bool {
 }
 
 // Process pointer events for an item.
-func (this *InputHelper) ProcessPointerEvents(transform sg.Mat4, ts *sg2.TouchState) bool {
+func (this *InputHelper) ProcessPointerEvents(in sg2.InputNode, transform sg.Mat4, geom sg2.Geometry, rs *sg2.StateType) bool {
 	handledEvents := false
 
 	// Translate mouse position to node coordinates
-	tp := this.MousePos.Sub(transform.MulV2(sg.Vec2{0, 0}))
-	tg := ts.TouchGeometry
+	origin := transform.MulV2(sg.Vec2{geom.X, geom.Y})
+	tp := this.MousePos.Sub(origin)
+	sz := transform.MulV2(sg.Vec2{geom.Z, geom.W})
 
 	// BUG: ### unsolved problems: we should also probably block propagation of hover.
 	// We could have a return code to block hover propagating further down the tree,
@@ -83,24 +84,20 @@ func (this *InputHelper) ProcessPointerEvents(transform sg.Mat4, ts *sg2.TouchSt
 	//         Button Hoverable // to highlight as need be
 	//     UI page
 
-	if pointInside(tg.X, tg.Y, tg.Z, tg.W, tp) {
-		if !ts.IsHovered {
-			ts.IsHovered = true
-			mouseDebug("Pointer entering: %+v at %s %s", ts, this.MousePos, tp)
-			if ts.OnEnter != nil {
-				ts.OnEnter(ts)
-			}
-			handledEvents = true
+	if pointInside(origin.X, origin.Y, sz.X, sz.Y, tp) {
+		// ### record 'rs' as being entered until left, so we only send it once.
+		mouseDebug("Pointer entering: %+v at %s %s", rs, this.MousePos, tp)
+		if in.OnEnter != nil {
+			in.OnEnter(rs)
 		}
+		handledEvents = true
 	} else {
-		if ts.IsHovered {
-			ts.IsHovered = false
-			mouseDebug("Pointer leaving: %+v at %s %s", ts, this.MousePos, tp)
-			if ts.OnLeave != nil {
-				ts.OnLeave(ts)
-			}
-			handledEvents = true
+		// ### only sent leave if rs was already recorded entered.
+		mouseDebug("Pointer leaving: %+v at %s %s", rs, this.MousePos, tp)
+		if in.OnLeave != nil {
+			in.OnLeave(rs)
 		}
+		handledEvents = true
 	}
 
 	/*

@@ -187,6 +187,7 @@ func (this *Window) drawNode(node sg.Node, transform sg.Mat4) {
 	case sg2.SimpleRectangleNode:
 		this.drawRectangle(cnode, transform)
 	case sg2.TransformNode:
+	case sg2.InputNode:
 	//case *sg.ImageNode:
 	//	this.drawImage(node, draw.Transform)
 	//case *sg.TextNode:

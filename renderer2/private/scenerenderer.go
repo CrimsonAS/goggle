@@ -112,12 +112,8 @@ func (r *SceneRenderer) deliverEventsToTree(shadow *shadowNode) {
 	}
 
 	// Finally, try to deliver events to this node
-	if _, ok := shadow.sceneNode.(sg2.TouchNode); ok {
-		state, _ := shadow.state.(*sg2.TouchState)
-		if state == nil {
-			state = &sg2.TouchState{}
-		}
-		r.InputHelper.ProcessPointerEvents(shadow.transform, state)
+	if inputNode, ok := shadow.sceneNode.(sg2.InputNode); ok {
+		r.InputHelper.ProcessPointerEvents(inputNode, shadow.transform, inputNode.Geometry, &shadow.state)
 	}
 }
 
@@ -159,7 +155,7 @@ func (r *SceneRenderer) resolveTree(shadow *shadowNode, oldShadow *shadowNode) {
 		oldShadow = nil
 	}
 
-	if newRenderableNode, ok := node.(sg2.RenderableType); ok {
+	if newRenderableNode, ok := node.(sg2.RenderableNode); ok {
 		// Copy state from the old shadow tree
 		if oldShadow != nil {
 			shadow.state = oldShadow.state
@@ -189,6 +185,7 @@ func (r *SceneRenderer) resolveTree(shadow *shadowNode, oldShadow *shadowNode) {
 			shadow.transform = shadow.transform.MulM4(n.Matrix)
 		case sg2.GeometryNode:
 		case sg2.SimpleRectangleNode:
+		case sg2.InputNode:
 		default:
 			panic(fmt.Sprintf("unknown node %T %+v", node, node))
 		}

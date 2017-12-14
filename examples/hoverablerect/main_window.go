@@ -13,48 +13,48 @@ type HoverableRectProps struct {
 	hoveredColor sg.Color
 }
 
-func HoverableRectRender(props sg2.PropType, state *sg2.TouchRenderState) sg.Node {
-	/*	if state.NodeState == nil {
-			state.NodeState = HoverableRectState{}
-			log.Printf("No node state. Created new. State is %+v", state)
-			dstate := state.NodeState.(HoverableRectState)
-			dstate.OnEnter = func(state sg2.StateType) {
-				//dstate := *state.(*HoverableRectState)
-				//dstate.isHovered = true
-			}
-			dstate.OnLeave = func(state sg2.StateType) {
-				//dstate := *state.(*HoverableRectState)
-				//dstate.isHovered = false
-			}
-		}
-		dstate := state.NodeState.(HoverableRectState)*/
-	if state.OnEnter == nil {
-		state.OnEnter = func(*sg2.TouchState) {
-			log.Printf("hoverable rect OnEnter")
-		}
-		state.OnLeave = func(*sg2.TouchState) {
-			log.Printf("hoverable rect OnLeave")
-		}
-	}
+type HoverableRectState struct {
+	IsHovered bool
+}
 
+func HoverableRectRender(props sg2.PropType, state *sg2.RenderState) sg.Node {
+	if state.NodeState == nil {
+		state.NodeState = HoverableRectState{}
+		log.Printf("No node state. Created new. State is %+v", state)
+	}
 	dprops := props.(HoverableRectProps)
 	color := dprops.color
-	if state.IsHovered {
+	dstate := state.NodeState.(HoverableRectState)
+	if dstate.IsHovered {
 		color = dprops.hoveredColor
 	}
 
-	state.TouchGeometry = dprops.Geometry
 	return sg2.RenderableNode{
 		Type: sg2.RectangleNodeRender,
 		Props: sg2.RectangleProps{
 			dprops.Geometry,
 			color,
 		},
+		Children: []sg.Node{
+			sg2.InputNode{
+				Geometry: dprops.Geometry,
+				OnEnter: func(state *sg2.StateType) {
+					log.Printf("hoverable rect OnEnter")
+					//dstate := state.(HoverableRectState)
+					//dstate.IsHovered = true
+				},
+				OnLeave: func(state *sg2.StateType) {
+					log.Printf("hoverable rect OnLeave")
+					//dstate := state.(HoverableRectState)
+					//dstate.IsHovered = true
+				},
+			},
+		},
 	}
 }
 
 func MainWindowRender(props sg2.PropType, state *sg2.RenderState) sg.Node {
-	return sg2.TouchNode{
+	return sg2.RenderableNode{
 		Type: HoverableRectRender,
 		Props: HoverableRectProps{
 			Geometry:     sg2.Geometry{0, 0, 100, 100},

@@ -67,7 +67,7 @@ func NodeAcceptsInputEvents(node sg.Node) bool {
 }
 
 // Process pointer events for an item.
-func (this *InputHelper) ProcessPointerEvents(in sg2.InputNode, transform sg.Mat4, geom sg2.Geometry, rs *sg2.StateType) bool {
+func (this *InputHelper) ProcessPointerEvents(in *sg2.InputNode, transform sg.Mat4, geom sg2.Geometry, state *sg2.InputState) bool {
 	handledEvents := false
 
 	// Translate mouse position to node coordinates
@@ -85,19 +85,23 @@ func (this *InputHelper) ProcessPointerEvents(in sg2.InputNode, transform sg.Mat
 	//     UI page
 
 	if pointInside(origin.X, origin.Y, sz.X, sz.Y, tp) {
-		// ### record 'rs' as being entered until left, so we only send it once.
-		mouseDebug("Pointer entering: %+v at %s %s", rs, this.MousePos, tp)
-		if in.OnEnter != nil {
-			in.OnEnter(rs)
+		if !state.IsHovered {
+			mouseDebug("Pointer entering: %+v at %s %s", in, this.MousePos, tp)
+			state.IsHovered = true
+			if in.OnEnter != nil {
+				in.OnEnter(*state)
+			}
+			handledEvents = true
 		}
-		handledEvents = true
 	} else {
-		// ### only sent leave if rs was already recorded entered.
-		mouseDebug("Pointer leaving: %+v at %s %s", rs, this.MousePos, tp)
-		if in.OnLeave != nil {
-			in.OnLeave(rs)
+		if state.IsHovered {
+			mouseDebug("Pointer leaving: %+v at %s %s", in, this.MousePos, tp)
+			state.IsHovered = false
+			if in.OnLeave != nil {
+				in.OnLeave(*state)
+			}
+			handledEvents = true
 		}
-		handledEvents = true
 	}
 
 	/*

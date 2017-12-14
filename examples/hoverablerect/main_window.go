@@ -40,11 +40,11 @@ func HoverableRectRender(props sg2.PropType, state *sg2.RenderState) sg.Node {
 		Children: []sg.Node{
 			sg2.InputNode{
 				Geometry: dprops.Geometry,
-				OnEnter: func(state *sg2.StateType) {
+				OnEnter: func(input sg2.InputState) {
 					log.Printf("hoverable rect OnEnter")
 					dstate.IsHovered = true
 				},
-				OnLeave: func(state *sg2.StateType) {
+				OnLeave: func(input sg2.InputState) {
 					log.Printf("hoverable rect OnLeave")
 					dstate.IsHovered = false
 				},

@@ -113,7 +113,12 @@ func (r *SceneRenderer) deliverEventsToTree(shadow *shadowNode) {
 
 	// Finally, try to deliver events to this node
 	if inputNode, ok := shadow.sceneNode.(sg2.InputNode); ok {
-		r.InputHelper.ProcessPointerEvents(inputNode, shadow.transform, inputNode.Geometry, &shadow.state)
+		state, _ := shadow.state.(*sg2.InputState)
+		if state == nil {
+			state = &sg2.InputState{}
+			shadow.state = state
+		}
+		r.InputHelper.ProcessPointerEvents(&inputNode, shadow.transform, inputNode.Geometry, state)
 	}
 }
 
@@ -144,9 +149,6 @@ func (r *SceneRenderer) resolveTree(shadow *shadowNode, oldShadow *shadowNode) {
 	node := shadow.sceneNode
 
 	// If the node's actual type is the same as the old tree, we need to preserve state.
-	// Only RenderableNodes may have state, but all other nodes have to preserve the
-	// tree state for any child RenderableNodes.
-	//
 	// For any node where we're not preserving state, oldShadow is discarded here.
 	if oldShadow != nil && reflect.TypeOf(oldShadow.sceneNode) != reflect.TypeOf(shadow.sceneNode) {
 		if sceneDebug {
@@ -155,12 +157,12 @@ func (r *SceneRenderer) resolveTree(shadow *shadowNode, oldShadow *shadowNode) {
 		oldShadow = nil
 	}
 
-	if newRenderableNode, ok := node.(sg2.RenderableNode); ok {
-		// Copy state from the old shadow tree
-		if oldShadow != nil {
-			shadow.state = oldShadow.state
-		}
+	// Copy state from the old shadow tree
+	if oldShadow != nil {
+		shadow.state = oldShadow.state
+	}
 
+	if newRenderableNode, ok := node.(sg2.RenderableNode); ok {
 		// Render node
 		state := sg2.RenderState{
 			Window:    r.Window,

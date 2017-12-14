@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/CrimsonAS/goggle/renderer/sdlsoftware"
-	"github.com/CrimsonAS/goggle/sg"
+	"github.com/CrimsonAS/goggle/sg/components"
 )
 
 func main() {
@@ -21,7 +21,7 @@ func main() {
 	for r.IsRunning() {
 		r.ProcessEvents()
 		// ### I do not like user code calling render functions at all. Avoid.
-		w.Render(MainWindowRender(nil, &sg.RenderState{Window: w}))
+		w.Render(MainWindowRender(nil, &components.RenderState{Window: w}))
 	}
 
 	r.Quit()

@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/CrimsonAS/goggle/sg"
+	"github.com/CrimsonAS/goggle/sg/nodes"
 )
 
 type InputHelper struct {
@@ -13,7 +14,7 @@ type InputHelper struct {
 	ButtonUp        bool
 	ButtonDown      bool
 
-	grabNodeState *sg.InputState
+	grabNodeState *nodes.InputState
 	grabNodeSeen  bool
 }
 
@@ -53,7 +54,7 @@ func pointInside(x, y, w, h float32, tp sg.Vec2) bool {
 }
 
 // Process pointer events for an item.
-func (this *InputHelper) ProcessPointerEvents(in *sg.InputNode, transform sg.Mat4, geom sg.Geometry, state *sg.InputState) bool {
+func (this *InputHelper) ProcessPointerEvents(in *nodes.Input, transform sg.Mat4, geom sg.Geometry, state *nodes.InputState) bool {
 	handledEvents := false
 
 	// Copy previous state for comparison

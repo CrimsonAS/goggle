@@ -7,6 +7,7 @@ import (
 
 	. "github.com/CrimsonAS/goggle/renderer/private"
 	"github.com/CrimsonAS/goggle/sg"
+	"github.com/CrimsonAS/goggle/sg/nodes"
 	"github.com/veandco/go-sdl2/sdl"
 )
 
@@ -79,7 +80,7 @@ func (this *Window) Render(scene sg.Node) {
 	this.inputHelper.ResetFrameState()
 }
 
-func (this *Window) drawRectangle(node sg.SimpleRectangleNode, transform sg.Mat4) {
+func (this *Window) drawRectangle(node nodes.Rectangle, transform sg.Mat4) {
 	// ### This is wrong for non-trivial transforms, but I don't want to mess with SDL
 	// enough to draw complex shapes for now.
 	geo := sg.Geometry{0, 0, node.Size.X, node.Size.Y}.TransformedBounds(transform)
@@ -182,10 +183,10 @@ func (this *Window) drawNode(node sg.Node, transform sg.Mat4) {
 		log.Printf("drawing node %s: %+v transform:[%+v]", sg.NodeName(node), node, transform)
 	}
 	switch cnode := node.(type) {
-	case sg.SimpleRectangleNode:
+	case nodes.Rectangle:
 		this.drawRectangle(cnode, transform)
-	case sg.TransformNode:
-	case sg.InputNode:
+	case nodes.Transform:
+	case nodes.Input:
 	//case *sg.ImageNode:
 	//	this.drawImage(node, draw.Transform)
 	//case *sg.TextNode:

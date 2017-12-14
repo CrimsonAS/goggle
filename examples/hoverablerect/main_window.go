@@ -4,6 +4,8 @@ import (
 	"log"
 
 	"github.com/CrimsonAS/goggle/sg"
+	"github.com/CrimsonAS/goggle/sg/components"
+	"github.com/CrimsonAS/goggle/sg/nodes"
 )
 
 type HoverableRectProps struct {
@@ -16,7 +18,7 @@ type HoverableRectState struct {
 	IsHovered bool
 }
 
-func HoverableRectRender(props sg.PropType, state *sg.RenderState) sg.Node {
+func HoverableRectRender(props components.PropType, state *components.RenderState) sg.Node {
 	dstate, _ := state.NodeState.(*HoverableRectState)
 	if dstate == nil {
 		dstate = &HoverableRectState{}
@@ -30,30 +32,30 @@ func HoverableRectRender(props sg.PropType, state *sg.RenderState) sg.Node {
 		color = dprops.hoveredColor
 	}
 
-	return sg.RenderableNode{
-		Type: sg.RectangleNodeRender,
-		Props: sg.RectangleProps{
+	return components.Component{
+		Type: components.Rectangle,
+		Props: components.RectangleProps{
 			dprops.Geometry,
 			color,
 		},
 		Children: []sg.Node{
-			sg.InputNode{
+			nodes.Input{
 				Geometry: dprops.Geometry.ZeroOrigin(),
-				OnEnter: func(input sg.InputState) {
+				OnEnter: func(input nodes.InputState) {
 					log.Printf("hoverable rect OnEnter")
 					dstate.IsHovered = true
 				},
-				OnLeave: func(input sg.InputState) {
+				OnLeave: func(input nodes.InputState) {
 					log.Printf("hoverable rect OnLeave")
 					dstate.IsHovered = false
 				},
-				OnPress: func(input sg.InputState) {
+				OnPress: func(input nodes.InputState) {
 					log.Printf("hoverable rect OnPressed")
 				},
-				OnRelease: func(input sg.InputState) {
+				OnRelease: func(input nodes.InputState) {
 					log.Printf("hoverable rect OnReleased")
 				},
-				OnMove: func(input sg.InputState) {
+				OnMove: func(input nodes.InputState) {
 					log.Printf("hoverable rect OnMove")
 				},
 			},
@@ -61,8 +63,8 @@ func HoverableRectRender(props sg.PropType, state *sg.RenderState) sg.Node {
 	}
 }
 
-func MainWindowRender(props sg.PropType, state *sg.RenderState) sg.Node {
-	return sg.RenderableNode{
+func MainWindowRender(props components.PropType, state *components.RenderState) sg.Node {
+	return components.Component{
 		Type: HoverableRectRender,
 		Props: HoverableRectProps{
 			Geometry:     sg.Geometry{25, 25, 100, 100},
@@ -70,9 +72,9 @@ func MainWindowRender(props sg.PropType, state *sg.RenderState) sg.Node {
 			hoveredColor: sg.Color{1, 1, 1, 0},
 		},
 		Children: []sg.Node{
-			sg.RenderableNode{
-				Type: sg.RectangleNodeRender,
-				Props: sg.RectangleProps{
+			components.Component{
+				Type: components.Rectangle,
+				Props: components.RectangleProps{
 					sg.Geometry{5, 5, 10, 10},
 					sg.Color{1, 0, 1, 0},
 				},

@@ -71,6 +71,10 @@ func RectangleNodeRender(props PropType, state *RenderState) sg.Node {
 
 type InputState struct {
 	IsHovered bool
+	IsGrabbed bool
+	IsPressed bool
+
+	MousePos sg.Vec2
 }
 
 // An InputNode has a size and can get input events. The current component state
@@ -79,8 +83,11 @@ type InputNode struct {
 	Geometry Geometry
 	Children []sg.Node
 
-	OnEnter func(state InputState)
-	OnLeave func(state InputState)
+	OnEnter   func(state InputState)
+	OnLeave   func(state InputState)
+	OnMove    func(state InputState)
+	OnPress   func(state InputState)
+	OnRelease func(state InputState)
 }
 
 var _ sg.Parentable = InputNode{}

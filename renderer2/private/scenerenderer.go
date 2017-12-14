@@ -93,6 +93,7 @@ func (r *SceneRenderer) Render(root sg.Node) {
 // the shadow tree is considered dirty after calling this function.
 func (r *SceneRenderer) DeliverEvents() {
 	r.deliverEventsToTree(r.shadowRoot)
+	r.InputHelper.EndPointerEvents()
 }
 
 func (r *SceneRenderer) deliverEventsToTree(shadow *shadowNode) {

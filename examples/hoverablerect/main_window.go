@@ -48,6 +48,15 @@ func HoverableRectRender(props sg2.PropType, state *sg2.RenderState) sg.Node {
 					log.Printf("hoverable rect OnLeave")
 					dstate.IsHovered = false
 				},
+				OnPress: func(input sg2.InputState) {
+					log.Printf("hoverable rect OnPressed")
+				},
+				OnRelease: func(input sg2.InputState) {
+					log.Printf("hoverable rect OnReleased")
+				},
+				OnMove: func(input sg2.InputState) {
+					log.Printf("hoverable rect OnMove")
+				},
 			},
 		},
 	}

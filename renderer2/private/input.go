@@ -73,7 +73,7 @@ func (this *InputHelper) ProcessPointerEvents(in sg2.InputNode, transform sg.Mat
 	// Translate mouse position to node coordinates
 	origin := transform.MulV2(sg.Vec2{geom.X, geom.Y})
 	tp := this.MousePos.Sub(origin)
-	sz := transform.MulV2(sg.Vec2{geom.Z, geom.W})
+	sz := transform.MulV2(sg.Vec2{geom.X + geom.Z, geom.Y + geom.W}).Sub(origin)
 
 	// BUG: ### unsolved problems: we should also probably block propagation of hover.
 	// We could have a return code to block hover propagating further down the tree,

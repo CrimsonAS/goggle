@@ -4,8 +4,8 @@ import (
 	"net/http"
 	_ "net/http/pprof"
 
-	"github.com/CrimsonAS/goggle/renderer2/sdlsoftware"
-	"github.com/CrimsonAS/goggle/sg2"
+	"github.com/CrimsonAS/goggle/renderer/sdlsoftware"
+	"github.com/CrimsonAS/goggle/sg/components"
 )
 
 const profile = true
@@ -28,7 +28,7 @@ func main() {
 
 	for r.IsRunning() {
 		r.ProcessEvents()
-		w.Render(ManyRectRender(nil, &sg2.RenderState{Window: w}))
+		w.Render(ManyRectRender(nil, &components.RenderState{Window: w}))
 	}
 
 	r.Quit()

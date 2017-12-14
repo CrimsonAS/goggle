@@ -8,7 +8,8 @@ import (
 	"time"
 
 	"github.com/CrimsonAS/goggle/sg"
-	"github.com/CrimsonAS/goggle/sg2"
+	"github.com/CrimsonAS/goggle/sg/components"
+	"github.com/CrimsonAS/goggle/sg/nodes"
 )
 
 /*
@@ -31,7 +32,7 @@ const method1 = true
 
 var localRand *rand.Rand = rand.New(rand.NewSource(1234))
 
-func ManyRectRender(props sg2.PropType, state *sg2.RenderState) sg.Node {
+func ManyRectRender(props components.PropType, state *components.RenderState) sg.Node {
 	//func (this *MainWindow) Render(w sg.Windowable) sg.Node {
 	sz := state.Window.GetSize()
 	frameTime := state.Window.FrameTime()
@@ -50,10 +51,10 @@ func ManyRectRender(props sg2.PropType, state *sg2.RenderState) sg.Node {
 		}
 		if method1 {
 			for i := 0; i < addNodes; i++ {
-				manyRectChildren = append(manyRectChildren, sg2.TransformNode{
+				manyRectChildren = append(manyRectChildren, nodes.Transform{
 					Matrix: sg.Translate2D(0, 0),
 					Children: []sg.Node{
-						sg2.SimpleRectangleNode{Size: sg.Vec2{childSize, childSize}, Color: sg.Color{1, 1, 1, 0}},
+						nodes.Rectangle{Size: sg.Vec2{childSize, childSize}, Color: sg.Color{1, 1, 1, 0}},
 					},
 				})
 			}
@@ -77,10 +78,10 @@ func ManyRectRender(props sg2.PropType, state *sg2.RenderState) sg.Node {
 	if !method1 {
 		childs := []sg.Node{}
 		for i := 0; i < howManyRectChildren; i++ {
-			childs = append(manyRectChildren, sg2.TransformNode{
+			childs = append(manyRectChildren, nodes.Transform{
 				Matrix: sg.Translate2D(0, 0),
 				Children: []sg.Node{
-					sg2.SimpleRectangleNode{Size: sg.Vec2{childSize, childSize}, Color: sg.Color{1, 1, 1, 0}},
+					nodes.Rectangle{Size: sg.Vec2{childSize, childSize}, Color: sg.Color{1, 1, 1, 0}},
 				},
 			})
 		}
@@ -88,11 +89,11 @@ func ManyRectRender(props sg2.PropType, state *sg2.RenderState) sg.Node {
 	}
 
 	for idx, child := range manyRectChildren {
-		tchild := child.(sg2.TransformNode)
+		tchild := child.(nodes.Transform)
 		//tchild.Matrix = sg.Translate2D(float32(idx), float32(idx))
 		tchild.Matrix = sg.Translate2D(localRand.Float32()*(sz.X-childSize), localRand.Float32()*(sz.Y-childSize))
 
-		rchild := tchild.Children[0].(sg2.SimpleRectangleNode)
+		rchild := tchild.Children[0].(nodes.Rectangle)
 		const blend = false
 		if blend {
 			rchild.Color.X = localRand.Float32()
@@ -118,7 +119,7 @@ func ManyRectRender(props sg2.PropType, state *sg2.RenderState) sg.Node {
 			log.Printf(fpsLabel)
 		}
 	}
-	ret := sg2.SimpleRectangleNode{
+	ret := nodes.Rectangle{
 		Color:    sg.Color{1, 0, 1, 0},
 		Size:     sz,
 		Children: manyRectChildren,

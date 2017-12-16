@@ -7,15 +7,20 @@ import (
 
 func Repeater(cprops PropType, state *RenderState) sg.Node {
 	rp := cprops.(RepeaterProps)
-	childs := []sg.Node{}
+	dstate, _ := state.NodeState.(*repeaterState)
+	if dstate == nil {
+		dstate = &repeaterState{}
+		state.NodeState = dstate
+	}
+	dstate.childs = []sg.Node{}
 
 	for i := 0; i < rp.Model; i++ {
-		childs = append(childs, rp.New(i))
+		dstate.childs = append(dstate.childs, rp.New(i))
 	}
 
 	return nodes.Transform{
 		Matrix:   sg.Translate2D(0, 0),
-		Children: childs,
+		Children: dstate.childs,
 	}
 }
 
@@ -24,4 +29,8 @@ type FactoryFunction func(index int) sg.Node
 type RepeaterProps struct {
 	New   FactoryFunction
 	Model int // ### interface{}?
+}
+
+type repeaterState struct {
+	childs []sg.Node
 }

@@ -65,7 +65,7 @@ func TrippyRender(props components.PropType, state *components.RenderState) sg.N
 		Color: sg.Color{1, 0, 0, 0},
 		Children: []sg.Node{
 			nodes.Input{
-				Geometry: sg.Geometry{0, 0, sz.X, sz.Y},
+				Size: sz,
 				OnEnter: func(input nodes.InputState) {
 					log.Printf("hoverable rect OnEnter")
 					dstate.containsPointer = true

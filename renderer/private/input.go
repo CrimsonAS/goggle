@@ -54,19 +54,18 @@ func pointInside(x, y, w, h float32, tp sg.Vec2) bool {
 }
 
 // Process pointer events for an item.
-func (this *InputHelper) ProcessPointerEvents(in *nodes.Input, transform sg.Mat4, geom sg.Geometry, state *nodes.InputState) bool {
+func (this *InputHelper) ProcessPointerEvents(in *nodes.Input, transform sg.Mat4, sz sg.Vec2, state *nodes.InputState) bool {
+	// ### This is wrong for non-trivial transforms, but I don't want to mess with SDL
+	// enough to draw complex shapes for now.
+	geom := sg.Geometry{0, 0, sz.X, sz.Y}.TransformedBounds(transform)
+
 	handledEvents := false
 
 	// Copy previous state for comparison
 	oldState := *state
 
-	// Transform geometry (well, to a bounding rect). This results in a geometry
-	// in scene coordinates, directly comparable to MousePos.
-	geom = geom.TransformedBounds(transform)
 	containsMouse := geom.ContainsV2(this.MousePos)
-	// Calculate relative position and store in the InputState. Note that this is
-	// awkwardly relative to the _transform_, not to the InputNode Geometry (which
-	// can have an additional x/y translation).
+	// Calculate relative position and store in the InputState.
 	// ### Oh boy this is not fast.. there must be a neater way, or maybe we'll just
 	// need some shortcuts for simpler transforms.
 	var garbage bool

@@ -13,7 +13,7 @@ type InputState struct {
 // An InputNode has a size and can get input events. The current component state
 // is passed in to the InputNode.
 type Input struct {
-	Geometry sg.Geometry
+	Size     sg.Vec2
 	Children []sg.Node
 
 	OnEnter   func(state InputState)

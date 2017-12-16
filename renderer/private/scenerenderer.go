@@ -120,7 +120,7 @@ func (r *SceneRenderer) deliverEventsToTree(shadow *shadowNode) {
 			state = &nodes.InputState{}
 			shadow.state = state
 		}
-		r.InputHelper.ProcessPointerEvents(&inputNode, shadow.transform, inputNode.Geometry, state)
+		r.InputHelper.ProcessPointerEvents(&inputNode, shadow.transform, inputNode.Size, state)
 	}
 }
 

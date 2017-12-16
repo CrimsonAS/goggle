@@ -46,7 +46,7 @@ func DraggableRectRender(props components.PropType, state *components.RenderStat
 		},
 		Children: []sg.Node{
 			nodes.Input{
-				Geometry: dstate.Geometry.ZeroOrigin(),
+				Size: dstate.Geometry.Size(),
 				OnEnter: func(input nodes.InputState) {
 					log.Printf("rect OnEnter")
 					dstate.IsHovered = true

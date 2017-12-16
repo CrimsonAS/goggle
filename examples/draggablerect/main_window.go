@@ -36,7 +36,6 @@ func DraggableRectRender(props components.PropType, state *components.RenderStat
 	} else if dstate.IsHovered {
 		color = dprops.hoveredColor
 	}
-	log.Printf("rect %s", dstate.Geometry)
 
 	return components.Component{
 		Type: components.Rectangle,
@@ -48,25 +47,27 @@ func DraggableRectRender(props components.PropType, state *components.RenderStat
 			nodes.Input{
 				Size: dstate.Geometry.Size(),
 				OnEnter: func(input nodes.InputState) {
-					log.Printf("rect OnEnter")
+					//log.Printf("rect OnEnter")
 					dstate.IsHovered = true
 				},
 				OnLeave: func(input nodes.InputState) {
-					log.Printf("rect OnLeave")
+					//log.Printf("rect OnLeave")
 					dstate.IsHovered = false
 				},
 				OnPress: func(input nodes.InputState) {
-					log.Printf("rect OnPressed")
+					//log.Printf("rect OnPressed")
 					dstate.IsPressed = true
-					dstate.Geometry.X = input.MousePos.X
-					dstate.Geometry.Y = input.MousePos.Y
+					dstate.Geometry.X = input.SceneMousePos.X - dstate.Geometry.Width/2
+					dstate.Geometry.Y = input.SceneMousePos.Y - dstate.Geometry.Height/2
 				},
 				OnRelease: func(input nodes.InputState) {
-					log.Printf("rect OnReleased")
+					//log.Printf("rect OnReleased")
 					dstate.IsPressed = false
 				},
 				OnMove: func(input nodes.InputState) {
-					log.Printf("rect OnMove %s", input.MousePos)
+					//log.Printf("rect OnMove %s", input.MousePos)
+					dstate.Geometry.X = input.SceneMousePos.X - dstate.Geometry.Width/2
+					dstate.Geometry.Y = input.SceneMousePos.Y - dstate.Geometry.Height/2
 				},
 			},
 		},

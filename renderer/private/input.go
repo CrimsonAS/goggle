@@ -69,6 +69,7 @@ func (this *InputHelper) ProcessPointerEvents(in *nodes.Input, transform sg.Mat4
 	// ### Oh boy this is not fast.. there must be a neater way, or maybe we'll just
 	// need some shortcuts for simpler transforms.
 	var garbage bool
+	state.SceneMousePos = this.MousePos
 	state.MousePos = transform.Inverted(&garbage).MulV2(this.MousePos)
 
 	// BUG: ### unsolved problems: we should also probably block propagation of hover.

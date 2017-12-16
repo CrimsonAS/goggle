@@ -7,7 +7,9 @@ type InputState struct {
 	IsGrabbed bool
 	IsPressed bool
 
-	MousePos sg.Vec2
+	// ### []sg.TouchPoint
+	MousePos      sg.Vec2
+	SceneMousePos sg.Vec2
 }
 
 // An InputNode has a size and can get input events. The current component state

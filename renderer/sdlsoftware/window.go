@@ -23,6 +23,8 @@ type Window struct {
 	frameDuration time.Duration
 	blendMode     sdl.BlendMode
 
+	id uint32
+
 	sceneRenderer SceneRenderer
 }
 
@@ -38,11 +40,7 @@ func (this *Window) FrameTime() time.Duration {
 
 // Destroy a window
 func (this *Window) Destroy() {
-	id, err := this.window.GetID()
-	if err != nil {
-		panic("No window ID!")
-	}
-	delete(this.ourRenderer.windows, id)
+	delete(this.ourRenderer.windows, this.id)
 	this.window.Destroy()
 }
 

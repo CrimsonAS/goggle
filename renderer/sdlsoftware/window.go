@@ -3,11 +3,13 @@ package sdlsoftware
 import (
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	. "github.com/CrimsonAS/goggle/renderer/private"
 	"github.com/CrimsonAS/goggle/sg"
 	"github.com/CrimsonAS/goggle/sg/nodes"
+	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/sdl"
 )
 
@@ -101,14 +103,13 @@ func (this *Window) drawRectangle(node nodes.Rectangle, transform sg.Mat4) {
 	this.sdlRenderer.FillRect(&rect)
 }
 
-/*
-func (this *Window) drawImage(node *sg.ImageNode, transform sg.Transform) {
-	geo := transform.Geometry(sg.Vec4{0, 0, node.Width, node.Height})
-	var fileTexture *sg.FileTexture
+func (this *Window) drawImage(node nodes.Image, transform sg.Mat4) {
+	geo := sg.Geometry{0, 0, node.Size.X, node.Size.Y}.TransformedBounds(transform)
+	var fileTexture nodes.FileTexture
 	var err error
 	var ok bool
 
-	if fileTexture, ok = node.Texture.(*sg.FileTexture); !ok {
+	if fileTexture, ok = node.Texture.(nodes.FileTexture); !ok {
 		panic("unknown texture")
 	}
 
@@ -117,17 +118,18 @@ func (this *Window) drawImage(node *sg.ImageNode, transform sg.Transform) {
 	}
 
 	// ### file caching
-	image, err := img.LoadTexture(this.sdlRenderer, fileTexture.Source)
+	image, err := img.LoadTexture(this.sdlRenderer, string(fileTexture))
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to load source: %s (%s)\n", fileTexture.Source, err.Error())
+		fmt.Fprintf(os.Stderr, "Failed to load source: %s (%s)\n", string(fileTexture), err.Error())
 		return
 	}
 
 	defer image.Destroy()
-	rect := sdl.Rect{int32(geo.X), int32(geo.Y), int32(geo.Z), int32(geo.W)}
+	rect := sdl.Rect{int32(geo.X), int32(geo.Y), int32(geo.Width), int32(geo.Height)}
 	this.sdlRenderer.Copy(image, nil, &rect)
 }
 
+/*
 func (this *Window) drawText(node *sg.TextNode, transform sg.Transform) {
 	geo := transform.Geometry(sg.Vec4{0, 0, node.Width, node.Height})
 
@@ -187,8 +189,8 @@ func (this *Window) drawNode(node sg.Node, transform sg.Mat4) {
 		this.drawRectangle(cnode, transform)
 	case nodes.Transform:
 	case nodes.Input:
-	//case *sg.ImageNode:
-	//	this.drawImage(node, draw.Transform)
+	case nodes.Image:
+		this.drawImage(cnode, transform)
 	//case *sg.TextNode:
 	//	this.drawText(node, draw.Transform)
 

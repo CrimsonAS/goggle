@@ -21,6 +21,7 @@ type TrippyState struct {
 	active          bool
 	scaleAnimation  *animation.FloatAnimation
 	colorAnimation  *animation.ColorAnimation
+	solidTexture    nodes.Texture
 }
 
 func TrippyRender(props components.PropType, state *components.RenderState) sg.Node {
@@ -42,6 +43,8 @@ func TrippyRender(props components.PropType, state *components.RenderState) sg.N
 		}
 		dstate.colorAnimation.Restart()
 		log.Printf("Created %+v", dstate)
+
+		dstate.solidTexture = nodes.FileTexture("solid.png")
 	}
 	dstate.scaleAnimation.Advance(state.Window.FrameTime())
 
@@ -80,24 +83,21 @@ func TrippyRender(props components.PropType, state *components.RenderState) sg.N
 				Matrix: sg.Scale2D(dstate.scaleAnimation.Get(), dstate.scaleAnimation.Get()),
 				Children: []sg.Node{
 					nodes.Rectangle{
-						Size:  sg.Vec2{100, 100},
+						Size:  sg.Vec2{200, 200},
 						Color: sg.Color{1, 0, 1, 0},
 					},
 				},
 			},
-			/*
-					sg.ScaleNode{
-						Scale: dstate.scaleAnimation.Get(),
-						Children: []sg.Node{
-							sg.ImageNode{
-								Width:  100,
-								Height: 100,
-								Texture: sg.FileTexture{
-									Source: "solid.png",
-								},
-							},
-						},
+			nodes.Transform{
+				Matrix: sg.Scale2D(dstate.scaleAnimation.Get(), dstate.scaleAnimation.Get()),
+				Children: []sg.Node{
+					nodes.Image{
+						Size:    sg.Vec2{100, 100},
+						Texture: dstate.solidTexture,
 					},
+				},
+			},
+			/*
 					sg.TextNode{
 						X:          float32(sz.X / 2 * dstate.scaleAnimation.Get()),
 						Width:      300,

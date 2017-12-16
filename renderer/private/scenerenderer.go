@@ -45,7 +45,7 @@ type shadowNode struct {
 type SceneRenderer struct {
 	Window          sg.Windowable
 	InputHelper     *InputHelper
-	DisableParallel bool
+	EnableParallel  bool
 	FullSecondPass  bool
 	resolveDrawable bool
 	resolveInputs   bool
@@ -233,7 +233,7 @@ func (r *SceneRenderer) resolveTree(shadow *shadowNode, oldShadow *shadowNode) {
 
 			shadowChildren[index] = &shadowNode{sceneNode: child, transform: parentShadow.transform}
 
-			if r.DisableParallel {
+			if !r.EnableParallel {
 				r.resolveTree(shadowChildren[index], oldChildShadow)
 			} else {
 				subtreeWg.Add(1)
@@ -245,7 +245,7 @@ func (r *SceneRenderer) resolveTree(shadow *shadowNode, oldShadow *shadowNode) {
 		}
 
 		// Wait for subtrees to resolve
-		if !r.DisableParallel {
+		if r.EnableParallel {
 			subtreeWg.Wait()
 		}
 

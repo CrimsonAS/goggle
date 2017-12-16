@@ -97,6 +97,48 @@ func TrippyRender(props components.PropType, state *components.RenderState) sg.N
 					},
 				},
 			},
+			components.Component{
+				Type: components.Repeater,
+				Props: components.RepeaterProps{
+					Model: 200,
+					New: func(index int) sg.Node {
+						findex := float32(index)
+						return nodes.Transform{
+							Matrix: sg.Translate2D(findex*dstate.scaleAnimation.Get(), findex*dstate.scaleAnimation.Get()),
+							Children: []sg.Node{
+								nodes.Rectangle{
+									Size: sg.Vec2{findex * dstate.scaleAnimation.Get(), findex * dstate.scaleAnimation.Get()},
+									Color: sg.Color{dstate.color.A(),
+										findex * dstate.color.R() * dstate.scaleAnimation.Get(),
+										findex * dstate.color.G() * dstate.scaleAnimation.Get(),
+										findex * dstate.color.B() * dstate.scaleAnimation.Get()},
+								},
+							},
+						}
+					},
+				},
+			},
+			components.Component{
+				Type: components.Repeater,
+				Props: components.RepeaterProps{
+					Model: 200,
+					New: func(index int) sg.Node {
+						findex := float32(index)
+						return nodes.Transform{
+							Matrix: sg.Translate2D(sz.X-findex*dstate.scaleAnimation.Get(), findex*dstate.scaleAnimation.Get()),
+							Children: []sg.Node{
+								nodes.Rectangle{
+									Size: sg.Vec2{findex * dstate.scaleAnimation.Get(), findex * dstate.scaleAnimation.Get()},
+									Color: sg.Color{dstate.color.A(),
+										findex * dstate.color.R() * dstate.scaleAnimation.Get(),
+										findex * dstate.color.G() * dstate.scaleAnimation.Get(),
+										findex * dstate.color.B() * dstate.scaleAnimation.Get()},
+								},
+							},
+						}
+					},
+				},
+			},
 			/*
 					sg.TextNode{
 						X:          float32(sz.X / 2 * dstate.scaleAnimation.Get()),
@@ -133,41 +175,6 @@ func TrippyRender(props components.PropType, state *components.RenderState) sg.N
 								},
 							},
 						},
-					},
-				},
-				sg.Repeater{
-					Model: 200,
-					New: func(index int) sg.Node {
-						findex := float32(index)
-						return sg.RectangleNode{
-							X:      findex * dstate.scaleAnimation.Get(),
-							Y:      findex * dstate.scaleAnimation.Get(),
-							Width:  findex * dstate.scaleAnimation.Get(),
-							Height: findex * dstate.scaleAnimation.Get(),
-							Color: sg.Color{dstate.color.A(),
-								findex * dstate.color.R() * dstate.scaleAnimation.Get(),
-								findex * dstate.color.G() * dstate.scaleAnimation.Get(),
-								findex * dstate.color.B() * dstate.scaleAnimation.Get(),
-							},
-						}
-					},
-				},
-				sg.Repeater{
-					X:     sz.X,
-					Model: 200,
-					New: func(index int) sg.Node {
-						findex := float32(index)
-						return sg.RectangleNode{
-							X:      -findex * dstate.scaleAnimation.Get(),
-							Y:      findex * dstate.scaleAnimation.Get(),
-							Width:  findex * dstate.scaleAnimation.Get(),
-							Height: findex * dstate.scaleAnimation.Get(),
-							Color: sg.Color{dstate.color.A(),
-								findex * dstate.color.R() * dstate.scaleAnimation.Get(),
-								findex * dstate.color.G() * dstate.scaleAnimation.Get(),
-								findex * dstate.color.B() * dstate.scaleAnimation.Get(),
-							},
-						}
 					},
 				},
 			*/

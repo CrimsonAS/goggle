@@ -190,6 +190,7 @@ func (r *SceneRenderer) resolveTree(shadow *shadowNode, oldShadow *shadowNode) {
 		case nodes.Rectangle:
 		case nodes.Image:
 		case nodes.Input:
+		case nodes.Text:
 		default:
 			panic(fmt.Sprintf("unknown node %T %+v", node, node))
 		}

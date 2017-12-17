@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"math/rand"
 	"os"
 	"runtime/trace"
 	"time"
@@ -139,16 +140,19 @@ func TrippyRender(props components.PropType, state *components.RenderState) sg.N
 					},
 				},
 			},
-			/*
-					sg.TextNode{
-						X:          float32(sz.X / 2 * dstate.scaleAnimation.Get()),
-						Width:      300,
-						Height:     42,
+			nodes.Transform{
+				Matrix: sg.Translate2D(sz.X/2*dstate.scaleAnimation.Get(), 0),
+				Children: []sg.Node{
+					nodes.Text{
+						Size:       sg.Vec2{300, 42},
 						Text:       "Hello, world",
 						Color:      sg.Color{rand.Float32(), rand.Float32(), rand.Float32(), rand.Float32()},
 						PixelSize:  42,
 						FontFamily: "../shared/Barlow/Barlow-Regular.ttf",
 					},
+				},
+			},
+			/*
 				sg.RectangleNode{
 					X:      10,
 					Y:      200,

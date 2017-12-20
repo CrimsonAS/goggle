@@ -144,10 +144,16 @@ func (r *SceneRenderer) drawNode(shadow *shadowNode, nodeCallback func(sg.Node, 
 	}
 }
 
-// resolveTree populates a shadowNode by recursively resolving the sceneNode it
-// represents and any resolved trees or children. When an oldShadow is also provided,
-// the new tree is correlated with the old tree to preserve node state.
-func (r *SceneRenderer) resolveTree(shadow *shadowNode, oldShadow *shadowNode) {
+// resolveNode populates a shadowNode by resolving the sceneNode it represents.
+// When an oldShadow is also provided, the new tree is correlated with the old
+// tree to preserve node state.
+//
+// resolveNode expects a shadowNode with sceneNode and transform defined,
+// and all other fields to have the default value.
+//
+// resolveNode does not populate the list of child nodes, and does not resolve
+// the rendered tree.
+func (r *SceneRenderer) resolveNode(shadow *shadowNode, oldShadow *shadowNode) {
 	node := shadow.sceneNode
 
 	// If the node's actual type is the same as the old tree, we need to preserve state.
@@ -164,40 +170,49 @@ func (r *SceneRenderer) resolveTree(shadow *shadowNode, oldShadow *shadowNode) {
 		shadow.state = oldShadow.state
 	}
 
-	if newComponent, ok := node.(components.Component); ok {
+	switch n := node.(type) {
+	case components.Component:
 		// Render node
 		state := components.RenderState{
 			Window:    r.Window,
 			NodeState: shadow.state,
 			Transform: shadow.transform,
 		}
-		renderedNode := newComponent.Type(newComponent.Props, &state)
+		renderedNode := n.Type(n.Props, &state)
 		shadow.state, shadow.transform = state.NodeState, state.Transform
 
-		// Recurse to resolve rendered tree
 		if renderedNode != nil {
 			shadow.rendered = &shadowNode{sceneNode: renderedNode, transform: shadow.transform}
-			if oldShadow != nil {
-				r.resolveTree(shadow.rendered, oldShadow.rendered)
-			} else {
-				r.resolveTree(shadow.rendered, nil)
-			}
 		}
-	} else {
-		switch n := node.(type) {
-		case nodes.Transform:
-			shadow.transform = shadow.transform.MulM4(n.Matrix)
-		case nodes.Rectangle:
-		case nodes.Image:
-		case nodes.Input:
-		case nodes.Text:
-		default:
-			panic(fmt.Sprintf("unknown node %T %+v", node, node))
+
+	case nodes.Transform:
+		shadow.transform = shadow.transform.MulM4(n.Matrix)
+
+	case nodes.Rectangle:
+	case nodes.Image:
+	case nodes.Input:
+	default:
+		panic(fmt.Sprintf("unknown node %T %+v", node, node))
+	}
+}
+
+// resolveTree recursively resolves the node in 'shadow', its rendered tree, and
+// its children. If oldShadow is provided, state will be preserved from that tree.
+func (r *SceneRenderer) resolveTree(shadow *shadowNode, oldShadow *shadowNode) {
+	// Resolve this node
+	r.resolveNode(shadow, oldShadow)
+
+	// If there is a rendered tree, recurse to resolve it first
+	if shadow.rendered != nil {
+		if oldShadow != nil {
+			r.resolveTree(shadow.rendered, oldShadow.rendered)
+		} else {
+			r.resolveTree(shadow.rendered, nil)
 		}
 	}
 
-	// Recurse to resolve children
-	if pnode, ok := node.(sg.Parentable); ok {
+	// If the node is Parentable, recursively resolve children
+	if pnode, ok := shadow.sceneNode.(sg.Parentable); ok {
 		children := pnode.GetChildren()
 		shadowChildren := make([]*shadowNode, len(children))
 		var oldShadowChildren []*shadowNode
@@ -208,6 +223,9 @@ func (r *SceneRenderer) resolveTree(shadow *shadowNode, oldShadow *shadowNode) {
 		//
 		// In this case, the oldShadow tree also needs to compare from the correct offset
 		// in the rendered node's shadowChildren.
+		//
+		// ### Refactor this into a Component-specific codepath and a generic one, so that
+		// components could be split out of this function to prevent it from growing more.
 		parentShadow, oldParentShadow := shadow, oldShadow
 		for parentShadow.rendered != nil {
 			parentShadow = parentShadow.rendered

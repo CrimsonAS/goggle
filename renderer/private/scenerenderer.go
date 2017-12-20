@@ -202,64 +202,79 @@ func (r *SceneRenderer) resolveTree(shadow *shadowNode, oldShadow *shadowNode) {
 	// Resolve this node
 	r.resolveNode(shadow, oldShadow)
 
-	// If there is a rendered tree, recurse to resolve it first
 	if shadow.rendered != nil {
+		// When there is a rendered tree (meaning, this node is a Component), any
+		// children of this node are reparented to become children of the rendered
+		// node. As of now, the rendered node hasn't been resolved yet. We'll
+		// pre-populate its shadowChildren with the reparented children, and it can
+		// pick those up during its own resolveTree pass.
+		//
+		// There's no need to handle oldShadow here; the state for these reparented
+		// nodes will be under their final parent in the old tree, and it will
+		// handle that as usual when it resolves.
+
+		// Create placeholder shadow nodes in rendered for all children
+		if pnode, ok := shadow.sceneNode.(sg.Parentable); ok {
+			children := pnode.GetChildren()
+			shadowChildren := make([]*shadowNode, len(children))
+			for index, child := range children {
+				shadowChildren[index] = &shadowNode{sceneNode: child}
+			}
+			shadow.rendered.shadowChildren = append(shadow.rendered.shadowChildren, shadowChildren...)
+		}
+
+		// There may also be nodes that were reparented to us; they are forwarded
+		// on to this rendered node as well.
+		shadow.rendered.shadowChildren = append(shadow.rendered.shadowChildren, shadow.shadowChildren...)
+		shadow.shadowChildren = nil
+
+		// Finally, recurse to resolve the rendered tree
 		if oldShadow != nil {
 			r.resolveTree(shadow.rendered, oldShadow.rendered)
 		} else {
 			r.resolveTree(shadow.rendered, nil)
 		}
-	}
-
-	// If the node is Parentable, recursively resolve children
-	if pnode, ok := shadow.sceneNode.(sg.Parentable); ok {
-		children := pnode.GetChildren()
-		shadowChildren := make([]*shadowNode, len(children))
-		var oldShadowChildren []*shadowNode
-
-		// If this is a Component, children of this node are actually under the
-		// next non-renderable node in the shadow tree, appended to any children of that
-		// node.
+	} else if pnode, ok := shadow.sceneNode.(sg.Parentable); ok {
+		// If the node is Parentable, recursively resolve all children. If there is an
+		// oldShadow, correlate the children with the old shadow tree to preserve state.
 		//
-		// In this case, the oldShadow tree also needs to compare from the correct offset
-		// in the rendered node's shadowChildren.
-		//
-		// ### Refactor this into a Component-specific codepath and a generic one, so that
-		// components could be split out of this function to prevent it from growing more.
-		parentShadow, oldParentShadow := shadow, oldShadow
-		for parentShadow.rendered != nil {
-			parentShadow = parentShadow.rendered
-			if oldParentShadow != nil {
-				oldParentShadow = oldParentShadow.rendered
-				// If the rendered nodes are not the same type, discard old state
-				if oldParentShadow != nil && reflect.TypeOf(parentShadow.sceneNode) != reflect.TypeOf(oldParentShadow.sceneNode) {
-					oldParentShadow = nil
-				}
+		// If this node was the head of a rendered tree, shadowChildren may already have
+		// placeholder entries for children that are being reparented here. These are
+		// stacked _after_ the native children of this node, but otherwise they are
+		// resolved in the same way.
+
+		// Populate shadowChildren with placeholder entries for all children
+		{
+			children := pnode.GetChildren()
+			shadowChildren := make([]*shadowNode, len(children))
+			for index, child := range children {
+				shadowChildren[index] = &shadowNode{sceneNode: child}
 			}
+			// Prepend this to anything that is already in shadowChildren
+			shadow.shadowChildren = append(shadowChildren, shadow.shadowChildren...)
 		}
 
-		prefix := len(parentShadow.shadowChildren)
-		if oldParentShadow != nil && prefix < len(oldParentShadow.shadowChildren) {
-			oldShadowChildren = oldParentShadow.shadowChildren[prefix:]
-		}
-
+		// Now iterate the full list of children, copy over any render state (like the
+		// transform), and recursively resolve their tree. If there are equivalent
+		// nodes in the oldShadow, pass them along to preserve state. They will be
+		// type-checked before use in renderNode.
 		var subtreeWg sync.WaitGroup
-		for index, child := range children {
-			var oldChildShadow *shadowNode
-			if index < len(oldShadowChildren) {
-				oldChildShadow = oldShadowChildren[index]
+		for index, shadowChild := range shadow.shadowChildren {
+			var oldShadowChild *shadowNode
+			if oldShadow != nil && len(oldShadow.shadowChildren) > index {
+				oldShadowChild = oldShadow.shadowChildren[index]
 			}
 
-			shadowChildren[index] = &shadowNode{sceneNode: child, transform: parentShadow.transform}
+			shadowChild.transform = shadow.transform
 
 			if !r.EnableParallel {
-				r.resolveTree(shadowChildren[index], oldChildShadow)
+				r.resolveTree(shadowChild, oldShadowChild)
 			} else {
 				subtreeWg.Add(1)
 				go func(c, o *shadowNode) {
 					defer subtreeWg.Done()
 					r.resolveTree(c, o)
-				}(shadowChildren[index], oldChildShadow)
+				}(shadowChild, oldShadowChild)
 			}
 		}
 
@@ -267,8 +282,5 @@ func (r *SceneRenderer) resolveTree(shadow *shadowNode, oldShadow *shadowNode) {
 		if r.EnableParallel {
 			subtreeWg.Wait()
 		}
-
-		// Store list of shadowChildren
-		parentShadow.shadowChildren = append(parentShadow.shadowChildren, shadowChildren...)
 	}
 }

@@ -11,7 +11,6 @@ import (
 	"github.com/CrimsonAS/goggle/sg/nodes"
 	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/sdl"
-	"github.com/veandco/go-sdl2/ttf"
 )
 
 type Window struct {
@@ -128,7 +127,7 @@ func (this *Window) drawImage(node nodes.Image, transform sg.Mat4) {
 	this.sdlRenderer.Copy(image, nil, &rect)
 }
 
-func (this *Window) drawText(node nodes.Text, transform sg.Mat4) {
+/*func (this *Window) drawText(node nodes.Text, transform sg.Mat4) {
 	geo := sg.Geometry{0, 0, node.Size.X, node.Size.Y}.TransformedBounds(transform)
 
 	if headlessRendering {
@@ -167,7 +166,7 @@ func (this *Window) drawText(node nodes.Text, transform sg.Mat4) {
 		}
 		this.sdlRenderer.Copy(texture, nil, &rect)
 	}
-}
+}*/
 
 func (this *Window) setBlendMode(bm sdl.BlendMode) {
 	// this is cheaper than hitting cgo
@@ -186,8 +185,8 @@ func (this *Window) drawNode(node sg.Node, transform sg.Mat4) {
 		this.drawRectangle(cnode, transform)
 	case nodes.Image:
 		this.drawImage(cnode, transform)
-	case nodes.Text:
-		this.drawText(cnode, transform)
+	/*case nodes.Text:
+	this.drawText(cnode, transform)*/
 	case nodes.Transform:
 	case nodes.Input:
 

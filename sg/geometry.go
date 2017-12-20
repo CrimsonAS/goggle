@@ -4,8 +4,21 @@ import (
 	"fmt"
 )
 
+type Size struct {
+	Width, Height float32
+}
+
+type Position struct {
+	X, Y float32
+}
+
 type Geometry struct {
 	X, Y, Width, Height float32
+}
+
+type Constraints struct {
+	MinWidth, MinHeight float32
+	MaxWidth, MaxHeight float32
 }
 
 func (g Geometry) XYWH() Vec4 {

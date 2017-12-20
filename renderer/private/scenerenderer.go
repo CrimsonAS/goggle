@@ -1,12 +1,14 @@
 package private
 
 import (
+	"fmt"
 	"log"
 	"reflect"
 	"time"
 
 	"github.com/CrimsonAS/goggle/sg"
 	"github.com/CrimsonAS/goggle/sg/components"
+	"github.com/CrimsonAS/goggle/sg/layouts"
 	"github.com/CrimsonAS/goggle/sg/nodes"
 )
 
@@ -193,6 +195,9 @@ func (r *SceneRenderer) resolveNode(shadow *shadowNode, oldShadow *shadowNode) b
 	case nodes.Image:
 	case nodes.Input:
 
+	// Box layouts are handled by the parent Box, not by resolveNode.
+	case layouts.Box:
+		return false
 	default:
 		return false
 	}
@@ -218,6 +223,15 @@ func (r *SceneRenderer) resolveTree(shadow *shadowNode, oldShadow *shadowNode) s
 		return shadowNodePairs{{shadow, oldShadow}}
 	}
 
+	return r.resolveTreeDescendants(shadow, oldShadow)
+}
+
+// resolveTreeDescendants is other half of resolveTree, building a list of children
+// and recursively calling resolveTree for rendered and child nodes. Note that it
+// recursively calls _resolveTree_, not itself. The key difference from resolveTree
+// is that this function does not attempt to resolve the parent node. This is useful
+// when re-entering the tree, like resolveBox does.
+func (r *SceneRenderer) resolveTreeDescendants(shadow, oldShadow *shadowNode) shadowNodePairs {
 	var unresolvable shadowNodePairs
 
 	if shadow.rendered != nil {
@@ -289,4 +303,68 @@ func (r *SceneRenderer) resolveTree(shadow *shadowNode, oldShadow *shadowNode) s
 	}
 
 	return unresolvable
+}
+
+// resolveBox executes a Box layout and resolves its subtrees, including any
+// child Boxes. Calling resolveBox for a root Box is sufficient to resolve the
+// entire scene.
+//
+// Returns the actual size determined by the box's layout.
+func (r *SceneRenderer) resolveBox(shadow, oldShadow *shadowNode, c sg.Constraints) sg.Size {
+	box := shadow.sceneNode.(layouts.Box)
+
+	// First, call resolveTreeDescendants for the Box. This will resolve
+	// any non-Box subtrees or intermediaries, which can be ignored for
+	// layout purposes. The unresolvable list will include any (unresolved)
+	// descendant Box nodes, which become the list of children for the layout.
+	unresolvable := r.resolveTreeDescendants(shadow, oldShadow)
+
+	// Turn that into a list of Box children, and throw away anything else
+	children := make([]layouts.BoxChild, 0, len(unresolvable))
+	for _, node := range unresolvable {
+		if _, ok := node.Current.sceneNode.(layouts.Box); ok {
+			children = append(children, renderBoxChild{r, node.Current, node.Old})
+		} else {
+			panic(fmt.Sprintf("unknown node %T %+v", node.Current.sceneNode, node.Current.sceneNode))
+		}
+	}
+
+	// Call layout function; it is responsible for resolving all child boxes
+	// if appropriate. It will also use BoxChild.SetPosition to update their
+	// position.
+	size := box.Layout(c, children, box.Props)
+
+	// Keep the layout's actual size in state for draw
+	state, _ := shadow.state.(renderBoxState)
+	state.Size = size
+	shadow.state = state
+
+	return size
+}
+
+// renderBoxState is private state kept by SceneRenderer on Box nodes
+type renderBoxState struct {
+	Pos  sg.Position
+	Size sg.Size
+}
+
+// renderBoxChild implements layouts.BoxChild for resolveBox; this exists only
+// during the layout function.
+type renderBoxChild struct {
+	r                 *SceneRenderer
+	shadow, oldShadow *shadowNode
+}
+
+var _ layouts.BoxChild = renderBoxChild{}
+
+func (rb renderBoxChild) Props() interface{} {
+	return rb.shadow.sceneNode.(layouts.Box).ParentProps
+}
+func (rb renderBoxChild) Render(c sg.Constraints) sg.Size {
+	return rb.r.resolveBox(rb.shadow, rb.oldShadow, c)
+}
+func (rb renderBoxChild) SetPosition(pos sg.Position) {
+	state, _ := rb.shadow.state.(renderBoxState)
+	state.Pos = pos
+	rb.shadow.state = state
 }

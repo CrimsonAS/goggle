@@ -1,7 +1,6 @@
 package private
 
 import (
-	"fmt"
 	"log"
 	"reflect"
 	"time"
@@ -151,7 +150,11 @@ func (r *SceneRenderer) drawNode(shadow *shadowNode, nodeCallback func(sg.Node, 
 //
 // resolveNode does not populate the list of child nodes, and does not resolve
 // the rendered tree.
-func (r *SceneRenderer) resolveNode(shadow *shadowNode, oldShadow *shadowNode) {
+//
+// Returns true if the node is resolved, or false if the node is unresolvable
+// for any reason. These may include errors, unrecognized nodes, or nodes that
+// need to be resolved in a different way (e.g. Box).
+func (r *SceneRenderer) resolveNode(shadow *shadowNode, oldShadow *shadowNode) bool {
 	node := shadow.sceneNode
 
 	// If the node's actual type is the same as the old tree, we need to preserve state.
@@ -189,16 +192,33 @@ func (r *SceneRenderer) resolveNode(shadow *shadowNode, oldShadow *shadowNode) {
 	case nodes.Rectangle:
 	case nodes.Image:
 	case nodes.Input:
+
 	default:
-		panic(fmt.Sprintf("unknown node %T %+v", node, node))
+		return false
 	}
+
+	return true
 }
+
+type shadowNodePairs []struct{ Current, Old *shadowNode }
 
 // resolveTree recursively resolves the node in 'shadow', its rendered tree, and
 // its children. If oldShadow is provided, state will be preserved from that tree.
-func (r *SceneRenderer) resolveTree(shadow *shadowNode, oldShadow *shadowNode) {
+//
+// resolveTree returns a list of nodes at any level of the tree which could not
+// be resolved. Some of these may indicate errors, but the common case is to return
+// a list of Box nodes in need of layout.
+func (r *SceneRenderer) resolveTree(shadow *shadowNode, oldShadow *shadowNode) shadowNodePairs {
 	// Resolve this node
-	r.resolveNode(shadow, oldShadow)
+	if !r.resolveNode(shadow, oldShadow) {
+		// Node is unresolvable; return it to build the list of unresolvable nodes.
+		//
+		// There is no need to keep oldShadow for this list. If there is state to
+		// preserve on this node, resolveNode has already done so.
+		return shadowNodePairs{{shadow, oldShadow}}
+	}
+
+	var unresolvable shadowNodePairs
 
 	if shadow.rendered != nil {
 		// When there is a rendered tree (meaning, this node is a Component), any
@@ -228,9 +248,9 @@ func (r *SceneRenderer) resolveTree(shadow *shadowNode, oldShadow *shadowNode) {
 
 		// Finally, recurse to resolve the rendered tree
 		if oldShadow != nil {
-			r.resolveTree(shadow.rendered, oldShadow.rendered)
+			unresolvable = r.resolveTree(shadow.rendered, oldShadow.rendered)
 		} else {
-			r.resolveTree(shadow.rendered, nil)
+			unresolvable = r.resolveTree(shadow.rendered, nil)
 		}
 	} else if pnode, ok := shadow.sceneNode.(sg.Parentable); ok {
 		// If the node is Parentable, recursively resolve all children. If there is an
@@ -264,7 +284,9 @@ func (r *SceneRenderer) resolveTree(shadow *shadowNode, oldShadow *shadowNode) {
 
 			shadowChild.transform = shadow.transform
 
-			r.resolveTree(shadowChild, oldShadowChild)
+			unresolvable = append(unresolvable, r.resolveTree(shadowChild, oldShadowChild)...)
 		}
 	}
+
+	return unresolvable
 }

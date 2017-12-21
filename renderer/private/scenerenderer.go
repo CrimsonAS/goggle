@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"reflect"
-	"sync"
 	"time"
 
 	"github.com/CrimsonAS/goggle/sg"
@@ -45,7 +44,6 @@ type shadowNode struct {
 type SceneRenderer struct {
 	Window          sg.Windowable
 	InputHelper     *InputHelper
-	EnableParallel  bool
 	FullSecondPass  bool
 	resolveDrawable bool
 	resolveInputs   bool
@@ -258,7 +256,6 @@ func (r *SceneRenderer) resolveTree(shadow *shadowNode, oldShadow *shadowNode) {
 		// transform), and recursively resolve their tree. If there are equivalent
 		// nodes in the oldShadow, pass them along to preserve state. They will be
 		// type-checked before use in renderNode.
-		var subtreeWg sync.WaitGroup
 		for index, shadowChild := range shadow.shadowChildren {
 			var oldShadowChild *shadowNode
 			if oldShadow != nil && len(oldShadow.shadowChildren) > index {
@@ -267,20 +264,7 @@ func (r *SceneRenderer) resolveTree(shadow *shadowNode, oldShadow *shadowNode) {
 
 			shadowChild.transform = shadow.transform
 
-			if !r.EnableParallel {
-				r.resolveTree(shadowChild, oldShadowChild)
-			} else {
-				subtreeWg.Add(1)
-				go func(c, o *shadowNode) {
-					defer subtreeWg.Done()
-					r.resolveTree(c, o)
-				}(shadowChild, oldShadowChild)
-			}
-		}
-
-		// Wait for subtrees to resolve
-		if r.EnableParallel {
-			subtreeWg.Wait()
+			r.resolveTree(shadowChild, oldShadowChild)
 		}
 	}
 }

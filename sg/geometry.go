@@ -2,6 +2,7 @@ package sg
 
 import (
 	"fmt"
+	"math"
 )
 
 type Size struct {
@@ -19,6 +20,15 @@ type Geometry struct {
 type Constraints struct {
 	MinWidth, MinHeight float32
 	MaxWidth, MaxHeight float32
+}
+
+func Unconstrained() Constraints {
+	return Constraints{
+		MinWidth:  0,
+		MinHeight: 0,
+		MaxWidth:  float32(math.Inf(+1)),
+		MaxHeight: float32(math.Inf(+1)),
+	}
 }
 
 func (g Geometry) XYWH() Vec4 {

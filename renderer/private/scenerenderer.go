@@ -56,6 +56,11 @@ func (r *SceneRenderer) Render(root sg.Node) {
 	var tmStart, tmPass time.Time
 	var dResolve, dEvents, dCompile time.Duration
 
+	// The root of the tree for SceneRenderer must be a Box, defining the
+	// constraints for the scene. Generally, this will be provided by the
+	// window backend when calling Render.
+	_ = root.(layouts.Box)
+
 	// Resolve tree
 	r.resolveDrawable = true
 	r.resolveInputs = true
@@ -72,7 +77,7 @@ func (r *SceneRenderer) Render(root sg.Node) {
 		log.Printf("PRE-RENDER, tree is: %+v", r.shadowRoot)
 	}
 
-	r.resolveTree(newShadowRoot, r.shadowRoot)
+	r.resolveBox(newShadowRoot, r.shadowRoot, sg.Unconstrained())
 	r.shadowRoot = newShadowRoot
 
 	if resolveDebug {

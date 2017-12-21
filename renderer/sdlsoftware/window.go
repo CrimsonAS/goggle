@@ -8,6 +8,7 @@ import (
 
 	. "github.com/CrimsonAS/goggle/renderer/private"
 	"github.com/CrimsonAS/goggle/sg"
+	"github.com/CrimsonAS/goggle/sg/layouts"
 	"github.com/CrimsonAS/goggle/sg/nodes"
 	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/sdl"
@@ -53,12 +54,25 @@ func (this *Window) Render(scene sg.Node) {
 		log.Printf("Rendering")
 	}
 
+	windowSize := this.GetSize()
+	windowConstraints := sg.Constraints{0, 0, windowSize.X, windowSize.Y}
+	windowBox := layouts.Box{
+		Layout: func(c sg.Constraints, children []layouts.BoxChild, props interface{}) sg.Size {
+			for _, child := range children {
+				child.Render(windowConstraints)
+				child.SetPosition(sg.Position{0, 0})
+			}
+			return sg.Size{windowSize.X, windowSize.Y}
+		},
+		Child: scene,
+	}
+
 	this.frameDuration = time.Since(this.endLastFrame)
 	this.endLastFrame = time.Now()
 
 	this.sdlRenderer.Clear()
 	this.sceneRenderer.DeliverEvents()
-	this.sceneRenderer.Render(scene)
+	this.sceneRenderer.Render(windowBox)
 	this.sceneRenderer.Draw(this.drawNode)
 	this.sdlRenderer.Present()
 
@@ -189,6 +203,7 @@ func (this *Window) drawNode(node sg.Node, transform sg.Mat4) {
 	this.drawText(cnode, transform)*/
 	case nodes.Transform:
 	case nodes.Input:
+	case layouts.Box:
 
 	default:
 		panic(fmt.Sprintf("unknown drawable %T %+v", node, node))

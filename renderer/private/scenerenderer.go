@@ -92,60 +92,71 @@ func (r *SceneRenderer) Render(root sg.Node) {
 	}
 }
 
+func (r *SceneRenderer) walkTree(shadow *shadowNode, backwards bool, geo sg.Geometry, callback func(*shadowNode, sg.Geometry)) {
+	if shadow == nil {
+		return
+	}
+
+	if _, ok := shadow.sceneNode.(layouts.Box); ok {
+		boxState, _ := shadow.state.(renderBoxState)
+		geo = geo.Translate(boxState.Pos.X, boxState.Pos.Y)
+		geo.Width, geo.Height = boxState.Size.Width, boxState.Size.Height
+	}
+
+	if !backwards {
+		callback(shadow, geo)
+		if shadow.rendered != nil {
+			r.walkTree(shadow.rendered, backwards, geo, callback)
+		}
+	}
+
+	for i := 0; i < len(shadow.shadowChildren); i++ {
+		var child *shadowNode
+		if backwards {
+			child = shadow.shadowChildren[len(shadow.shadowChildren)-i-1]
+		} else {
+			child = shadow.shadowChildren[i]
+		}
+		r.walkTree(child, backwards, geo, callback)
+	}
+
+	if backwards {
+		if shadow.rendered != nil {
+			r.walkTree(shadow.rendered, backwards, geo, callback)
+		}
+		callback(shadow, geo)
+	}
+}
+
 // DeliverEvents walks the rendered shadow tree in input order and
 // invokes callbacks or updates state in the tree as appropriate.
 // DeliverEvents changes state but does not re-render the tree, so
 // the shadow tree is considered dirty after calling this function.
 func (r *SceneRenderer) DeliverEvents() {
-	r.deliverEventsToTree(r.shadowRoot)
-	r.InputHelper.EndPointerEvents()
-}
-
-func (r *SceneRenderer) deliverEventsToTree(shadow *shadowNode) {
-	if shadow == nil {
-		return
-	}
-
-	// Input order is the inverse of draw order, so deliver events
-	// to children first and in reverse.
-	for i := len(shadow.shadowChildren) - 1; i >= 0; i-- {
-		r.deliverEventsToTree(shadow.shadowChildren[i])
-	}
-
-	// If there's a rendered tree, go down it next
-	if shadow.rendered != nil {
-		r.deliverEventsToTree(shadow.rendered)
-	}
-
-	// Finally, try to deliver events to this node
-	if inputNode, ok := shadow.sceneNode.(nodes.Input); ok {
-		state, _ := shadow.state.(*nodes.InputState)
-		if state == nil {
-			state = &nodes.InputState{}
-			shadow.state = state
+	r.walkTree(r.shadowRoot, true, sg.Geometry{}, func(shadow *shadowNode, geo sg.Geometry) {
+		if node, ok := shadow.sceneNode.(nodes.Input); ok {
+			state, _ := shadow.state.(*nodes.InputState)
+			if state == nil {
+				state = &nodes.InputState{}
+				shadow.state = state
+			}
+			r.InputHelper.ProcessPointerEvents(&node, shadow.transform, node.Size, state)
 		}
-		r.InputHelper.ProcessPointerEvents(&inputNode, shadow.transform, inputNode.Size, state)
-	}
+	})
+	r.InputHelper.EndPointerEvents()
 }
 
 // Draw walks the rendered shadow tree in draw order and calls the
 // nodeCallback function for each primitive node.
 func (r *SceneRenderer) Draw(nodeCallback func(sg.Node, sg.Mat4)) {
-	r.drawNode(r.shadowRoot, nodeCallback)
-}
-
-func (r *SceneRenderer) drawNode(shadow *shadowNode, nodeCallback func(sg.Node, sg.Mat4)) {
-	if shadow == nil {
-		return
-	} else if shadow.rendered != nil {
-		// Bypass this node for the callback, but move down the rendered tree
-		r.drawNode(shadow.rendered, nodeCallback)
-	} else {
-		nodeCallback(shadow.sceneNode, shadow.transform)
-		for _, child := range shadow.shadowChildren {
-			r.drawNode(child, nodeCallback)
+	r.walkTree(r.shadowRoot, false, sg.Geometry{}, func(shadow *shadowNode, geo sg.Geometry) {
+		switch node := shadow.sceneNode.(type) {
+		case nodes.Rectangle:
+			nodeCallback(node, shadow.transform)
+		case nodes.Image:
+			nodeCallback(node, shadow.transform)
 		}
-	}
+	})
 }
 
 // resolveNode populates a shadowNode by resolving the sceneNode it represents.

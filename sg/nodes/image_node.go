@@ -8,7 +8,6 @@ type Texture interface{}
 type FileTexture string
 
 type Image struct {
-	Size     sg.Vec2
 	Color    sg.Color
 	Children []sg.Node
 	Texture  Texture

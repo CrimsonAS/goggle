@@ -9,6 +9,20 @@ type Size struct {
 	Width, Height float32
 }
 
+func (s Size) Max(o Size) Size {
+	if o.Width > s.Width {
+		s.Width = o.Width
+	}
+	if o.Height > s.Height {
+		s.Height = o.Height
+	}
+	return s
+}
+
+func (s Size) IsNil() bool {
+	return s.Width == 0 && s.Width == 0
+}
+
 type Position struct {
 	X, Y float32
 }
@@ -29,6 +43,61 @@ func Unconstrained() Constraints {
 		MaxWidth:  float32(math.Inf(+1)),
 		MaxHeight: float32(math.Inf(+1)),
 	}
+}
+
+func FixedConstraint(sz Size) Constraints {
+	return Constraints{
+		MinWidth:  sz.Width,
+		MinHeight: sz.Height,
+		MaxWidth:  sz.Width,
+		MaxHeight: sz.Height,
+	}
+}
+
+func (c Constraints) BoundedConstraints(o Constraints) Constraints {
+	if o.MinWidth < c.MinWidth {
+		o.MinWidth = c.MinWidth
+	} else if o.MaxWidth > c.MaxWidth {
+		o.MaxWidth = c.MaxWidth
+	}
+
+	if o.MinHeight < c.MinHeight {
+		o.MinHeight = c.MinHeight
+	} else if o.MaxHeight > c.MaxHeight {
+		o.MaxHeight = c.MaxHeight
+	}
+
+	return o
+}
+
+func (c Constraints) BoundedSize(sz Size) Size {
+	if sz.Width < c.MinWidth {
+		sz.Width = c.MinWidth
+	} else if sz.Width > c.MaxWidth {
+		sz.Width = c.MaxWidth
+	}
+
+	if sz.Height < c.MinHeight {
+		sz.Height = c.MinHeight
+	} else if sz.Height > c.MaxHeight {
+		sz.Height = c.MaxHeight
+	}
+
+	return sz
+}
+
+// Fit the given geometry within constraints (meaning, x+width must
+// be within MaxWidth), bounding the size first if necessary.
+//
+// Really we need a much more interesting suite of these that can
+// handle alignment, etc.
+func (c Constraints) BoundedGeometrySize(geo Geometry) Geometry {
+	maxSz := Size{geo.Width, geo.Height}
+	maxSz.Width += geo.X
+	maxSz.Height += geo.Y
+	maxSz = c.BoundedSize(maxSz)
+
+	return Geometry{geo.X, geo.Y, maxSz.Width - geo.X, maxSz.Height - geo.Y}
 }
 
 func (g Geometry) XYWH() Vec4 {

@@ -148,13 +148,13 @@ func (r *SceneRenderer) DeliverEvents() {
 
 // Draw walks the rendered shadow tree in draw order and calls the
 // nodeCallback function for each primitive node.
-func (r *SceneRenderer) Draw(nodeCallback func(sg.Node, sg.Mat4)) {
+func (r *SceneRenderer) Draw(nodeCallback func(sg.Node, sg.Geometry, sg.Mat4)) {
 	r.walkTree(r.shadowRoot, false, sg.Geometry{}, func(shadow *shadowNode, geo sg.Geometry) {
 		switch node := shadow.sceneNode.(type) {
 		case nodes.Rectangle:
-			nodeCallback(node, shadow.transform)
+			nodeCallback(node, geo, shadow.transform)
 		case nodes.Image:
-			nodeCallback(node, shadow.transform)
+			nodeCallback(node, geo, shadow.transform)
 		}
 	})
 }

@@ -11,6 +11,7 @@ import (
 	"github.com/CrimsonAS/goggle/renderer/sdlsoftware"
 	"github.com/CrimsonAS/goggle/sg"
 	"github.com/CrimsonAS/goggle/sg/components"
+	"github.com/CrimsonAS/goggle/sg/layouts"
 	"github.com/CrimsonAS/goggle/sg/nodes"
 )
 
@@ -63,8 +64,41 @@ func TrippyRender(props components.PropType, state *components.RenderState) sg.N
 
 	sz := state.Window.GetSize()
 
+	// Two of these will be included in the node tree below
+	animatedRectStack := layouts.Box{
+		Layout: func(c sg.Constraints, children []layouts.BoxChild, props interface{}) sg.Size {
+			factor := props.(float32)
+			for i, child := range children {
+				v := float32(i) * factor
+				child.Render(c.BoundedConstraints(sg.FixedConstraint(sg.Size{v, v})))
+				child.SetPosition(sg.Position{v, v})
+			}
+			max := float32(len(children)-1) * factor * 2
+			return sg.Size{max, max}
+		},
+		Props: dstate.scaleAnimation.Get(),
+		Child: components.Component{
+			Type: components.Repeater,
+			Props: components.RepeaterProps{
+				Model: 200,
+				New: func(index int) sg.Node {
+					findex := float32(index)
+					return components.Component{
+						Type: components.Rectangle,
+						Props: components.RectangleProps{
+							Color: sg.Color{dstate.color.A(),
+								findex * dstate.color.R() * dstate.scaleAnimation.Get(),
+								findex * dstate.color.G() * dstate.scaleAnimation.Get(),
+								findex * dstate.color.B() * dstate.scaleAnimation.Get(),
+							},
+						},
+					}
+				},
+			},
+		},
+	}
+
 	return nodes.Rectangle{
-		Size:  sg.Vec2{sz.X, sz.Y},
 		Color: sg.Color{1, 0, 0, 0},
 		Children: []sg.Node{
 			nodes.Input{
@@ -82,61 +116,27 @@ func TrippyRender(props components.PropType, state *components.RenderState) sg.N
 			nodes.Transform{
 				Matrix: sg.Scale2D(dstate.scaleAnimation.Get(), dstate.scaleAnimation.Get()),
 				Children: []sg.Node{
-					nodes.Rectangle{
-						Size:  sg.Vec2{200, 200},
-						Color: sg.Color{1, 0, 1, 0},
+					components.Component{
+						Type: components.Rectangle,
+						Props: components.RectangleProps{
+							Size:  sg.Size{200, 200},
+							Color: sg.Color{1, 0, 1, 0},
+						},
+					},
+					layouts.Box{
+						Layout: layouts.Fixed,
+						Props:  sg.Geometry{0, 0, 100, 100},
+						Child: nodes.Image{
+							Texture: dstate.solidTexture,
+						},
 					},
 				},
 			},
+			animatedRectStack,
 			nodes.Transform{
-				Matrix: sg.Scale2D(dstate.scaleAnimation.Get(), dstate.scaleAnimation.Get()),
+				Matrix: sg.Translate2D(sz.X, 0).MulM4(sg.Scale(-1, 1, 1)),
 				Children: []sg.Node{
-					nodes.Image{
-						Size:    sg.Vec2{100, 100},
-						Texture: dstate.solidTexture,
-					},
-				},
-			},
-			components.Component{
-				Type: components.Repeater,
-				Props: components.RepeaterProps{
-					Model: 200,
-					New: func(index int) sg.Node {
-						findex := float32(index)
-						return nodes.Transform{
-							Matrix: sg.Translate2D(findex*dstate.scaleAnimation.Get(), findex*dstate.scaleAnimation.Get()),
-							Children: []sg.Node{
-								nodes.Rectangle{
-									Size: sg.Vec2{findex * dstate.scaleAnimation.Get(), findex * dstate.scaleAnimation.Get()},
-									Color: sg.Color{dstate.color.A(),
-										findex * dstate.color.R() * dstate.scaleAnimation.Get(),
-										findex * dstate.color.G() * dstate.scaleAnimation.Get(),
-										findex * dstate.color.B() * dstate.scaleAnimation.Get()},
-								},
-							},
-						}
-					},
-				},
-			},
-			components.Component{
-				Type: components.Repeater,
-				Props: components.RepeaterProps{
-					Model: 200,
-					New: func(index int) sg.Node {
-						findex := float32(index)
-						return nodes.Transform{
-							Matrix: sg.Translate2D(sz.X-findex*dstate.scaleAnimation.Get(), findex*dstate.scaleAnimation.Get()),
-							Children: []sg.Node{
-								nodes.Rectangle{
-									Size: sg.Vec2{findex * dstate.scaleAnimation.Get(), findex * dstate.scaleAnimation.Get()},
-									Color: sg.Color{dstate.color.A(),
-										findex * dstate.color.R() * dstate.scaleAnimation.Get(),
-										findex * dstate.color.G() * dstate.scaleAnimation.Get(),
-										findex * dstate.color.B() * dstate.scaleAnimation.Get()},
-								},
-							},
-						}
-					},
+					animatedRectStack,
 				},
 			},
 			/*nodes.Transform{

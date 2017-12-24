@@ -2,161 +2,40 @@ package sg
 
 import (
 	"fmt"
-	"math"
 )
 
-type Size struct {
-	Width, Height float32
-}
-
-func (s Size) Max(o Size) Size {
-	if o.Width > s.Width {
-		s.Width = o.Width
-	}
-	if o.Height > s.Height {
-		s.Height = o.Height
-	}
-	return s
-}
-
-func (s Size) IsNil() bool {
-	return s.Width == 0 && s.Width == 0
-}
-
-type Position struct {
-	X, Y float32
-}
-
+// Geometry represents a rectangle with a top-left origin position
+// and a size.
 type Geometry struct {
-	X, Y, Width, Height float32
+	Origin Position
+	Size   Size
 }
 
-type Constraints struct {
-	MinWidth, MinHeight float32
-	MaxWidth, MaxHeight float32
+func (g Geometry) BottomRight() Position {
+	return g.Origin.Translate(g.Size.ToPosition())
 }
 
-func Unconstrained() Constraints {
-	return Constraints{
-		MinWidth:  0,
-		MinHeight: 0,
-		MaxWidth:  float32(math.Inf(+1)),
-		MaxHeight: float32(math.Inf(+1)),
+func (g Geometry) SetBottomRight(p Position) Geometry {
+	return Geometry{
+		g.Origin,
+		p.Sub(g.Origin).ToSize(),
 	}
 }
 
-func FixedConstraint(sz Size) Constraints {
-	return Constraints{
-		MinWidth:  sz.Width,
-		MinHeight: sz.Height,
-		MaxWidth:  sz.Width,
-		MaxHeight: sz.Height,
-	}
-}
-
-func (c Constraints) BoundedConstraints(o Constraints) Constraints {
-	if o.MinWidth < c.MinWidth {
-		o.MinWidth = c.MinWidth
-	} else if o.MaxWidth > c.MaxWidth {
-		o.MaxWidth = c.MaxWidth
-	}
-
-	if o.MinHeight < c.MinHeight {
-		o.MinHeight = c.MinHeight
-	} else if o.MaxHeight > c.MaxHeight {
-		o.MaxHeight = c.MaxHeight
-	}
-
-	return o
-}
-
-func (c Constraints) BoundedSize(sz Size) Size {
-	if sz.Width < c.MinWidth {
-		sz.Width = c.MinWidth
-	} else if sz.Width > c.MaxWidth {
-		sz.Width = c.MaxWidth
-	}
-
-	if sz.Height < c.MinHeight {
-		sz.Height = c.MinHeight
-	} else if sz.Height > c.MaxHeight {
-		sz.Height = c.MaxHeight
-	}
-
-	return sz
-}
-
-// Fit the given geometry within constraints (meaning, x+width must
-// be within MaxWidth), bounding the size first if necessary.
-//
-// Really we need a much more interesting suite of these that can
-// handle alignment, etc.
-func (c Constraints) BoundedGeometrySize(geo Geometry) Geometry {
-	maxSz := Size{geo.Width, geo.Height}
-	maxSz.Width += geo.X
-	maxSz.Height += geo.Y
-	maxSz = c.BoundedSize(maxSz)
-
-	return Geometry{geo.X, geo.Y, maxSz.Width - geo.X, maxSz.Height - geo.Y}
-}
-
-func (g Geometry) XYWH() Vec4 {
-	return Vec4{g.X, g.Y, g.Width, g.Height}
-}
-
-func (g Geometry) XYXY() Vec4 {
-	return Vec4{g.X, g.Y, g.X + g.Width, g.X + g.Height}
-}
-
-func (g Geometry) Pos() Vec2 {
-	return Vec2{g.X, g.Y}
-}
-
-func (g Geometry) Size() Vec2 {
-	return Vec2{g.Width, g.Height}
-}
-
-func (g Geometry) Translate(x, y float32) Geometry {
-	g.X += x
-	g.Y += y
-	return g
-}
-
-func (g Geometry) ZeroOrigin() Geometry {
-	g.X, g.Y = 0, 0
-	return g
-}
-
-func (g Geometry) BottomRight() Vec2 {
-	return Vec2{g.X + g.Width, g.Y + g.Height}
-}
-
-func (g Geometry) Contains(x, y float32) bool {
-	return (x >= g.X && x <= g.X+g.Width) && (y >= g.Y && y <= g.Y+g.Height)
-}
-
-func (g Geometry) ContainsV2(point Vec2) bool {
-	return g.Contains(point.X, point.Y)
+func (g Geometry) Contains(p Position) bool {
+	bottomRight := g.BottomRight()
+	return (p.X >= g.Origin.X && p.X < bottomRight.X) &&
+		(p.Y >= g.Origin.Y && p.Y < bottomRight.Y)
 }
 
 func (g Geometry) ContainsGeometry(g2 Geometry) bool {
-	return g.ContainsV2(g2.Pos()) && g.ContainsV2(g2.BottomRight())
+	return g.Contains(g2.Origin) && g.Contains(g2.BottomRight())
 }
 
 func (g Geometry) Union(g2 Geometry) Geometry {
-	if g2.X < g.X {
-		g.X = g2.X
-	}
-	if g2.Y < g.Y {
-		g.Y = g2.Y
-	}
-	if g2.Width > g.Width {
-		g.Width = g2.Width
-	}
-	if g2.Height > g.Height {
-		g.Height = g2.Height
-	}
-	return g
+	bottomRight := g.BottomRight().Max(g2.BottomRight())
+	g.Origin = g.Origin.Min(g2.Origin)
+	return g.SetBottomRight(bottomRight)
 }
 
 // TransformedBounds returns a bounding box around this Geometry after
@@ -166,11 +45,12 @@ func (g Geometry) Union(g2 Geometry) Geometry {
 // Geometry. This function is a substitute for proper transformation only
 // with trivial (translate+scale) transforms.
 func (g Geometry) TransformedBounds(transform Mat4) Geometry {
+	bottomRight := g.BottomRight()
 	points := [4]Vec2{
-		transform.MulV2(Vec2{g.X, g.Y}),
-		transform.MulV2(Vec2{g.X + g.Width, g.Y}),
-		transform.MulV2(Vec2{g.X + g.Width, g.Y + g.Height}),
-		transform.MulV2(Vec2{g.X, g.Y + g.Height}),
+		transform.MulV2(Vec2{g.Origin.X, g.Origin.Y}),
+		transform.MulV2(Vec2{bottomRight.X, g.Origin.Y}),
+		transform.MulV2(Vec2{bottomRight.X, bottomRight.Y}),
+		transform.MulV2(Vec2{g.Origin.X, bottomRight.Y}),
 	}
 
 	tl, br := points[0], points[0]
@@ -189,9 +69,12 @@ func (g Geometry) TransformedBounds(transform Mat4) Geometry {
 		}
 	}
 
-	return Geometry{tl.X, tl.Y, br.X - tl.X, br.Y - tl.Y}
+	return Geometry{
+		Position{tl.X, tl.Y},
+		Size{br.X - tl.X, br.Y - tl.Y},
+	}
 }
 
 func (g Geometry) String() string {
-	return fmt.Sprintf("[%g,%g %gx%g]", g.X, g.Y, g.Width, g.Height)
+	return fmt.Sprintf("[%v %v]", g.Origin, g.Size)
 }

@@ -10,7 +10,7 @@ import (
 type InputHelper struct {
 	hoveredNodes    map[sg.Node]bool
 	oldHoveredNodes map[sg.Node]bool
-	MousePos        sg.Vec2
+	MousePos        sg.Position
 	ButtonUp        bool
 	ButtonDown      bool
 
@@ -22,7 +22,7 @@ func NewInputHelper() InputHelper {
 	return InputHelper{
 		hoveredNodes:    make(map[sg.Node]bool),
 		oldHoveredNodes: make(map[sg.Node]bool),
-		MousePos:        sg.Vec2{-1, -1},
+		MousePos:        sg.Position{-1, -1},
 	}
 }
 
@@ -49,28 +49,24 @@ func (this *InputHelper) ResetFrameState() {
 	this.ButtonUp = false
 }
 
-func pointInside(x, y, w, h float32, tp sg.Vec2) bool {
-	return (tp.X >= x && tp.X <= x+w) && (tp.Y >= y && tp.Y <= y+h)
-}
-
 // Process pointer events for an item.
-func (this *InputHelper) ProcessPointerEvents(in *nodes.Input, transform sg.Mat4, sz sg.Vec2, state *nodes.InputState) bool {
+func (this *InputHelper) ProcessPointerEvents(in *nodes.Input, transform sg.Mat4, sz sg.Size, state *nodes.InputState) bool {
 	// ### This is wrong for non-trivial transforms, but I don't want to mess with SDL
 	// enough to draw complex shapes for now.
-	geom := sg.Geometry{0, 0, sz.X, sz.Y}.TransformedBounds(transform)
+	geom := sg.Geometry{Size: sz}.TransformedBounds(transform)
 
 	handledEvents := false
 
 	// Copy previous state for comparison
 	oldState := *state
 
-	containsMouse := geom.ContainsV2(this.MousePos)
+	containsMouse := geom.Contains(sg.Position{this.MousePos.X, this.MousePos.Y})
 	// Calculate relative position and store in the InputState.
 	// ### Oh boy this is not fast.. there must be a neater way, or maybe we'll just
 	// need some shortcuts for simpler transforms.
 	var garbage bool
 	state.SceneMousePos = this.MousePos
-	state.MousePos = transform.Inverted(&garbage).MulV2(this.MousePos)
+	state.MousePos = sg.PositionV2(transform.Inverted(&garbage).MulV2(this.MousePos.Vec2()))
 
 	// BUG: ### unsolved problems: we should also probably block propagation of hover.
 	// We could have a return code to block hover propagating further down the tree,

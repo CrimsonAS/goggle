@@ -29,9 +29,9 @@ type Window struct {
 	sceneRenderer SceneRenderer
 }
 
-func (this *Window) GetSize() sg.Vec2 {
+func (this *Window) GetSize() sg.Size {
 	ww, hh := this.window.GetSize()
-	return sg.Vec2{float32(ww), float32(hh)}
+	return sg.Size{float32(ww), float32(hh)}
 }
 
 // Returns the time between frames. Used to advance animations.
@@ -55,14 +55,14 @@ func (this *Window) Render(scene sg.Node) {
 	}
 
 	windowSize := this.GetSize()
-	windowConstraints := sg.Constraints{0, 0, windowSize.X, windowSize.Y}
+	windowConstraints := sg.Constraints{Max: windowSize}
 	windowBox := layouts.Box{
 		Layout: func(c sg.Constraints, children []layouts.BoxChild, props interface{}) sg.Size {
 			for _, child := range children {
 				child.Render(windowConstraints)
 				child.SetPosition(sg.Position{0, 0})
 			}
-			return sg.Size{windowSize.X, windowSize.Y}
+			return windowSize
 		},
 		Child: scene,
 	}
@@ -94,6 +94,15 @@ func (this *Window) Render(scene sg.Node) {
 	this.inputHelper.ResetFrameState()
 }
 
+func sdlGeometry(geo sg.Geometry) sdl.Rect {
+	return sdl.Rect{
+		int32(geo.Origin.X),
+		int32(geo.Origin.Y),
+		int32(geo.Size.Width),
+		int32(geo.Size.Height),
+	}
+}
+
 func (this *Window) drawRectangle(node nodes.Rectangle, geo sg.Geometry, transform sg.Mat4) {
 	// ### This is wrong for non-trivial transforms, but I don't want to mess with SDL
 	// enough to draw complex shapes for now.
@@ -101,9 +110,9 @@ func (this *Window) drawRectangle(node nodes.Rectangle, geo sg.Geometry, transfo
 	if headlessRendering {
 		return
 	}
-	rect := sdl.Rect{int32(geo.X), int32(geo.Y), int32(geo.Width), int32(geo.Height)}
+	rect := sdlGeometry(geo)
 	if renderDebug {
-		log.Printf("Filling rect xy %gx%g wh %gx%g with color %v", geo.X, geo.Y, geo.Width, geo.Height, node.Color)
+		log.Printf("Filling rect %v with color %v", geo, node.Color)
 	}
 	// argb -> rgba
 	this.sdlRenderer.SetDrawColor(uint8(255.0*node.Color.Y), uint8(255.0*node.Color.Z), uint8(255.0*node.Color.W), uint8(255.0*node.Color.X))
@@ -137,7 +146,7 @@ func (this *Window) drawImage(node nodes.Image, geo sg.Geometry, transform sg.Ma
 	}
 
 	defer image.Destroy()
-	rect := sdl.Rect{int32(geo.X), int32(geo.Y), int32(geo.Width), int32(geo.Height)}
+	rect := sdlGeometry(geo)
 	this.sdlRenderer.Copy(image, nil, &rect)
 }
 

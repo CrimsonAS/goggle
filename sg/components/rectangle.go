@@ -15,7 +15,7 @@ func Rectangle(cprops PropType, state *RenderState) sg.Node {
 
 	return layouts.Box{
 		Layout: layoutType,
-		Props:  sg.Geometry{0, 0, rp.Size.Width, rp.Size.Height},
+		Props:  sg.Geometry{Size: rp.Size},
 		Child: nodes.Rectangle{
 			Color: rp.Color,
 		},

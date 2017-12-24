@@ -9,15 +9,15 @@ import (
 )
 
 func RowLayout(c sg.Constraints, children []layouts.BoxChild, props interface{}) sg.Size {
-	remainingWidth := c.MaxWidth
+	remainingWidth := c.Max.Width
 	var x, maxChildY float32
 
 	for i, child := range children {
 		childConstraint := sg.Constraints{
-			MinWidth:  0,
-			MaxWidth:  remainingWidth / float32(len(children)-i),
-			MinHeight: 0,
-			MaxHeight: c.MaxHeight,
+			Max: sg.Size{
+				Width:  remainingWidth / float32(len(children)-i),
+				Height: c.Max.Height,
+			},
 		}
 		childSize := child.Render(childConstraint)
 		remainingWidth -= childSize.Width

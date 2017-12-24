@@ -98,9 +98,11 @@ func (r *SceneRenderer) walkTree(shadow *shadowNode, backwards bool, geo sg.Geom
 	}
 
 	if _, ok := shadow.sceneNode.(layouts.Box); ok {
-		boxState, _ := shadow.state.(renderBoxState)
-		geo = geo.Translate(boxState.Pos.X, boxState.Pos.Y)
-		geo.Width, geo.Height = boxState.Size.Width, boxState.Size.Height
+		boxGeometry, _ := shadow.state.(sg.Geometry)
+		geo = sg.Geometry{
+			Origin: geo.Origin.Translate(boxGeometry.Origin),
+			Size:   boxGeometry.Size,
+		}
 	}
 
 	if !backwards {
@@ -351,17 +353,11 @@ func (r *SceneRenderer) resolveBox(shadow, oldShadow *shadowNode, c sg.Constrain
 	size := box.Layout(c, children, box.Props)
 
 	// Keep the layout's actual size in state for draw
-	state, _ := shadow.state.(renderBoxState)
-	state.Size = size
-	shadow.state = state
+	geometry, _ := shadow.state.(sg.Geometry)
+	geometry.Size = size
+	shadow.state = geometry
 
 	return size
-}
-
-// renderBoxState is private state kept by SceneRenderer on Box nodes
-type renderBoxState struct {
-	Pos  sg.Position
-	Size sg.Size
 }
 
 // renderBoxChild implements layouts.BoxChild for resolveBox; this exists only
@@ -380,7 +376,7 @@ func (rb renderBoxChild) Render(c sg.Constraints) sg.Size {
 	return rb.r.resolveBox(rb.shadow, rb.oldShadow, c)
 }
 func (rb renderBoxChild) SetPosition(pos sg.Position) {
-	state, _ := rb.shadow.state.(renderBoxState)
-	state.Pos = pos
-	rb.shadow.state = state
+	geometry, _ := rb.shadow.state.(sg.Geometry)
+	geometry.Origin = pos
+	rb.shadow.state = geometry
 }

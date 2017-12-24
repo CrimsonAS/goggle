@@ -125,7 +125,7 @@ func TrippyRender(props components.PropType, state *components.RenderState) sg.N
 					},
 					layouts.Box{
 						Layout: layouts.Fixed,
-						Props:  sg.Geometry{0, 0, 100, 100},
+						Props:  sg.Geometry{Size: sg.Size{100, 100}},
 						Child: nodes.Image{
 							Texture: dstate.solidTexture,
 						},
@@ -134,7 +134,7 @@ func TrippyRender(props components.PropType, state *components.RenderState) sg.N
 			},
 			animatedRectStack,
 			nodes.Transform{
-				Matrix: sg.Translate2D(sz.X, 0).MulM4(sg.Scale(-1, 1, 1)),
+				Matrix: sg.Translate2D(sz.Width, 0).MulM4(sg.Scale(-1, 1, 1)),
 				Children: []sg.Node{
 					animatedRectStack,
 				},

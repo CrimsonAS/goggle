@@ -8,14 +8,14 @@ type InputState struct {
 	IsPressed bool
 
 	// ### []sg.TouchPoint
-	MousePos      sg.Vec2
-	SceneMousePos sg.Vec2
+	MousePos      sg.Position
+	SceneMousePos sg.Position
 }
 
 // An InputNode has a size and can get input events. The current component state
 // is passed in to the InputNode.
 type Input struct {
-	Size     sg.Vec2
+	Size     sg.Size
 	Children []sg.Node
 
 	OnEnter   func(state InputState)

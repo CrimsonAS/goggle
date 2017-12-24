@@ -6,6 +6,10 @@ type Size struct {
 	Width, Height float32
 }
 
+func SizeV2(v Vec2) Size {
+	return Size{v.X, v.Y}
+}
+
 func (s Size) Min(o Size) Size {
 	if o.Width < s.Width {
 		s.Width = o.Width

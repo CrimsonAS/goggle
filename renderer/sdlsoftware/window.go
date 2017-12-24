@@ -103,10 +103,10 @@ func sdlGeometry(geo sg.Geometry) sdl.Rect {
 	}
 }
 
-func (this *Window) drawRectangle(node nodes.Rectangle, geo sg.Geometry, transform sg.Mat4) {
+func (this *Window) drawRectangle(node nodes.Rectangle, transform sg.Mat4, size sg.Size) {
 	// ### This is wrong for non-trivial transforms, but I don't want to mess with SDL
 	// enough to draw complex shapes for now.
-	geo = geo.TransformedBounds(transform)
+	geo := sg.Geometry{Size: size}.TransformedBounds(transform)
 	if headlessRendering {
 		return
 	}
@@ -124,8 +124,8 @@ func (this *Window) drawRectangle(node nodes.Rectangle, geo sg.Geometry, transfo
 	this.sdlRenderer.FillRect(&rect)
 }
 
-func (this *Window) drawImage(node nodes.Image, geo sg.Geometry, transform sg.Mat4) {
-	geo = geo.TransformedBounds(transform)
+func (this *Window) drawImage(node nodes.Image, transform sg.Mat4, size sg.Size) {
+	geo := sg.Geometry{Size: size}.TransformedBounds(transform)
 	var fileTexture nodes.FileTexture
 	var err error
 	var ok bool
@@ -199,20 +199,17 @@ func (this *Window) setBlendMode(bm sdl.BlendMode) {
 	}
 }
 
-func (this *Window) drawNode(node sg.Node, geometry sg.Geometry, transform sg.Mat4) {
+func (this *Window) drawNode(node sg.Node, transform sg.Mat4, size sg.Size) {
 	if renderDebug {
-		log.Printf("drawing node %s at %v: %+v transform:[%+v]", sg.NodeName(node), geometry, node, transform)
+		log.Printf("drawing node %s at %v: %+v transform:[%+v]", sg.NodeName(node), size, node, transform)
 	}
 	switch cnode := node.(type) {
 	case nodes.Rectangle:
-		this.drawRectangle(cnode, geometry, transform)
+		this.drawRectangle(cnode, transform, size)
 	case nodes.Image:
-		this.drawImage(cnode, geometry, transform)
+		this.drawImage(cnode, transform, size)
 	/*case nodes.Text:
 	this.drawText(cnode, transform)*/
-	case nodes.Transform:
-	case nodes.Input:
-	case layouts.Box:
 
 	default:
 		panic(fmt.Sprintf("unknown drawable %T %+v", node, node))

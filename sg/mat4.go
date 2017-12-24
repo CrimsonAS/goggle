@@ -47,6 +47,18 @@ func NewMat4(
 	}
 }
 
+func (m Mat4) IsNil() bool {
+	if m.Type != IdentityType {
+		return false
+	}
+	for _, v := range m.M {
+		if v != 0 {
+			return false
+		}
+	}
+	return true
+}
+
 func (this Mat4) Equals(other Mat4) bool {
 	for i, v := range this.M {
 		if v != other.M[i] {

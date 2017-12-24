@@ -13,6 +13,19 @@ type Box struct {
 	Children []sg.Node
 	// Child is a convenient alternative to Children for boxes with only one child
 	Child sg.Node
+
+	// Transform is a transformation matrix applied for this box and all of its children.
+	// It could be moved to dynamically determine from Layout at some point, but for now
+	// this seems fine.
+	//
+	// It's critical that transforms are part of Box to preserve the mandate that Box is
+	// the only source of geometry in the tree; otherwise, it becomes complex to track
+	// changes to transforms in the descendant tree of a box to appropriately transform
+	// positions and sizes.
+	//
+	// As a special case, zero-value transforms will be ignored. It is not necessary to
+	// initialize Transform to an identity matrix when not applying transformations.
+	Transform sg.Mat4
 }
 
 // BoxChild is used as a parameter to BoxFunc.

@@ -4,6 +4,16 @@ import (
 	"github.com/CrimsonAS/goggle/sg"
 )
 
+func None(c sg.Constraints, children []BoxChild, props interface{}) sg.Size {
+	var maxChildSize sg.Size
+	for _, child := range children {
+		childSize := child.Render(c)
+		maxChildSize = maxChildSize.Max(childSize)
+		child.SetPosition(sg.Position{})
+	}
+	return maxChildSize
+}
+
 func Fixed(c sg.Constraints, children []BoxChild, props interface{}) sg.Size {
 	geo := c.BoundedGeometrySize(props.(sg.Geometry))
 	for _, child := range children {

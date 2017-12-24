@@ -18,10 +18,7 @@ func Repeater(cprops PropType, state *RenderState) sg.Node {
 		dstate.childs = append(dstate.childs, rp.New(i))
 	}
 
-	return nodes.Transform{
-		Matrix:   sg.Translate2D(0, 0),
-		Children: dstate.childs,
-	}
+	return nodes.Parent{Children: dstate.childs}
 }
 
 type FactoryFunction func(index int) sg.Node

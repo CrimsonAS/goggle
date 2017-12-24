@@ -113,8 +113,9 @@ func TrippyRender(props components.PropType, state *components.RenderState) sg.N
 				},
 			},
 
-			nodes.Transform{
-				Matrix: sg.Scale2D(dstate.scaleAnimation.Get(), dstate.scaleAnimation.Get()),
+			layouts.Box{
+				Layout:    layouts.None,
+				Transform: sg.Scale2D(dstate.scaleAnimation.Get(), dstate.scaleAnimation.Get()),
 				Children: []sg.Node{
 					components.Component{
 						Type: components.Rectangle,
@@ -133,14 +134,14 @@ func TrippyRender(props components.PropType, state *components.RenderState) sg.N
 				},
 			},
 			animatedRectStack,
-			nodes.Transform{
-				Matrix: sg.Translate2D(sz.Width, 0).MulM4(sg.Scale(-1, 1, 1)),
-				Children: []sg.Node{
-					animatedRectStack,
-				},
+			layouts.Box{
+				Layout:    layouts.None,
+				Transform: sg.Translate2D(sz.Width, 0).MulM4(sg.Scale(-1, 1, 1)),
+				Child:     animatedRectStack,
 			},
-			/*nodes.Transform{
-				Matrix: sg.Translate2D(sz.X/2*dstate.scaleAnimation.Get(), 0),
+			/*layouts.Box{
+				Layout: layouts.None,
+				Transform: sg.Translate2D(sz.X/2*dstate.scaleAnimation.Get(), 0),
 				Children: []sg.Node{
 					nodes.Text{
 						Size:       sg.Vec2{300, 42},

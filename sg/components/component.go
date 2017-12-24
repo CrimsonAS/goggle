@@ -14,7 +14,6 @@ type PropType interface{}
 type RenderState struct {
 	Window    sg.Windowable
 	NodeState StateType
-	Transform sg.Mat4
 }
 
 type Component struct {

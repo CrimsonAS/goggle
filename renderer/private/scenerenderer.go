@@ -28,8 +28,6 @@ type shadowNode struct {
 	shadowChildren []*shadowNode
 	// Persisted state for the node
 	state components.StateType
-	// Accumulated transform for this node
-	transform sg.Mat4
 }
 
 type SceneRenderer struct {
@@ -59,7 +57,7 @@ func (r *SceneRenderer) Render(root sg.Node) {
 		tmPass = tmStart
 		log.Printf("scene: (1/3) resolving tree")
 	}
-	newShadowRoot := &shadowNode{sceneNode: root, transform: sg.NewIdentity()}
+	newShadowRoot := &shadowNode{sceneNode: root}
 
 	const resolveDebug = false // extremely noisy
 
@@ -174,8 +172,8 @@ func (r *SceneRenderer) Draw(nodeCallback func(sg.Node, sg.Mat4, sg.Size)) {
 // When an oldShadow is also provided, the new tree is correlated with the old
 // tree to preserve node state.
 //
-// resolveNode expects a shadowNode with sceneNode and transform defined,
-// and all other fields to have the default value.
+// resolveNode expects a shadowNode with sceneNode defined, and all other fields
+// to have the default value.
 //
 // resolveNode does not populate the list of child nodes, and does not resolve
 // the rendered tree.
@@ -206,13 +204,12 @@ func (r *SceneRenderer) resolveNode(shadow *shadowNode, oldShadow *shadowNode) b
 		state := components.RenderState{
 			Window:    r.Window,
 			NodeState: shadow.state,
-			Transform: shadow.transform,
 		}
 		renderedNode := n.Type(n.Props, &state)
-		shadow.state, shadow.transform = state.NodeState, state.Transform
+		shadow.state = state.NodeState
 
 		if renderedNode != nil {
-			shadow.rendered = &shadowNode{sceneNode: renderedNode, transform: shadow.transform}
+			shadow.rendered = &shadowNode{sceneNode: renderedNode}
 		}
 
 	case nodes.Parent:
@@ -311,17 +308,14 @@ func (r *SceneRenderer) resolveTreeDescendants(shadow, oldShadow *shadowNode) sh
 			shadow.shadowChildren = append(shadowChildren, shadow.shadowChildren...)
 		}
 
-		// Now iterate the full list of children, copy over any render state (like the
-		// transform), and recursively resolve their tree. If there are equivalent
-		// nodes in the oldShadow, pass them along to preserve state. They will be
-		// type-checked before use in renderNode.
+		// Now iterate the full list of children, and recursively resolve their tree.
+		// If there are equivalent nodes in the oldShadow, pass them along to preserve
+		// state. They will be type-checked before use in renderNode.
 		for index, shadowChild := range shadow.shadowChildren {
 			var oldShadowChild *shadowNode
 			if oldShadow != nil && len(oldShadow.shadowChildren) > index {
 				oldShadowChild = oldShadow.shadowChildren[index]
 			}
-
-			shadowChild.transform = shadow.transform
 
 			unresolvable = append(unresolvable, r.resolveTree(shadowChild, oldShadowChild)...)
 		}
@@ -337,10 +331,6 @@ func (r *SceneRenderer) resolveTreeDescendants(shadow, oldShadow *shadowNode) sh
 // Returns the actual size determined by the box's layout.
 func (r *SceneRenderer) resolveBox(shadow, oldShadow *shadowNode, c sg.Constraints) sg.Size {
 	box := shadow.sceneNode.(layouts.Box)
-
-	if !box.Transform.IsNil() {
-		shadow.transform = shadow.transform.MulM4(box.Transform)
-	}
 
 	// First, call resolveTreeDescendants for the Box. This will resolve
 	// any non-Box subtrees or intermediaries, which can be ignored for

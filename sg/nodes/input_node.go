@@ -15,7 +15,6 @@ type InputState struct {
 // An InputNode has a size and can get input events. The current component state
 // is passed in to the InputNode.
 type Input struct {
-	Size     sg.Size
 	Children []sg.Node
 
 	OnEnter   func(state InputState)

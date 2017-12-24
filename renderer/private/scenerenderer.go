@@ -143,8 +143,7 @@ func (r *SceneRenderer) DeliverEvents() {
 					state = &nodes.InputState{}
 					shadow.state = state
 				}
-				// ### Input still has its own size, not using box size..
-				r.InputHelper.ProcessPointerEvents(&node, transform, node.Size, state)
+				r.InputHelper.ProcessPointerEvents(&node, transform, size, state)
 			}
 		},
 	})

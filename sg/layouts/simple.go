@@ -11,7 +11,11 @@ func None(c sg.Constraints, children []BoxChild, props interface{}) sg.Size {
 		maxChildSize = maxChildSize.Max(childSize)
 		child.SetPosition(sg.Position{})
 	}
-	return maxChildSize
+	if len(children) > 0 {
+		return maxChildSize
+	} else {
+		return c.Max
+	}
 }
 
 func Fixed(c sg.Constraints, children []BoxChild, props interface{}) sg.Size {

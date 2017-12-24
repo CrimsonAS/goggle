@@ -9,6 +9,7 @@ import (
 
 	"github.com/CrimsonAS/goggle/sg"
 	"github.com/CrimsonAS/goggle/sg/components"
+	"github.com/CrimsonAS/goggle/sg/layouts"
 	"github.com/CrimsonAS/goggle/sg/nodes"
 )
 
@@ -34,7 +35,6 @@ var localRand *rand.Rand = rand.New(rand.NewSource(1234))
 
 func ManyRectRender(props components.PropType, state *components.RenderState) sg.Node {
 	//func (this *MainWindow) Render(w sg.Windowable) sg.Node {
-	sz := state.Window.GetSize()
 	frameTime := state.Window.FrameTime()
 
 	const childSize = 200
@@ -51,12 +51,11 @@ func ManyRectRender(props components.PropType, state *components.RenderState) sg
 		}
 		if method1 {
 			for i := 0; i < addNodes; i++ {
-				manyRectChildren = append(manyRectChildren, nodes.Transform{
-					Matrix: sg.Translate2D(0, 0),
-					Children: []sg.Node{
-						nodes.Rectangle{Size: sg.Vec2{childSize, childSize}, Color: sg.Color{1, 1, 1, 0}},
-					},
-				})
+				manyRectChildren = append(manyRectChildren,
+					components.Component{
+						Type:  components.Rectangle,
+						Props: components.RectangleProps{Color: sg.Color{1, 1, 1, 0}},
+					})
 			}
 		} else {
 			howManyRectChildren += addNodes
@@ -78,30 +77,29 @@ func ManyRectRender(props components.PropType, state *components.RenderState) sg
 	if !method1 {
 		childs := []sg.Node{}
 		for i := 0; i < howManyRectChildren; i++ {
-			childs = append(manyRectChildren, nodes.Transform{
-				Matrix: sg.Translate2D(0, 0),
-				Children: []sg.Node{
-					nodes.Rectangle{Size: sg.Vec2{childSize, childSize}, Color: sg.Color{1, 1, 1, 0}},
-				},
-			})
+			childs = append(manyRectChildren,
+				components.Component{
+					Type:  components.Rectangle,
+					Props: components.RectangleProps{Color: sg.Color{1, 1, 1, 0}},
+				})
 		}
 		manyRectChildren = childs
 	}
 
+	// Randomize colors of all children
 	for idx, child := range manyRectChildren {
-		tchild := child.(nodes.Transform)
-		//tchild.Matrix = sg.Translate2D(float32(idx), float32(idx))
-		tchild.Matrix = sg.Translate2D(localRand.Float32()*(sz.X-childSize), localRand.Float32()*(sz.Y-childSize))
+		tchild := child.(components.Component)
+		rprops := tchild.Props.(components.RectangleProps)
 
-		rchild := tchild.Children[0].(nodes.Rectangle)
 		const blend = false
 		if blend {
-			rchild.Color.X = localRand.Float32()
+			rprops.Color.X = localRand.Float32()
 		}
-		rchild.Color.Y = localRand.Float32()
-		rchild.Color.Z = localRand.Float32()
-		rchild.Color.W = localRand.Float32()
-		tchild.Children[0] = rchild
+		rprops.Color.Y = localRand.Float32()
+		rprops.Color.Z = localRand.Float32()
+		rprops.Color.W = localRand.Float32()
+
+		tchild.Props = rprops
 		manyRectChildren[idx] = tchild
 	}
 
@@ -120,9 +118,23 @@ func ManyRectRender(props components.PropType, state *components.RenderState) sg
 		}
 	}
 	ret := nodes.Rectangle{
-		Color:    sg.Color{1, 0, 1, 0},
-		Size:     sz,
-		Children: manyRectChildren,
+		Color: sg.Color{1, 0, 1, 0},
+		Children: []sg.Node{
+			layouts.Box{
+				Layout: func(c sg.Constraints, children []layouts.BoxChild, props interface{}) sg.Size {
+					// All children have a fixed size and a randomized position
+					for _, child := range children {
+						child.Render(sg.FixedConstraint(sg.Size{childSize, childSize}))
+						child.SetPosition(sg.Position{
+							localRand.Float32() * (c.Max.Width - childSize),
+							localRand.Float32() * (c.Max.Height - childSize),
+						})
+					}
+					return c.Max
+				},
+				Children: manyRectChildren,
+			},
+		},
 		/*[]sg.Node{
 		&sg.RectangleNode{ // just a way to get an extra child.. no actual scaling..
 			Children: manyRectChildren,

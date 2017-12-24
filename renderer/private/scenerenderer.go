@@ -392,6 +392,16 @@ func (rb renderBoxChild) Render(c sg.Constraints) sg.Size {
 		}
 	}
 
+	// ### Layouts are allowed to Render a child more than once, in case they need to
+	// change constraints. Shadow should be cleaned up before doing that -- rendering
+	// the same dirty shadow node more than once leads to unspecified chaos.
+	//
+	// Unfortunately, that isn't as simple as wiping out this shadowNode, because of
+	// one critical edge case: if the child Box's parent is a Component, there could
+	// be reparented children in the shadowNode before the first render. Those
+	// reparented children are also modified by this render, so we actually need an
+	// unmodified copy of their original state to proceed.
+
 	size := rb.r.resolveBox(rb.shadow, rb.oldShadow, c)
 	if hasTransform {
 		// Transform the size before returning to the parent layout. More specifically,

@@ -30,6 +30,10 @@ func (s Size) Max(o Size) Size {
 	return s
 }
 
+func (s Size) Div(f float32) Size {
+	return Size{s.Width / f, s.Height / f}
+}
+
 func (s Size) IsNil() bool {
 	return s.Width == 0 && s.Width == 0
 }

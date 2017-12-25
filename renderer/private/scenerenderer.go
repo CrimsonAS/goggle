@@ -413,6 +413,11 @@ func (rb renderBoxChild) Render(c sg.Constraints) sg.Size {
 	return size
 }
 
+func (rb renderBoxChild) Geometry() sg.Geometry {
+	geometry, _ := rb.shadow.state.(sg.Geometry)
+	return geometry
+}
+
 func (rb renderBoxChild) SetPosition(pos sg.Position) {
 	geometry, _ := rb.shadow.state.(sg.Geometry)
 	geometry.Origin = pos

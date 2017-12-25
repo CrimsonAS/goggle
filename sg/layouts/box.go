@@ -46,6 +46,11 @@ type BoxChild interface {
 	// child boxes; it is a way to make them temporarily not exist. If a Box is not rendered
 	// in a scene, state will be lost for that tree.
 	Render(c sg.Constraints) sg.Size
+	// Geometry returns the child's geometry, as determined by prior calls to Render and
+	// SetPosition. The origin and size are undefined if Render or SetPosition hasn't been
+	// called, respectively. This is provided as a convenience for layouts that need to refer
+	// to child geometry for multiple passes.
+	Geometry() sg.Geometry
 	// SetPosition sets the top-left position of the child box in relative coordinates.
 	SetPosition(pos sg.Position)
 }

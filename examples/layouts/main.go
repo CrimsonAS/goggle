@@ -36,19 +36,33 @@ func LayoutWindow(props components.PropType, state *components.RenderState) sg.N
 		Color: sg.Color{1, 0, 0, 1},
 		Children: []sg.Node{
 			layouts.Box{
-				Layout: RowLayout,
+				Layout: layouts.Flex,
+				Props: layouts.FlexLayoutProps{
+					Direction: layouts.FlexRow,
+				},
 				Children: []sg.Node{
 					layouts.Box{
 						Layout: layouts.Fill,
+						ParentProps: layouts.FlexChildProps{
+							Basis:  layouts.PixelUnit(400),
+							Grow:   2,
+							Shrink: 1,
+						},
 						Child: nodes.Rectangle{
 							Color: sg.Color{1, 1, 1, 0},
 						},
 					},
-					components.Component{
-						Type: components.Rectangle,
-						Props: components.RectangleProps{
-							Color: sg.Color{1, 0.5, 0.5, 0},
-							Size:  sg.Size{200, 200},
+					layouts.Box{
+						Layout: layouts.None,
+						ParentProps: layouts.FlexChildProps{
+							Basis: layouts.PixelUnit(200),
+						},
+						Child: components.Component{
+							Type: components.Rectangle,
+							Props: components.RectangleProps{
+								Color: sg.Color{1, 0.5, 0.5, 0},
+								Size:  sg.Size{200, 200},
+							},
 						},
 					},
 				},

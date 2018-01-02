@@ -45,6 +45,15 @@ func (this *Window) Destroy() {
 	this.window.Destroy()
 }
 
+func (this *Window) CreateSDLTexture(w, h float32, alpha bool) (*sdl.Texture, error) {
+	fmt := sdl.PIXELFORMAT_RGBX8888
+	if alpha {
+		fmt = sdl.PIXELFORMAT_RGBA8888
+	}
+
+	return this.sdlRenderer.CreateTexture(uint32(fmt), sdl.TEXTUREACCESS_STATIC, int32(w), int32(h))
+}
+
 const renderDebug = false       // this is expensive..
 const headlessRendering = false // turn off all rendering (for use in benchmarking algorithms w/o SDL intereference)
 
@@ -126,28 +135,35 @@ func (this *Window) drawRectangle(node nodes.Rectangle, transform sg.Mat4, size 
 
 func (this *Window) drawImage(node nodes.Image, transform sg.Mat4, size sg.Size) {
 	geo := sg.Geometry{Size: size}.TransformedBounds(transform)
-	var fileTexture nodes.FileTexture
-	var err error
-	var ok bool
+	var texture *sdl.Texture
 
-	if fileTexture, ok = node.Texture.(nodes.FileTexture); !ok {
-		panic("unknown texture")
+	if renderDebug {
+		log.Printf("Drawing image from %T at %v", node.Texture, geo)
 	}
 
 	if headlessRendering {
 		return
 	}
 
-	// ### file caching
-	image, err := img.LoadTexture(this.sdlRenderer, string(fileTexture))
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to load source: %s (%s)\n", string(fileTexture), err.Error())
-		return
+	switch t := node.Texture.(type) {
+	case nodes.FileTexture:
+		image, err := img.LoadTexture(this.sdlRenderer, string(t))
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to load source: %s (%s)\n", string(t), err.Error())
+			return
+		}
+		defer image.Destroy()
+		texture = image
+
+	case *sdl.Texture:
+		texture = t
+
+	default:
+		panic("unknown texture")
 	}
 
-	defer image.Destroy()
 	rect := sdlGeometry(geo)
-	this.sdlRenderer.Copy(image, nil, &rect)
+	this.sdlRenderer.Copy(texture, nil, &rect)
 }
 
 /*func (this *Window) drawText(node nodes.Text, transform sg.Mat4) {

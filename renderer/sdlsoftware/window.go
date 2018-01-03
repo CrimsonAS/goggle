@@ -12,6 +12,7 @@ import (
 	"github.com/CrimsonAS/goggle/sg/nodes"
 	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/sdl"
+	"github.com/veandco/go-sdl2/ttf"
 )
 
 type Window struct {
@@ -166,8 +167,8 @@ func (this *Window) drawImage(node nodes.Image, transform sg.Mat4, size sg.Size)
 	this.sdlRenderer.Copy(texture, nil, &rect)
 }
 
-/*func (this *Window) drawText(node nodes.Text, transform sg.Mat4) {
-	geo := sg.Geometry{0, 0, node.Size.X, node.Size.Y}.TransformedBounds(transform)
+func (this *Window) drawText(node nodes.Text, transform sg.Mat4, size sg.Size) {
+	geo := sg.Geometry{Size: size}.TransformedBounds(transform)
 
 	if headlessRendering {
 		return
@@ -197,7 +198,7 @@ func (this *Window) drawImage(node nodes.Image, transform sg.Mat4, size sg.Size)
 		fmt.Fprint(os.Stderr, "Failed to get texture for text: %s\n", err)
 	} else {
 		defer texture.Destroy()
-		rect := sdl.Rect{int32(geo.X), int32(geo.Y), int32(geo.Width), int32(geo.Height)}
+		rect := sdlGeometry(geo)
 		if node.Color.X == 1 {
 			this.setBlendMode(sdl.BLENDMODE_NONE)
 		} else {
@@ -205,7 +206,7 @@ func (this *Window) drawImage(node nodes.Image, transform sg.Mat4, size sg.Size)
 		}
 		this.sdlRenderer.Copy(texture, nil, &rect)
 	}
-}*/
+}
 
 func (this *Window) setBlendMode(bm sdl.BlendMode) {
 	// this is cheaper than hitting cgo
@@ -224,8 +225,8 @@ func (this *Window) drawNode(node sg.Node, transform sg.Mat4, size sg.Size) {
 		this.drawRectangle(cnode, transform, size)
 	case nodes.Image:
 		this.drawImage(cnode, transform, size)
-	/*case nodes.Text:
-	this.drawText(cnode, transform)*/
+	case nodes.Text:
+		this.drawText(cnode, transform, size)
 
 	default:
 		panic(fmt.Sprintf("unknown drawable %T %+v", node, node))

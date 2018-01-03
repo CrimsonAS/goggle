@@ -159,6 +159,7 @@ func (r *SceneRenderer) Draw(nodeCallback func(sg.Node, sg.Mat4, sg.Size)) {
 			switch shadow.sceneNode.(type) {
 			case nodes.Rectangle:
 			case nodes.Image:
+			case nodes.Text:
 			default:
 				return
 			}
@@ -214,6 +215,7 @@ func (r *SceneRenderer) resolveNode(shadow *shadowNode, oldShadow *shadowNode) b
 	case nodes.Parent:
 	case nodes.Rectangle:
 	case nodes.Image:
+	case nodes.Text:
 	case nodes.Input:
 
 	// Box layouts are handled by the parent Box, not by resolveNode.

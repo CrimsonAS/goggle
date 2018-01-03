@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"math/rand"
 	"os"
 	"runtime/trace"
 	"time"
@@ -138,9 +139,9 @@ func TrippyRender(props components.PropType, state *components.RenderState) sg.N
 				Transform: sg.Translate2D(sz.Width, 0).MulM4(sg.Scale(-1, 1, 1)),
 				Child:     animatedRectStack,
 			},
-			/*layouts.Box{
-				Layout: layouts.None,
-				Transform: sg.Translate2D(sz.X/2*dstate.scaleAnimation.Get(), 0),
+			layouts.Box{
+				Layout:    layouts.None,
+				Transform: sg.Translate2D(sz.Width/2*dstate.scaleAnimation.Get(), 0),
 				Children: []sg.Node{
 					nodes.Text{
 						Size:       sg.Vec2{300, 42},
@@ -150,7 +151,7 @@ func TrippyRender(props components.PropType, state *components.RenderState) sg.N
 						FontFamily: "../shared/Barlow/Barlow-Regular.ttf",
 					},
 				},
-			},*/
+			},
 			/*
 				sg.RectangleNode{
 					X:      10,

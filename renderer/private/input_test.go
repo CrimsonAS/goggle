@@ -1,3 +1,29 @@
+/*
+ * Copyright 2017 Crimson AS <info@crimson.no>
+ * Author: Robin Burchell <robin.burchell@crimson.no>
+ *
+ * Redistribution and use in source and binary forms, with or without modification,
+ * are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ *    list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 package private
 
 import (
@@ -91,7 +117,7 @@ func TestSingleEnterWhenCursorMoves(t *testing.T) {
 			[4]float32{0, 0, 10, 10},
 		},
 		enterPoints: [][]sg.Vec2{
-			[]sg.Vec2{},                          // initial touch outside: no enter
+			[]sg.Vec2{},                    // initial touch outside: no enter
 			[]sg.Vec2{sg.Vec2{X: 1, Y: 1}}, // touch inside: enter
 			[]sg.Vec2{},
 		},
@@ -119,9 +145,9 @@ func TestSingleLeaveWhenCursorMoves(t *testing.T) {
 			[4]float32{0, 0, 10, 10},
 		},
 		enterPoints: [][]sg.Vec2{
-			[]sg.Vec2{},                          // initial touch outside: no enter
+			[]sg.Vec2{},                    // initial touch outside: no enter
 			[]sg.Vec2{sg.Vec2{X: 1, Y: 1}}, // touch inside: enter
-			[]sg.Vec2{},                          // stationary
+			[]sg.Vec2{},                    // stationary
 			[]sg.Vec2{},
 			[]sg.Vec2{},
 		},
@@ -131,7 +157,7 @@ func TestSingleLeaveWhenCursorMoves(t *testing.T) {
 			[]sg.Vec2{},
 			[]sg.Vec2{},
 			[]sg.Vec2{sg.Vec2{X: -1, Y: -1}}, // point leaves
-			[]sg.Vec2{},                            // point already left; no second leave
+			[]sg.Vec2{},                      // point already left; no second leave
 		},
 	}
 	touchTestHelper(t, &testData)
@@ -151,9 +177,9 @@ func TestEnterWhenItemSizeChanges(t *testing.T) {
 			[4]float32{0, 0, 15, 10},
 		},
 		enterPoints: [][]sg.Vec2{
-			[]sg.Vec2{},                           // initial touch outside: no enter
+			[]sg.Vec2{},                     // initial touch outside: no enter
 			[]sg.Vec2{sg.Vec2{X: 15, Y: 1}}, // touch inside: enter
-			[]sg.Vec2{},                           // no additional enter
+			[]sg.Vec2{},                     // no additional enter
 		},
 		movePoints:  [][]sg.Vec2{},
 		leavePoints: [][]sg.Vec2{},
@@ -178,7 +204,7 @@ func TestLeaveWhenItemSizeChanges(t *testing.T) {
 		},
 		enterPoints: [][]sg.Vec2{
 			[]sg.Vec2{sg.Vec2{X: 15, Y: 1}}, // touch inside: enter
-			[]sg.Vec2{},                           // no further enters
+			[]sg.Vec2{},                     // no further enters
 			[]sg.Vec2{},
 			[]sg.Vec2{},
 		},
@@ -217,11 +243,11 @@ func TestTallerThanWider(t *testing.T) {
 		},
 		enterPoints: [][]sg.Vec2{
 			// taller than wider
-			[]sg.Vec2{},                           // start outside
+			[]sg.Vec2{},                     // start outside
 			[]sg.Vec2{sg.Vec2{X: 1, Y: 15}}, // move inside
 
 			// wider than taller
-			[]sg.Vec2{},                           // start outside
+			[]sg.Vec2{},                     // start outside
 			[]sg.Vec2{sg.Vec2{X: 15, Y: 1}}, // move inside
 		},
 		movePoints: [][]sg.Vec2{},
